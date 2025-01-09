@@ -1,0 +1,91 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [],
+    "include": ["src/**/*.ts", "src/**/*.js", "test/**/*.ts", "test/**/*.js"]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "formatter": {
+    "enabled": true,
+    "lineWidth": 120,
+    "formatWithErrors": false,
+    "indentWidth": 4,
+    "lineEnding": "lf",
+    "attributePosition": "auto",
+    "indentStyle": "space"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "es5"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+
+      "complexity": {
+        "noForEach": "off",
+        "useArrowFunction": "off",
+        "noStaticOnlyClass": "off",
+        "noUselessLoneBlockStatements": "off",
+        "noThisInStatic": "off",
+        "useOptionalChain": "off",
+        "useLiteralKeys": "off"
+      },
+      "suspicious": {
+        "noEmptyBlockStatements": "off",
+        "noExplicitAny": "off",
+        "useAwait": "off",
+        "noDuplicateTestHooks": "off",
+        "noAssignInExpressions": "off",
+        "noRedeclare": "off",
+        "noThenProperty": "off",
+        "noDoubleEquals": "off",
+        "noConsole": "error",
+        "noImplicitAnyLet": "off"
+      },
+      "style": {
+        "useConst": "error",
+        "useImportType": "off",
+        "useTemplate": "off",
+        "useNodejsImportProtocol": "off",
+        "noParameterAssign": "off",
+        "noInferrableTypes": "off",
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "off",
+        "noUselessElse": "off",
+        "noArguments": "off",
+        "useNumberNamespace": "off",
+        "useDefaultParameterLast": "off",
+        "useShorthandFunctionType": "off",
+        "useSingleVarDeclarator": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "off",
+        "noVoidTypeReturn": "off",
+        "noInvalidUseBeforeDeclaration": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "include": ["./test/**/*"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}
