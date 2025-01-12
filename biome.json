@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "ignore": [],
+    "ignore": ["./package.json"],
     "include": ["src/**/*.ts", "src/**/*.js", "test/**/*.ts", "test/**/*.js"]
   },
   "vcs": {
@@ -13,7 +13,7 @@
     "enabled": true,
     "lineWidth": 120,
     "formatWithErrors": false,
-    "indentWidth": 4,
+    "indentWidth": 2,
     "lineEnding": "lf",
     "attributePosition": "auto",
     "indentStyle": "space"
@@ -47,7 +47,7 @@
         "noRedeclare": "off",
         "noThenProperty": "off",
         "noDoubleEquals": "off",
-        "noConsole": "error",
+        "noConsole": "off",
         "noImplicitAnyLet": "off"
       },
       "style": {

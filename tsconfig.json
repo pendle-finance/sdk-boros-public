@@ -7,7 +7,6 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
-    "verbatimModuleSyntax": true,
     "removeComments": true,
 
     "strict": true,
