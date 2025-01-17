@@ -1,10 +1,9 @@
-import { http, Address, Hex, createWalletClient, encodeAbiParameters, getAbiItem, keccak256 } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { AGENT_PRIVATE_KEY, AGENT_PUBLIC_ADDRESS, RPC_URL } from '../../constants';
+import { Address, Hex, encodeAbiParameters, getAbiItem, keccak256 } from 'viem';
 import { iAuthModuleAbi } from '../../contracts/viemAbis';
 import { CancelStruct, OrderStruct, PendleSignTxStruct, PositionTransferStruct } from '../../types';
 import { AccountLib } from '../accountLib';
 import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
+import { getInternalAgent } from '../../entities';
 
 export const ACTION_INPUT_NAME_MAP = {
   placeOrders: 'orders',
@@ -44,11 +43,8 @@ export async function signWithAgent(params: {
 
     const primaryType = primaryInput.find((item: any) => item.name === ACTION_INPUT_NAME_MAP[contractParams.tag])!;
 
-    const signer = createWalletClient({
-      account: privateKeyToAccount(AGENT_PRIVATE_KEY as Hex),
-      transport: http(RPC_URL),
-    });
-
+    const agent = getInternalAgent();
+    const signer = agent.walletClient;
     const pendleSignTxType = getAbiItem({
       abi: iAuthModuleAbi,
       name: 'hashPendleSignTx',
@@ -61,7 +57,7 @@ export async function signWithAgent(params: {
     };
 
     const signature = await signer.signTypedData({
-      account: privateKeyToAccount(AGENT_PRIVATE_KEY as Hex),
+      account: agent.walletClient.account!,
       domain: PENDLE_BOROS_ROUTER_DOMAIN,
       types: {
         EIP712Domain: EIP712_DOMAIN_TYPES,
@@ -72,7 +68,7 @@ export async function signWithAgent(params: {
     });
 
     results.push({
-      agent: AGENT_PUBLIC_ADDRESS,
+      agent: await agent.getAddress(),
       message,
       signature,
       params: contractParams,

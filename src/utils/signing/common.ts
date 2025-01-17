@@ -13,3 +13,7 @@ export const EIP712_DOMAIN_TYPES = [
   { name: 'chainId', type: 'uint256' },
   { name: 'verifyingContract', type: 'address' },
 ] as const;
+
+export function getWelcomeMessage(): string {
+  return `Welcome to Boros! ${Date.now()}`;
+}

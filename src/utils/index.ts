@@ -1,8 +1,9 @@
 export * from './signing';
 export * from './accountLib';
 
-import { Hex, WalletClient } from 'viem';
+import { encodeFunctionData, Hex, WalletClient } from 'viem';
 import { ROUTER_ADDRESS } from '../constants';
+import { iRouterAbi } from '../contracts/viemAbis';
 
 export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   const [account] = await walletClient.getAddresses();
@@ -16,4 +17,14 @@ export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   });
 
   return txHash;
+}
+
+export function getRouterDirectCallData(callDataList: Hex[], requireMarginCheckCall = false): Hex {
+  const data = encodeFunctionData({
+    abi: iRouterAbi,
+    functionName: 'directCall',
+    args: [callDataList.map((calldata) => ({ accountId: 0, data: calldata })), requireMarginCheckCall],
+  });
+
+  return data;
 }
