@@ -48,6 +48,12 @@ export type PositionTransferStruct = {
   nonce: bigint;
 };
 
+export type EnterExitMarketStruct = {
+  isCross: boolean;
+  isEnter: boolean;
+  market: Address;
+};
+
 export type PendleSignTxStruct = {
   account: Account;
   connectionId: Hex;

@@ -1,6 +1,6 @@
 import { Address, Hex, encodeAbiParameters, getAbiItem, keccak256 } from 'viem';
 import { iAuthModuleAbi } from '../../contracts/viemAbis';
-import { CancelStruct, OrderStruct, PendleSignTxStruct, PositionTransferStruct } from '../../types';
+import { CancelStruct, EnterExitMarketStruct, OrderStruct, PendleSignTxStruct, PositionTransferStruct } from '../../types';
 import { AccountLib } from '../accountLib';
 import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
 import { getInternalAgent } from '../../entities';
@@ -9,12 +9,14 @@ export const ACTION_INPUT_NAME_MAP = {
   placeOrders: 'orders',
   cancelOrders: 'cancels',
   positionTransfer: 'transfers',
+  enterExitMarkets: 'enterExits',
 } as const;
 
 export type AgentAction =
   | { tag: 'placeOrders'; data: OrderStruct[] }
   | { tag: 'cancelOrders'; data: CancelStruct[] }
-  | { tag: 'positionTransfer'; data: PositionTransferStruct[] };
+  | { tag: 'positionTransfer'; data: PositionTransferStruct[] }
+  | { tag: 'enterExitMarkets'; data: EnterExitMarketStruct[] };
 
 export type SignedAgentCall<T extends AgentAction> = {
   agent: Address;
