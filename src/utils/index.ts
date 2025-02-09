@@ -1,7 +1,7 @@
 export * from './signing';
 export * from './accountLib';
 
-import { encodeFunctionData, Hex, WalletClient } from 'viem';
+import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
 import { ROUTER_ADDRESS } from '../constants';
 import { iRouterAbi } from '../contracts/viemAbis';
 
@@ -27,4 +27,12 @@ export function getRouterDirectCallData(callDataList: Hex[], requireMarginCheckC
   });
 
   return data;
+}
+
+export async function getUserAddressFromWalletClient(userWalletClient: WalletClient): Promise<Address> {
+  let userAddress = userWalletClient.account?.address;
+  if (!userAddress) {
+    [userAddress] = await userWalletClient.getAddresses();
+  }
+  return userAddress;
 }
