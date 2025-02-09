@@ -1,11 +1,11 @@
-import { Address, createWalletClient, encodeFunctionData, Hex, http, toHex, WalletClient } from 'viem';
-import { base } from 'viem/chains';
-import { AccountLib, getRouterDirectCallData, sendTx, signApproveAgentMessage } from '../../utils';
-import { ApproveAgentStruct } from '../../types';
-import { iAuthModuleAbi } from '../../contracts/viemAbis';
+import { http, Address, Hex, WalletClient, createWalletClient, encodeFunctionData, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { getWelcomeMessage } from '../../utils/signing/common';
+import { base } from 'viem/chains';
 import { RPC_URL } from '../../common';
+import { iAuthModuleAbi } from '../../contracts/viemAbis';
+import { ApproveAgentStruct } from '../../types';
+import { AccountLib, getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
+import { getWelcomeMessage } from '../../utils/signing/common';
 
 let internalAgent: Agent | undefined;
 export function setInternalAgent(agent: Agent) {
@@ -56,7 +56,8 @@ export class Agent {
     const [userAddress] = await userWalletClient.getAddresses();
     const signature = await userWalletClient.signMessage({ account: userWalletClient.account ?? userAddress, message });
     const privateKey = toHex(
-      BigInt(signature) & BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+      BigInt(signature) & BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+      { size: 32 }
     );
 
     const agent = new Agent(privateKey);
@@ -64,7 +65,7 @@ export class Agent {
   }
 
   async approveAgent(userWalletClient: WalletClient, expiry_s: number): Promise<Hex> {
-    const [userAddress] = await userWalletClient.getAddresses();
+    const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const approveAgentStruct = await this.createApproveAgentStruct(userAddress, expiry_s);
     const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct);
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
