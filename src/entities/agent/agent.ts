@@ -3,9 +3,10 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { RPC_URL } from '../../common';
 import { iAuthModuleAbi } from '../../contracts/viemAbis';
-import { ApproveAgentStruct } from '../../types';
+import { Account, ApproveAgentStruct } from '../../types';
 import { AccountLib, getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
 import { getWelcomeMessage } from '../../utils/signing/common';
+import { router } from '../router';
 
 let internalAgent: Agent | undefined;
 export function setInternalAgent(agent: Agent) {
@@ -69,6 +70,18 @@ export class Agent {
     const approveAgentStruct = await this.createApproveAgentStruct(userAddress, expiry_s);
     const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct);
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
+  }
+
+  async getExpiry(account: Account): Promise<number> {
+    const agentAddress = await this.getAddress();
+    const expiry = await router.read.viewCall([
+      encodeFunctionData({
+        abi: iAuthModuleAbi,
+        functionName: 'agentExpiry',
+        args: [account, agentAddress],
+      }),
+    ]);
+    return Number(expiry);
   }
 
   async getAddress(): Promise<Address> {

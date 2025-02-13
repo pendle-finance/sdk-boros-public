@@ -4,6 +4,8 @@ export * from './accountLib';
 import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
 import { ROUTER_ADDRESS } from '../constants';
 import { iRouterAbi } from '../contracts/viemAbis';
+import { AccountPosition } from '../types';
+import { marketHub } from '../entities/marketHub';
 
 export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   const [account] = await walletClient.getAddresses();
@@ -35,4 +37,8 @@ export async function getUserAddressFromWalletClient(userWalletClient: WalletCli
     [userAddress] = await userWalletClient.getAddresses();
   }
   return userAddress;
+}
+
+export async function getEnteredMarkets(accountPosition: AccountPosition) {
+  return marketHub.read.getEnteredMarkets([accountPosition]);
 }
