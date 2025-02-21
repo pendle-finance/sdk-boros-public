@@ -17,3 +17,8 @@ export const EIP712_DOMAIN_TYPES = [
 export function getWelcomeMessage(): string {
   return `Welcome to Boros! ${Date.now()}`;
 }
+
+export const UPDATE_SETTINGS_TYPES = [
+  { name: 'accountPosition', type: 'bytes28' },
+  { name: 'timestamp', type: 'uint256' },
+] as const;

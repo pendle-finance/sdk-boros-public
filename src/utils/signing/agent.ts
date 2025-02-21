@@ -2,6 +2,7 @@ import { Address, Hex, encodeAbiParameters, getAbiItem, keccak256 } from 'viem';
 import { iAuthModuleAbi } from '../../contracts/viemAbis';
 import { getInternalAgent } from '../../entities';
 import {
+  AccountPosition,
   CancelStruct,
   EnterExitMarketStruct,
   OrderStruct,
@@ -9,7 +10,7 @@ import {
   PositionTransferStruct,
 } from '../../types';
 import { AccountLib } from '../accountLib';
-import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
+import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
 
 export const ACTION_INPUT_NAME_MAP = {
   placeOrders: 'orders',
@@ -84,4 +85,40 @@ export async function signWithAgent(params: {
   }
 
   return results;
+}
+
+export async function signUpdateSettings(params: {
+  accountPosition: AccountPosition;
+  marketAddress: Address;
+  leverage: number;
+}) {
+  const { accountPosition, marketAddress, leverage } = params;
+
+  const agent = getInternalAgent();
+  const agentAddress = await agent.getAddress();
+  const signer = agent.walletClient;
+  const timestamp = Date.now();
+
+  const signature = await signer.signTypedData({
+    account: agent.walletClient.account!,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN,
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      UpdateSettings: UPDATE_SETTINGS_TYPES,
+    },
+    primaryType: 'UpdateSettings',
+    message: {
+      accountPosition,
+      timestamp: BigInt(timestamp),
+    },
+  });
+
+  return {
+    accountPosition,
+    marketAddress,
+    leverage,
+    signature,
+    agent: agentAddress,
+    timestamp,
+  };
 }
