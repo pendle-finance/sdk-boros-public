@@ -58,7 +58,7 @@ export class AccountLib {
       throw new Error('Invalid account');
     }
 
-    const accountId = BigInt(`${bytesToHex(accountBytes.slice(0, 1))}`);
+    const accountId = Number(`${bytesToHex(accountBytes.slice(0, 1))}`);
     const root = bytesToHex(accountBytes.slice(1));
     return { root, accountId };
   }

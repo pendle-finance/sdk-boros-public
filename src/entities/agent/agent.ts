@@ -8,8 +8,8 @@ import { AccountLib, getUserAddressFromWalletClient, signApproveAgentMessage } f
 import { getWelcomeMessage } from '../../utils/signing/common';
 import { router } from '../router';
 
-let internalAgent: Agent | undefined;
-export function setInternalAgent(agent: Agent) {
+let internalAgent: Agent | null;
+export function setInternalAgent(agent: Agent | null) {
   internalAgent = agent;
 }
 
