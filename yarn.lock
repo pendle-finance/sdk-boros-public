@@ -438,12 +438,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pendle/boros-offchain-math@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@pendle/boros-offchain-math@npm:1.0.1"
+  dependencies:
+    tslib: "npm:^2.6.2"
+  checksum: 10/98198841ec294d085f31b927d605e2c28b1b3d051a69a9f694d6d1f2a0fddd3b05afdd577684d48f6a9bf8677771d380a731a2ed72759bd3a277d285d15f802c
+  languageName: node
+  linkType: hard
+
 "@pendle/sdk-boros@workspace:.":
   version: 0.0.0-use.local
   resolution: "@pendle/sdk-boros@workspace:."
   dependencies:
     "@biomejs/biome": "npm:1.9.4"
     "@changesets/cli": "npm:^2.27.11"
+    "@pendle/boros-offchain-math": "npm:^1.0.1"
     typescript: "npm:^5.7.3"
     viem: "npm:^2.22.5"
   languageName: unknown
@@ -1187,6 +1197,13 @@ __metadata:
   dependencies:
     is-number: "npm:^7.0.0"
   checksum: 10/10dda13571e1f5ad37546827e9b6d4252d2e0bc176c24a101252153ef435d83696e2557fe128c4678e4e78f5f01e83711c703eef9814eb12dab028580d45980a
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.6.2":
+  version: 2.8.1
+  resolution: "tslib@npm:2.8.1"
+  checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
   languageName: node
   linkType: hard
 
