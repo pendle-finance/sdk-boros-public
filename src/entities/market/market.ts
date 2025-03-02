@@ -48,8 +48,8 @@ export class Market {
       : orderRate;
 
     const sizeOrderRateRatio = [
-      markRate.mulDown(marginFactor),
-      markRate.mulDown(maxMarginIndexRate),
+        marginFactor.mulDown(markRate),
+        marginFactor.mulDown(maxMarginIndexRate),
       orderRateWithBuffer.divDown(FixedX18.fromNumber(leverage)),
     ].reduce((a, b) => (a.gt(b) ? a : b), FixedX18.ZERO); // get the max value
 
@@ -75,8 +75,8 @@ export class Market {
     const orderRateWithBuffer = isMarketOrder ? orderRate.mulDown(FixedX18.ONE.add(MARKET_ORDER_BUFFER_RATE)) : orderRate;
 
     const sizeOrderRateRatio = [
-        markRate.mulDown(marginFactor),
-        markRate.mulDown(maxMarginIndexRate),
+        marginFactor.mulDown(markRate),
+        marginFactor.mulDown(maxMarginIndexRate),
         orderRateWithBuffer.divDown(FixedX18.fromNumber(leverage)),
       ].reduce((a, b) => (a.gt(b) ? a : b), FixedX18.ZERO); // get the max value
   
@@ -86,7 +86,7 @@ export class Market {
     // calculate the order size
     const initialMargin = FixedX18.fromRawValue(orderSize)
       .mulDown(initialMarginRateRatioWithBuffer)
-      .mulDown(FixedX18.fromNumber(timeToMaturity_y));
+      .mulDown(FixedX18.fromNumber(timeToMaturity_y)).value;
 
     return initialMargin;
   }
