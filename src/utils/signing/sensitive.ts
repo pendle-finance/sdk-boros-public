@@ -6,7 +6,7 @@ import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
 export async function signSetAccManagerMessage(wallet: WalletClient, message: SetAccManagerStruct) {
   const [account] = await wallet.getAddresses();
   return wallet.signTypedData({
-    account,
+    account: wallet.account ?? account,
     domain: PENDLE_BOROS_ROUTER_DOMAIN,
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
@@ -24,7 +24,7 @@ export async function signSetAccManagerMessage(wallet: WalletClient, message: Se
 export async function signApproveAgentMessage(wallet: WalletClient, message: ApproveAgentStruct) {
   const account = await getUserAddressFromWalletClient(wallet);
   return wallet.signTypedData({
-    account,
+    account: wallet.account ?? account,
     domain: PENDLE_BOROS_ROUTER_DOMAIN,
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
