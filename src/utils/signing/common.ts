@@ -1,4 +1,4 @@
-import { CHAIN_ID, ROUTER_ADDRESS } from '../../constants';
+import { CHAIN_ID, ROUTER_ADDRESS } from '../../addresses';
 
 export const PENDLE_BOROS_ROUTER_DOMAIN = {
   name: 'Pendle Boros Router',
@@ -19,6 +19,6 @@ export function getWelcomeMessage(): string {
 }
 
 export const UPDATE_SETTINGS_TYPES = [
-  { name: 'accountPosition', type: 'bytes28' },
+  { name: 'marketAcc', type: 'bytes28' },
   { name: 'timestamp', type: 'uint256' },
 ] as const;

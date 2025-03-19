@@ -1,11 +1,11 @@
 export * from './signing';
 export * from './accountLib';
+export * from './orderLib';
 
-import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
-import { ROUTER_ADDRESS } from '../constants';
-import { iRouterAbi } from '../contracts/viemAbis';
-import { AccountPosition } from '../types';
+import { Address, Hex, WalletClient } from 'viem';
+import { ROUTER_ADDRESS } from '../addresses';
 import { marketHub } from '../entities/marketHub';
+import { MarketAcc } from '../types';
 
 export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   const [account] = await walletClient.getAddresses();
@@ -21,16 +21,6 @@ export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   return txHash;
 }
 
-export function getRouterDirectCallData(callDataList: Hex[], requireMarginCheckCall = false): Hex {
-  const data = encodeFunctionData({
-    abi: iRouterAbi,
-    functionName: 'directCall',
-    args: [callDataList.map((calldata) => ({ accountId: 0, data: calldata })), requireMarginCheckCall],
-  });
-
-  return data;
-}
-
 export async function getUserAddressFromWalletClient(userWalletClient: WalletClient): Promise<Address> {
   let userAddress = userWalletClient.account?.address;
   if (!userAddress) {
@@ -39,6 +29,6 @@ export async function getUserAddressFromWalletClient(userWalletClient: WalletCli
   return userAddress;
 }
 
-export async function getEnteredMarkets(accountPosition: AccountPosition) {
-  return marketHub.read.getEnteredMarkets([accountPosition]);
+export async function getEnteredMarkets(marketAcc: MarketAcc) {
+  return marketHub.read.getEnteredMarkets([marketAcc]);
 }

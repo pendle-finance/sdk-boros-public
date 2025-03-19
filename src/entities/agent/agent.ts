@@ -1,12 +1,13 @@
 import { http, Address, Hex, WalletClient, createWalletClient, encodeFunctionData, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
+import { ROUTER_ADDRESS } from '../../addresses';
 import { RPC_URL } from '../../common';
-import { iAuthModuleAbi } from '../../contracts/viemAbis';
-import { Account, ApproveAgentStruct } from '../../types';
+import { iRouterAbi } from '../../contracts/viemAbis';
+import { ApproveAgentMessage, Account as BorosAccount } from '../../types/common';
 import { AccountLib, getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
 import { getWelcomeMessage } from '../../utils/signing/common';
-import { router } from '../router';
+import { publicClient } from '../publicClient';
 
 let internalAgent: Agent | null;
 export function setInternalAgent(agent: Agent | null) {
@@ -27,7 +28,7 @@ export class Agent {
     this.walletClient = createWalletClient({ account, transport: http(RPC_URL), chain: base });
   }
 
-  private async createApproveAgentStruct(userAddress: Address, expiry_s: number): Promise<ApproveAgentStruct> {
+  private async createApproveAgentMessage(userAddress: Address, expiry_s: number): Promise<ApproveAgentMessage> {
     const agentAddress = await this.getAddress();
     const nonce = BigInt(Date.now());
     return {
@@ -38,11 +39,11 @@ export class Agent {
     };
   }
 
-  private getApproveAgentData(approveAgentStruct: ApproveAgentStruct, signature: Hex): Hex {
+  private getApproveAgentData(approveAgentStruct: ApproveAgentMessage, signature: Hex): Hex {
     const data = encodeFunctionData({
-      abi: iAuthModuleAbi,
+      abi: iRouterAbi,
       functionName: 'approveAgent',
-      args: [approveAgentStruct, signature, { version: 0, data: '0x' }],
+      args: [approveAgentStruct, signature],
     });
 
     return data;
@@ -67,20 +68,19 @@ export class Agent {
 
   async approveAgent(userWalletClient: WalletClient, expiry_s: number): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
-    const approveAgentStruct = await this.createApproveAgentStruct(userAddress, expiry_s);
+    const approveAgentStruct = await this.createApproveAgentMessage(userAddress, expiry_s);
     const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct);
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
   }
 
-  async getExpiry(account: Account): Promise<number> {
+  async getExpiry(account: BorosAccount): Promise<number> {
     const agentAddress = await this.getAddress();
-    const expiry = await router.read.viewCall([
-      encodeFunctionData({
-        abi: iAuthModuleAbi,
-        functionName: 'agentExpiry',
-        args: [account, agentAddress],
-      }),
-    ]);
+    const expiry = await publicClient.readContract({
+      address: ROUTER_ADDRESS,
+      abi: iRouterAbi,
+      functionName: 'agentExpiry',
+      args: [account, agentAddress],
+    });
     return Number(expiry);
   }
 

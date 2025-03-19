@@ -8,7 +8,7 @@ export type MarketConfig = {
   // market info
   marginFactor: FixedX18;
   markRate: FixedX18;
-  maxMarginIndexRate: FixedX18;
+  minMarginIndexRate: FixedX18;
   marketExpiry_s: number;
 };
 
@@ -35,7 +35,7 @@ export class Market {
       leverage,
       marginFactor,
       markRate,
-      maxMarginIndexRate,
+      minMarginIndexRate,
       marketExpiry_s,
     } = params;
 
@@ -49,7 +49,7 @@ export class Market {
 
     const sizeOrderRateRatio = [
         marginFactor.mulDown(markRate),
-        marginFactor.mulDown(maxMarginIndexRate),
+        marginFactor.mulDown(minMarginIndexRate),
       orderRateWithBuffer.divDown(FixedX18.fromNumber(leverage)),
     ].reduce((a, b) => (a.gt(b) ? a : b), FixedX18.ZERO); // get the max value
 
@@ -66,7 +66,7 @@ export class Market {
   }
 
   static getInitialMarginByOrderSize(params: GetInitialMarginByOrderSizeParams) {
-    const { orderSize, orderRate, isMarketOrder, leverage, marginFactor, markRate, maxMarginIndexRate, marketExpiry_s } = params;
+    const { orderSize, orderRate, isMarketOrder, leverage, marginFactor, markRate, minMarginIndexRate, marketExpiry_s } = params;
 
     const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
 
@@ -76,7 +76,7 @@ export class Market {
 
     const sizeOrderRateRatio = [
         marginFactor.mulDown(markRate),
-        marginFactor.mulDown(maxMarginIndexRate),
+        marginFactor.mulDown(minMarginIndexRate),
         orderRateWithBuffer.divDown(FixedX18.fromNumber(leverage)),
       ].reduce((a, b) => (a.gt(b) ? a : b), FixedX18.ZERO); // get the max value
   

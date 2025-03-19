@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { getUserAddressFromWalletClient } from '..';
-import { ApproveAgentStruct, SetAccManagerStruct } from '../../types';
+import { ApproveAgentMessage, SetAccManagerStruct } from '../../types';
 import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
 
 export async function signSetAccManagerMessage(wallet: WalletClient, message: SetAccManagerStruct) {
@@ -21,21 +21,21 @@ export async function signSetAccManagerMessage(wallet: WalletClient, message: Se
   });
 }
 
-export async function signApproveAgentMessage(wallet: WalletClient, message: ApproveAgentStruct) {
+export async function signApproveAgentMessage(wallet: WalletClient, message: ApproveAgentMessage) {
   const account = await getUserAddressFromWalletClient(wallet);
   return wallet.signTypedData({
     account: wallet.account ?? account,
     domain: PENDLE_BOROS_ROUTER_DOMAIN,
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
-      ApproveAgentStruct: [
+      ApproveAgentMessage: [
         { name: 'account', type: 'bytes21' },
         { name: 'agent', type: 'address' },
         { name: 'expiry', type: 'uint64' },
         { name: 'nonce', type: 'uint64' },
       ],
     },
-    primaryType: 'ApproveAgentStruct',
+    primaryType: 'ApproveAgentMessage',
     message,
   });
 }

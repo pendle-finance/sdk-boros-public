@@ -1,7 +1,7 @@
-import { createPublicClient, getContract, GetContractReturnType, http, PublicClient } from 'viem';
+import { http, GetContractReturnType, PublicClient, createPublicClient, getContract } from 'viem';
 import { base } from 'viem/chains';
+import { MARKET_HUB_ADDRESS } from '../addresses';
 import { RPC_URL } from '../common';
-import { MARKET_HUB_ADDRESS } from '../constants';
 import { iMarketHubAbi } from '../contracts/viemAbis';
 
 export const marketHub: GetContractReturnType<typeof iMarketHubAbi, PublicClient> = getContract({

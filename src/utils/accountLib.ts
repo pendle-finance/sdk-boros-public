@@ -1,37 +1,36 @@
-import { Address, bytesToHex, hexToBytes, numberToBytes } from 'viem';
-import { Account, AccountPosition, MarketId, TokenId } from '../types';
+import { Address, bytesToHex, fromHex, numberToBytes } from 'viem';
+import { CROSS_MARKET_ID } from '../constants';
+import { Account, MarketAcc, MarketId, TokenId } from '../types';
+
 /**
- * Represents a packed account position identifier
- * Packs: address(160) | accountId(8) | tokenId(16) | marketId(40)
+ * Represents a packed MarketAcc identifier
+ * Packs: address(160) | accountId(MarketAcc, 8) | tokenId(16) | marketId(24)
  */
-export class AccountPositionLib {
-  static crossMarketId = 2 ** 40 - 1;
+export class MarketAccLib {
+  static pack(root: Address, accountId: number, tokenId: TokenId, marketId: MarketId): MarketAcc {
+    const rootBigInt = fromHex(root, 'bigint');
+    const accountIdBigInt = BigInt(accountId);
+    const tokenIdBigInt = BigInt(tokenId);
+    const marketIdBigInt = BigInt(marketId);
 
-  static pack(root: Address, accountId: number, tokenId: TokenId, marketId: MarketId): AccountPosition {
-    const rawUserBytes = hexToBytes(root);
+    const accountPositionBigInt =
+      (rootBigInt << 48n) | (accountIdBigInt << 40n) | (tokenIdBigInt << 24n) | marketIdBigInt;
 
-    const rawBytes = new Uint8Array(28);
-    let offset = 0;
-    rawBytes.set(numberToBytes(marketId, { size: 5 }), offset);
-    offset += 5;
-    rawBytes.set(numberToBytes(tokenId, { size: 2 }), offset);
-    offset += 2;
-    rawBytes.set(numberToBytes(accountId, { size: 1 }), offset);
-    offset += 1;
-    rawBytes.set(rawUserBytes, offset);
-    offset += 20;
-    return bytesToHex(rawBytes);
+    return bytesToHex(numberToBytes(accountPositionBigInt, { size: 26 }));
   }
 
-  static unpack(value: AccountPosition) {
-    const bytes = hexToBytes(value);
-
-    const marketId = Number(`0x${Buffer.from(bytes.slice(0, 5)).toString('hex')}`);
-    const tokenId = Number(`0x${Buffer.from(bytes.slice(5, 7)).toString('hex')}`);
-    const accountId = Number(`0x${Buffer.from(bytes.slice(7, 8)).toString('hex')}`);
-    const root = `0x${Buffer.from(bytes.slice(8)).toString('hex')}`;
-
+  static unpack(value: MarketAcc) {
+    const accountPositionBigInt = fromHex(value, 'bigint');
+    const root = bytesToHex(numberToBytes(accountPositionBigInt >> 48n, { size: 20 }));
+    const accountId = Number((accountPositionBigInt >> 40n) & ((1n << 8n) - 1n));
+    const tokenId = Number((accountPositionBigInt >> 24n) & ((1n << 16n) - 1n));
+    const marketId = Number(accountPositionBigInt & ((1n << 24n) - 1n));
     return { root, accountId, tokenId, marketId };
+  }
+
+  static isCrossMarket(accountPosition: MarketAcc) {
+    const { marketId } = MarketAccLib.unpack(accountPosition);
+    return marketId === CROSS_MARKET_ID;
   }
 }
 
@@ -41,25 +40,15 @@ export class AccountPositionLib {
  */
 export class AccountLib {
   static pack(root: Address, accountId: number): Account {
-    const rawUserBytes = hexToBytes(root);
-
-    const rawBytes = new Uint8Array(21);
-    let offset = 0;
-    rawBytes.set(numberToBytes(accountId, { size: 1 }), offset);
-    offset += 1;
-    rawBytes.set(rawUserBytes, offset);
-    offset += 20;
-    return bytesToHex(rawBytes);
+    const rootBigInt = fromHex(root, 'bigint');
+    const accountBigInt = (rootBigInt << 8n) | BigInt(accountId);
+    return bytesToHex(numberToBytes(accountBigInt, { size: 21 }));
   }
 
   static unpack(account: Account) {
-    const accountBytes = hexToBytes(account);
-    if (accountBytes.length !== 21) {
-      throw new Error('Invalid account');
-    }
-
-    const accountId = Number(`${bytesToHex(accountBytes.slice(0, 1))}`);
-    const root = bytesToHex(accountBytes.slice(1));
+    const accountBigInt = fromHex(account, 'bigint');
+    const accountId = Number(accountBigInt & ((1n << 8n) - 1n));
+    const root = bytesToHex(numberToBytes(accountBigInt >> 8n, { size: 20 }));
     return { root, accountId };
   }
 }
