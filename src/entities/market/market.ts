@@ -88,11 +88,12 @@ export class Market {
   static getOrderValue(params: GetOrderValueParams): bigint {
     const { orderSize, orderRate, marketExpiry_s } = params;
 
-    const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
+    const timeToMaturity_y = FixedX18.divDown(
+      BigInt(marketExpiry_s - Math.floor(Date.now() / 1000)),
+      BigInt(SECONDS_PER_YEARS)
+    );
 
-    const orderValue = FixedX18.fromRawValue(orderSize)
-      .mulDown(orderRate)
-      .mulDown(FixedX18.fromNumber(timeToMaturity_y)).value;
+    const orderValue = FixedX18.fromRawValue(orderSize).mulDown(orderRate).mulDown(timeToMaturity_y).value;
 
     return orderValue;
   }
