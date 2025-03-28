@@ -15,15 +15,19 @@
     "format": "yarn biome format --write",
     "lint": "yarn biome lint --write",
     "prepack": "yarn build",
-    "release": "yarn npm publish"
+    "release": "yarn npm publish",
+    "test": "yarn jest",
+    "generateContractErrors": "yarn tsx scripts/generatePendleContractErrorMessageHandler.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "^2.27.11",
+    "@pendle/core-v3": "0.3.4",
     "@types/jest": "^29.5.14",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.16.2",
     "typescript": "^5.7.3"
   },
   "dependencies": {
