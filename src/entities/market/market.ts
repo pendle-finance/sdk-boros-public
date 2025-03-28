@@ -46,7 +46,7 @@ export class Market {
 
     // calculate the order size
     const orderSize = FixedX18.fromRawValue(params.initialMargin)
-      .mulDown(imSuf)
+      .divDown(imSuf)
       .divDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO)).value;
 
     return orderSize;
