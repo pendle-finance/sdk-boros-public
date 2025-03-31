@@ -1,5 +1,5 @@
 import { PendleContractError } from './PendleContractError';
-import { UnregocnizedCustomError } from './UnrecognizedContractError';
+import { UnrecognizedContractError } from './UnrecognizedContractError';
 
 export class ViemErrorDecoder {
   static readonly MAKE_ERROR_CALLBACKS: Array<
@@ -18,4 +18,4 @@ export class ViemErrorDecoder {
   }
 }
 
-ViemErrorDecoder.MAKE_ERROR_CALLBACKS.push(PendleContractError.factory, UnregocnizedCustomError.factory);
+ViemErrorDecoder.MAKE_ERROR_CALLBACKS.push(PendleContractError.factory, UnrecognizedContractError.factory);

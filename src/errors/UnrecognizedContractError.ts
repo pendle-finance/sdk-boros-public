@@ -1,8 +1,8 @@
-import { AbiErrorSignatureNotFoundError, BaseError, Hex } from 'viem';
+import { BaseError, Hex } from 'viem';
 import { ContractErrorFactory } from './ContractErrorFactory';
 import { extractErrorData } from './helpers';
-export class UnregocnizedCustomError extends BaseError {
-  static factory = new ContractErrorFactory(UnregocnizedCustomError.decodeError.bind(UnregocnizedCustomError));
+export class UnrecognizedContractError extends BaseError {
+  static factory = new ContractErrorFactory(UnrecognizedContractError.decodeError.bind(UnrecognizedContractError));
 
   static decodeError(originalError: Error) {
     const errorData = extractErrorData(originalError);
@@ -10,7 +10,7 @@ export class UnregocnizedCustomError extends BaseError {
       return undefined;
     }
     const errorSig = errorData.slice(0, 10);
-    return new UnregocnizedCustomError(errorSig, errorData, originalError);
+    return new UnrecognizedContractError(errorSig, errorData, originalError);
   }
 
   constructor(

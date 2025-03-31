@@ -20,7 +20,6 @@ export class PendleContractError<
   static decodeError(originalError: Error) {
     try {
       const errorData = extractErrorData(originalError);
-      console.log('errorData', errorData);
       if (!errorData) {
         return undefined;
       }
@@ -29,7 +28,6 @@ export class PendleContractError<
         abi: PendleContractErrorsAbi,
         data: errorData,
       });
-      console.log({ decodedError });
       const name = decodedError.errorName as PendleContractErrorType;
       const args = decodedError.args as PendleContractErrorParams;
       return new PendleContractError(name, args, originalError);
