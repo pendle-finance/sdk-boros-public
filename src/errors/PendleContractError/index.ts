@@ -41,7 +41,11 @@ export class PendleContractError<
     readonly args: PendleContractErrorParams<ErrorType>,
     cause: Error
   ) {
-    const message: string = (PendleContractError.errorMessageHandler[errorName] as any)(...args);
+    const message: string = Array.isArray(args) && args.length > 0 
+    ? (PendleContractError.errorMessageHandler[errorName] as any)(...args) 
+    : args !== undefined 
+    ? (PendleContractError.errorMessageHandler[errorName] as any)(args) 
+    : (PendleContractError.errorMessageHandler[errorName] as any)();
     super(message, { cause });
   }
 
