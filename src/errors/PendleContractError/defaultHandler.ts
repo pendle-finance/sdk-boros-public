@@ -49,5 +49,5 @@ function joinArgs<Args extends unknown[]>(args: Args) {
 export const defaultPendleContractErrorMessageHandler: PendleContractErrorMessageHandler =
   createPendlecontractErrorMessageHandler(
     {},
-    (errorName, ...args) => `Pendle contract error: ${errorName}(${joinArgs(args)})`
+    (errorName, ...args) => `${errorName}(${joinArgs(args)})`
   );

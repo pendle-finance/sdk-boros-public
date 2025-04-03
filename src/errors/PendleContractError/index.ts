@@ -47,6 +47,7 @@ export class PendleContractError<
     ? (PendleContractError.errorMessageHandler[errorName] as any)(args) 
     : (PendleContractError.errorMessageHandler[errorName] as any)();
     super(message, { cause });
+    this.message = this.shortMessage;
   }
 
   isType<OtherErrorType extends PendleContractErrorType>(
