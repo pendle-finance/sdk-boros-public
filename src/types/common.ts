@@ -78,3 +78,15 @@ export type SetAccManagerStruct = {
   accManager: Address;
   nonce: bigint;
 };
+
+export type AMMState = {
+  totalFloatAmount: bigint;
+  normFixedAmount: bigint;
+  totalLp: bigint;
+  latestFTime: bigint;
+  maturity: bigint;
+  seedTime: bigint;
+  minAbsRate: bigint;
+  maxAbsRate: bigint;
+  cutOffTimestamp: bigint;
+}
