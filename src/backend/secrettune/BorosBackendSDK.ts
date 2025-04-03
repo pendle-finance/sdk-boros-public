@@ -22,7 +22,10 @@ export interface MarketConfigResponse {
   settlementFeesFactor: string;
   imFactor: string;
   mmFactor: string;
+  /** @deprecated */
   maxMarginIndexRate: string;
+  minMarginIndexRate: string;
+  minMarginIndexDuration: number;
 }
 
 export interface MarketDataResponse {
@@ -204,6 +207,8 @@ export interface ContractSwapPositionResponse {
   size: string;
   /** bigint string of cost */
   cost: string;
+  /** rate */
+  rate: number;
 }
 
 export interface PlaceOrderSimulationResponse {
@@ -330,6 +335,29 @@ export interface AgentExecuteParamsResponse {
   data: string;
 }
 
+export interface PlaceOrderQueryDto {
+  marketAcc: string;
+  marketAddress: string;
+  /** comma separated amm addresses */
+  ammAddresses?: string;
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
+  /** bigint string of size */
+  size: string;
+  /**
+   * @min -32768
+   * @max 32767
+   */
+  limitTick: number;
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+  tif: 0 | 1 | 2 | 3;
+  useOrderBook: boolean;
+}
+
+export interface BulkPlaceOrderQueryDto {
+  orders: PlaceOrderQueryDto[];
+}
+
 export interface PendleSignTxDto {
   account: string;
   connectionId: string;
@@ -350,6 +378,10 @@ export interface TxResponse {
   txHash: string;
   /** Logs index */
   index: number;
+}
+
+export interface BulkAgentExecuteDto {
+  datas: AgentExecuteDto[];
 }
 
 export interface ApproveAgentQueryDto {
@@ -583,6 +615,8 @@ export interface MarketPositionResponse {
   /** the average of best bid apr and best ask apr of the market */
   impliedApr: number;
   liquidationApr: number;
+  /** fixed apr */
+  fixedApr: number;
   positionValue: PositionValueResponse;
   pnl: PnlResponse;
   /** bigint string of maintMargin */
@@ -624,6 +658,12 @@ export interface CollateralSummaryResponse {
   crossPosition: MarketAccCollateralResponse;
   /** bigint string of total net balance */
   totalNetBalance: string;
+  /** bigint string of start day net balance */
+  startDayNetBalance: string;
+  /** bigint string of one month ago net balance */
+  oneMonthAgoNetBalance: string;
+  /** bigint string of one month ago aggregated vault transfer */
+  oneMonthAgoAggregatedVaultTransfer: string;
 }
 
 export interface AllCollateralSummaryResponse {
@@ -690,7 +730,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2' });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || 'http://localhost:8000' });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -782,7 +822,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl http://localhost:8000
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -895,7 +935,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1743064461
+         * @default 1743668927
          */
         endTimestamp?: number;
       },
@@ -1298,6 +1338,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldata
+     * @summary Get place multiple limit orders contract params
+     * @request GET:/v1/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldata: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
+      this.request<AgentExecuteParamsResponse[], any>({
+        path: `/v1/calldata/place-orders`,
+        method: 'GET',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetCancelOrderCalldata
      * @summary Get cancel order contract params
      * @request GET:/v1/calldata/cancel-order
@@ -1415,6 +1473,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerDirectCall: (data: AgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse, any>({
         path: `/v1/calldata/agent-direct-call`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerBulkAgentDirectCall
+     * @summary Send multiple direct call to agent
+     * @request POST:/v1/calldata/bulk-agent-direct-call
+     */
+    calldataControllerBulkAgentDirectCall: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
+      this.request<TxResponse[], any>({
+        path: `/v1/calldata/bulk-agent-direct-call`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1623,7 +1699,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1743064462
+         * @default 1743668927
          */
         endTimestamp?: number;
       },

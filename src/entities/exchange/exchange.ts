@@ -22,6 +22,48 @@ export class Exchange {
         this.borosBackendSdk = BorosBackend.getSdk();
     }
 
+    async bulkSignAndExecute(
+        calls: AgentExecuteParams[],
+    ) {
+        const signs = await Promise.all(calls.map(async (call) =>  signWithAgent({
+                root: this.root,
+                accountId: this.accountId,
+                call
+            })
+        ))
+        const {data: executeResponses} = await this.borosBackendSdk.calldata.calldataControllerBulkAgentDirectCall({
+            datas: signs.map(sign => ({
+                ...sign,
+                message: {
+                    ...sign.message,
+                    nonce: sign.message.nonce.toString(),
+                },
+            }))
+        });
+        const txHash = executeResponses[0].txHash;
+        const receipt = await publicClient.waitForTransactionReceipt({hash: txHash as Hex});
+        const blockTimestamp = receipt.blockNumber;
+        const logGroups = [];
+        let events = [];
+        const decodedEvents = receipt.logs.map(log => decodeLog(log));
+        for(const event of decodedEvents) {
+            if(event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed') {
+                events.push(event);
+                logGroups.push([...events]);
+                events = [];
+            } else {
+                events.push(event);
+            }
+        }
+
+        return logGroups.map((log, index) => ({
+            executeResponse: executeResponses[index],
+            events: log,
+            blockTimestamp,
+        }));
+
+    }
+
     async signAndExecute(
         call: AgentExecuteParams,
     ) {
@@ -102,11 +144,43 @@ export class Exchange {
     async bulkPlaceOrders(
         orderRequests: PlaceOrderParams[],
     ) {
-        const placeOrderCalldataResponse = await Promise.all(orderRequests.map(async (orderRequest) => {
-            return this.placeOrder(orderRequest);
-        }));
-
-        return placeOrderCalldataResponse;
+        const {data: bulkPlaceOrderCalldataResponse} = await this.borosBackendSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
+            orders: orderRequests.map(orderRequest => ({
+                marketAcc: orderRequest.marketAcc,
+                marketAddress: orderRequest.marketAddress,
+                ammAddresses: orderRequest.ammAddresses.join(','),
+                side: orderRequest.side,
+                size: orderRequest.size.toString(),
+                limitTick: orderRequest.limitTick,
+                tif: orderRequest.tif,
+                useOrderBook: orderRequest.useOrderBook,
+            }))
+        })
+        const placeOrdersResponse = await this.bulkSignAndExecute(bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams[]);
+        const results = placeOrdersResponse.map((response, index) => {
+            const event = response.events.filter(event => event.eventName === 'LimitOrderPlaced')[0];
+            let orderInfo;
+            if(event.eventName === 'LimitOrderPlaced') {
+                orderInfo = {
+                    side: orderRequests[index].side,
+                    placedSize: event.args.sizes[0],
+                    orderId: event.args.orderIds[0],
+                    root: this.root,
+                    marketAddress: orderRequests[index].marketAddress,
+                    accountId: this.accountId,
+                    isCross: MarketAccLib.isCrossMarket(orderRequests[index].marketAcc),
+                    blockTimestamp: response.blockTimestamp,
+                    marketAcc: orderRequests[index].marketAcc,
+                }
+            }
+            return {
+                executeResponse: response.executeResponse,
+                result: {
+                    order: orderInfo
+                }
+            }
+        })
+        return results;
     }
 
     async modifyOrder(
