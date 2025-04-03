@@ -17,13 +17,15 @@
     "prepack": "yarn build",
     "release": "yarn npm publish",
     "test": "yarn jest",
-    "generateContractErrors": "yarn tsx scripts/generatePendleContractErrorMessageHandler.ts"
+    "generateContractErrors": "yarn tsx scripts/generatePendleContractErrorMessageHandler.ts",
+    "gen-backend-sdk": "bash ./scripts/genBorosBackendSDK.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "^2.27.11",
     "@types/jest": "^29.5.14",
     "jest": "^29.7.0",
+    "swagger-typescript-api": "13.0.13",
     "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.2",
@@ -32,6 +34,7 @@
   "dependencies": {
     "@pendle/boros-offchain-math": "^1.0.1",
     "@pendle/core-v3": "0.3.4",
+    "axios": "^1.8.4",
     "viem": "^2.22.5"
   },
   "packageManager": "yarn@4.4.0"
