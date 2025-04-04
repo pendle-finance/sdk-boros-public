@@ -3,7 +3,7 @@ import { Address, Hex, WalletClient } from "viem";
 import { BorosBackend } from "../../backend";
 import { AgentExecuteParams, MarketAccLib, OrderIdLib, signWithAgent } from "../../utils";
 import { Agent, setInternalAgent } from "../agent";
-import { PlaceOrderParams, ModifyOrderParams, CancelOrdersParams, DepositParams, WithdrawParams, CashTransferParams, CloseActivePositionsParams, UpdateSettingsParams, GetMarketsParams, GetOrderBookParams, GetPnlLimitOrdersParams } from './types';
+import { PlaceOrderParams, ModifyOrderParams, CancelOrdersParams, DepositParams, WithdrawParams, CashTransferParams, CloseActivePositionsParams, UpdateSettingsParams, GetMarketsParams, GetOrderBookParams, GetPnlLimitOrdersParams, GetActivePositionsParams, GetClosedPositionsParams } from './types';
 import { decodeLog, parseEvents } from './utils';
 
 export class Exchange {
@@ -400,5 +400,28 @@ export class Exchange {
             accountId: this.accountId,
         })
         return getCollateralsCalldataResponse;
+    }
+
+    async getActivePositions(params: GetActivePositionsParams) {
+        const {marketAddress} = params;
+        const {data: getActivePositionsCalldataResponse} = await this.borosBackendSdk.pnL.pnlControllerGetActivePnlPositions({
+            userAddress: this.root,
+            accountId: this.accountId,
+            marketAddress,
+        })
+        return getActivePositionsCalldataResponse;
+    }
+
+    async getClosedPositions(params: GetClosedPositionsParams) {
+        const {marketAddress, skip, limit, orderBy} = params;
+        const {data: getClosedPositionsCalldataResponse} = await this.borosBackendSdk.pnL.pnlControllerGetClosedPnlPositions({
+            userAddress: this.root,
+            accountId: this.accountId,
+            marketAddress,
+            skip,
+            limit,
+            orderBy,
+        })
+        return getClosedPositionsCalldataResponse;
     }
 }

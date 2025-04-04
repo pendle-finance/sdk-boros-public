@@ -2,6 +2,8 @@ import { Hex } from "viem"
 import { Address } from "viem"
 import { Side, TimeInForce } from "../../types/common"
 
+export type OrderBy = 'timeClosed' | 'positionSize' | 'avgFixedApr' | 'avgUnderlyingApr' | 'pnl';
+
 export type PlaceOrderParams = {
     marketAcc: Hex,
     marketAddress: Address,
@@ -80,5 +82,16 @@ export type GetPnlLimitOrdersParams = {
     limit?: number,
     isActive?: boolean,
     marketAddress?: Address,
-    orderBy?: 'timeClosed' | 'positionSize' | 'avgFixedApr' | 'avgUnderlyingApr' | 'pnl',
+    orderBy?: OrderBy,
+}
+
+export type GetActivePositionsParams = {
+    marketAddress?: Address,
+}
+
+export type GetClosedPositionsParams = {
+    marketAddress?: Address,
+    skip?: number,
+    limit?: number,
+    orderBy?: OrderBy,
 }
