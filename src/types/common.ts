@@ -89,4 +89,4 @@ export type AMMState = {
   minAbsRate: bigint;
   maxAbsRate: bigint;
   cutOffTimestamp: bigint;
-}
+};

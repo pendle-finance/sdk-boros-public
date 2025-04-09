@@ -13,18 +13,18 @@ export interface DefaultSdk extends Sdk<unknown> {}
 /**
  * @internal
  */
-let cachedSdk: DefaultSdk
+let cachedSdk: DefaultSdk;
 
 export function createSdk(baseURL: string) {
-    // const { SDK_API_KEY } = sdkEnv();
-    const sdk = new Sdk<unknown>({
-        baseURL,
-        // headers: { ...(SDK_API_KEY != null ? { 'api-key': SDK_API_KEY } : {}) },
-    });
-    return sdk;
+  // const { SDK_API_KEY } = sdkEnv();
+  const sdk = new Sdk<unknown>({
+    baseURL,
+    // headers: { ...(SDK_API_KEY != null ? { 'api-key': SDK_API_KEY } : {}) },
+  });
+  return sdk;
 }
 
 export function getSdk(): DefaultSdk {
-    const x = cachedSdk;
-    return x !== undefined ? x : (cachedSdk = createSdk(BACKEND_URL));
+  const x = cachedSdk;
+  return x !== undefined ? x : (cachedSdk = createSdk(BACKEND_URL));
 }

@@ -1,5 +1,5 @@
+import { PendleContractErrorParams, PendleContractErrorType } from './helperTypes';
 import { PendleContractErrorMessageHandler } from './type';
-import { PendleContractErrorType, PendleContractErrorParams } from './helperTypes';
 
 // https://stackoverflow.com/a/2901298, but I replaced "," with "_"
 // "_" works in both Solidity and Javascript
@@ -47,7 +47,4 @@ function joinArgs<Args extends unknown[]>(args: Args) {
  * ```
  */
 export const defaultPendleContractErrorMessageHandler: PendleContractErrorMessageHandler =
-  createPendlecontractErrorMessageHandler(
-    {},
-    (errorName, ...args) => `${errorName}(${joinArgs(args)})`
-  );
+  createPendlecontractErrorMessageHandler({}, (errorName, ...args) => `${errorName}(${joinArgs(args)})`);

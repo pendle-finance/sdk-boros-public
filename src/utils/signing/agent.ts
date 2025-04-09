@@ -15,7 +15,7 @@ export type AgentExecution = keyof typeof functionEncoder;
 export type AgentExecuteParams = {
   tag: string;
   data: Hex;
-}
+};
 
 export type SignedAgentExecution = {
   agent: Address;

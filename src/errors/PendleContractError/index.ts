@@ -1,10 +1,10 @@
-import { PendleContractErrorsAbi } from '../../contracts';
-import { PendleContractErrorMessageHandler } from './type';
-import { defaultPendleContractErrorMessageHandler } from './defaultHandler';
 import { BaseError, decodeErrorResult } from 'viem';
-import { PendleContractErrorParams, PendleContractErrorType } from './helperTypes';
+import { PendleContractErrorsAbi } from '../../contracts';
 import { ContractErrorFactory } from '../ContractErrorFactory';
 import { extractErrorData } from '../helpers';
+import { defaultPendleContractErrorMessageHandler } from './defaultHandler';
+import { PendleContractErrorParams, PendleContractErrorType } from './helperTypes';
+import { PendleContractErrorMessageHandler } from './type';
 
 export * from './defaultHandler';
 export * from './helperTypes';
@@ -41,11 +41,12 @@ export class PendleContractError<
     readonly args: PendleContractErrorParams<ErrorType>,
     cause: Error
   ) {
-    const message: string = Array.isArray(args) && args.length > 0 
-    ? (PendleContractError.errorMessageHandler[errorName] as any)(...args) 
-    : args !== undefined 
-    ? (PendleContractError.errorMessageHandler[errorName] as any)(args) 
-    : (PendleContractError.errorMessageHandler[errorName] as any)();
+    const message: string =
+      Array.isArray(args) && args.length > 0
+        ? (PendleContractError.errorMessageHandler[errorName] as any)(...args)
+        : args !== undefined
+          ? (PendleContractError.errorMessageHandler[errorName] as any)(args)
+          : (PendleContractError.errorMessageHandler[errorName] as any)();
     super(message, { cause });
     this.message = this.shortMessage;
   }
