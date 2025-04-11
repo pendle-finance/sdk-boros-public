@@ -1,9 +1,10 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { AMMStateResponse, OrderBooksV3Response, SideTickResponse } from '../../backend/secrettune/BorosBackendSDK';
+import { Side } from '../../types';
+import { getRateAtTick, getTickAtRate } from '../../utils/tickLib';
 import { NegativeAMMMath } from './NegativeAMMMath';
 import { AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
-import { ORDER_BOOK_SIZE_PER_SIDE, TICK_MAX_VALUE } from './constants';
-import { TICK_MIN_VALUE } from './constants';
+import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
 
 export function combineMarketOrderBookAndAMM(
   tickStep: number,
@@ -23,8 +24,8 @@ export function combineMarketOrderBookAndAMM(
 
   let longOrderBookIndex = 0,
     shortOrderBookIndex = 0;
-  let ammShortTick = getTickAtInterest(AMMImpliedRate, { side: 'long' });
-  let ammLongTick = getTickAtInterest(AMMImpliedRate, { side: 'short' });
+  let ammShortTick = getTickAtRate(FixedX18.fromNumber(AMMImpliedRate), tickStep, Side.LONG);
+  let ammLongTick = getTickAtRate(FixedX18.fromNumber(AMMImpliedRate), tickStep, Side.SHORT);
 
   let impliedRate = AMMImpliedRate;
   let longIa = Math.floor(AMMImpliedRate / tickSize);
@@ -54,7 +55,7 @@ export function combineMarketOrderBookAndAMM(
       shortOrderBookIndex++;
     }
 
-    const newAMMShortTick = getTickAtInterest(shortIa * tickSize, { side: 'long' });
+    const newAMMShortTick = getTickAtRate(FixedX18.fromNumber(shortIa * tickSize), tickStep, Side.LONG);
 
     sz += calSwapAMMFromToTick({
       fromTick: BigInt(ammShortTick),
@@ -91,7 +92,7 @@ export function combineMarketOrderBookAndAMM(
       longOrderBookIndex++;
     }
 
-    const newAMMLongTick = getTickAtInterest(longIa * tickSize, { side: 'short' });
+    const newAMMLongTick = getTickAtRate(FixedX18.fromNumber(longIa * tickSize), tickStep, Side.SHORT);
 
     sz += calSwapAMMFromToTick({
       fromTick: BigInt(newAMMLongTick),
@@ -117,15 +118,6 @@ export function combineMarketOrderBookAndAMM(
     long,
     short,
   };
-}
-
-function getTickAtInterest(rate: number, { side }: { side: 'long' | 'short' }): number {
-  const unroundedTick = Math.log(rate + 1) / Math.log(1.0001);
-  const tick = side === 'long' ? Math.ceil(unroundedTick) : Math.floor(unroundedTick);
-  if (tick < TICK_MIN_VALUE || tick > TICK_MAX_VALUE) {
-    throw new Error('Tick out of range');
-  }
-  return tick;
 }
 
 function calSwapAMMFromToTick({
@@ -193,35 +185,6 @@ function calcSwapAMMToTick({
 
 function _abs(value: bigint): bigint {
   return value < 0n ? -value : value;
-}
-
-/**
- * Calculate $1.00005 ^ {tickIndex * step} - 1$
- */
-function getRateAtTick(tickIndex: bigint, step: bigint): FixedX18 {
-  const PRECISION = 10n ** 100n;
-  const BASE = (100005n * PRECISION) / 100000n;
-
-  if (tickIndex < 0) {
-    return getRateAtTick(-tickIndex, step).neg();
-  }
-
-  tickIndex *= step;
-
-  let base = BASE;
-  let rawAns = PRECISION;
-  for (; tickIndex > 0n; tickIndex >>= 1n, base = (base * base) / PRECISION) {
-    if (tickIndex & 1n) {
-      rawAns = (rawAns * base) / PRECISION;
-    }
-  }
-
-  rawAns -= PRECISION;
-
-  const PRECISION_SHIFT = PRECISION / FixedX18.RAW_ONE;
-
-  // round to nearest
-  return FixedX18.fromRawValue((rawAns + PRECISION_SHIFT / 2n) / PRECISION_SHIFT);
 }
 
 function convertAMMStateResponseToAMMContractState(ammState: AMMStateResponse): AMMContractState {
