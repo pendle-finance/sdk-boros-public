@@ -37,7 +37,7 @@ export function getTickAtRate(rate: FixedX18, step: number, side: Side): number 
   let low = TICK_MIN_VALUE;
   let high = TICK_MAX_VALUE;
   while (low < high) {
-    const mid = Math.floor((low + high) / 2);
+    const mid = Math.floor((low + high + 0.5) / 2);
     const midRate = getRateAtTick(BigInt(mid), BigInt(step));
     if (midRate.exactEq(rate)) {
       return mid;
