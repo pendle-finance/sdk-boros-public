@@ -1,13 +1,10 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { AMMStateResponse, OrderBooksV3Response, SideTickResponse } from '../../backend/secrettune/BorosBackendSDK';
-import { Side } from '../../types';
-import { getRateAtTick, getTickAtRate } from '../../utils/tickLib';
 import { NegativeAMMMath } from './NegativeAMMMath';
 import { AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
 import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
 
 export function combineMarketOrderBookAndAMM(
-  tickStep: number,
   tickSize: number,
   marketOrderBook: OrderBooksV3Response,
   ammStateResponse: AMMStateResponse,
@@ -24,8 +21,8 @@ export function combineMarketOrderBookAndAMM(
 
   let longOrderBookIndex = 0,
     shortOrderBookIndex = 0;
-  let ammShortTick = getTickAtRate(FixedX18.fromNumber(AMMImpliedRate), tickStep, Side.LONG);
-  let ammLongTick = getTickAtRate(FixedX18.fromNumber(AMMImpliedRate), tickStep, Side.SHORT);
+  let ammShortRate = AMMImpliedRate;
+  let ammLongRate = AMMImpliedRate;
 
   let impliedRate = AMMImpliedRate;
   let longIa = Math.floor(AMMImpliedRate / tickSize);
@@ -55,17 +52,16 @@ export function combineMarketOrderBookAndAMM(
       shortOrderBookIndex++;
     }
 
-    const newAMMShortTick = getTickAtRate(FixedX18.fromNumber(shortIa * tickSize), tickStep, Side.LONG);
+    const newAMMShortRate = shortIa * tickSize;
 
-    sz += calSwapAMMFromToTick({
-      fromTick: BigInt(ammShortTick),
-      toTick: BigInt(newAMMShortTick),
-      tickStep,
+    sz += calSwapAMMFromToRate({
+      fromRate: ammShortRate,
+      toRate: newAMMShortRate,
       isPositiveAMM,
       state: ammState,
     });
 
-    ammShortTick = Math.max(ammShortTick, newAMMShortTick);
+    ammShortRate = Math.max(ammShortRate, newAMMShortRate);
 
     if (sz > 0n) {
       short.ia.push(shortIa);
@@ -92,17 +88,16 @@ export function combineMarketOrderBookAndAMM(
       longOrderBookIndex++;
     }
 
-    const newAMMLongTick = getTickAtRate(FixedX18.fromNumber(longIa * tickSize), tickStep, Side.SHORT);
+    const newAMMLongRate = longIa * tickSize;
 
-    sz += calSwapAMMFromToTick({
-      fromTick: BigInt(newAMMLongTick),
-      toTick: BigInt(ammLongTick),
-      tickStep,
+    sz += calSwapAMMFromToRate({
+      fromRate: newAMMLongRate,
+      toRate: ammLongRate,
       isPositiveAMM,
       state: ammState,
     });
 
-    ammLongTick = Math.min(ammLongTick, newAMMLongTick);
+    ammLongRate = Math.min(ammLongRate, newAMMLongRate);
 
     if (sz > 0n) {
       long.ia.push(longIa);
@@ -120,67 +115,56 @@ export function combineMarketOrderBookAndAMM(
   };
 }
 
-function calSwapAMMFromToTick({
-  fromTick,
-  toTick,
-  tickStep,
+function calSwapAMMFromToRate({
+  fromRate,
+  toRate,
   isPositiveAMM,
   state,
 }: {
-  fromTick: bigint;
-  toTick: bigint;
-  tickStep: number;
+  fromRate: number;
+  toRate: number;
   isPositiveAMM: boolean;
   state: AMMContractState;
 }) {
-  if (fromTick > toTick) {
+  if (fromRate > toRate) {
     return 0n;
   }
 
-  const toTickSize = calcSwapAMMToTick({
-    tick: toTick,
-    tickStep,
+  const toRateSize = calcSwapAMMToRate({
+    rate: toRate,
     isPositiveAMM,
     state,
   });
 
-  const fromTickSize = calcSwapAMMToTick({
-    tick: fromTick,
-    tickStep,
+  const fromRateSize = calcSwapAMMToRate({
+    rate: fromRate,
     isPositiveAMM,
     state,
   });
 
-  // both fromTick and toTick are less than impliedTick
-  if (toTickSize < 0) {
-    return _abs(fromTickSize) - _abs(toTickSize);
+  if (toRateSize < 0) {
+    return _abs(fromRateSize) - _abs(toRateSize);
   }
 
-  // fromTick is less than impliedTick, toTick is greater than impliedTick
-  if (fromTickSize < 0) {
-    return toTickSize + _abs(fromTickSize);
+  if (fromRateSize < 0) {
+    return toRateSize + _abs(fromRateSize);
   }
 
-  // both fromTick and toTick are greater than impliedTick
-  return toTickSize - fromTickSize;
+  return toRateSize - fromRateSize;
 }
 
-function calcSwapAMMToTick({
-  tick,
-  tickStep,
+function calcSwapAMMToRate({
+  rate,
   isPositiveAMM,
   state,
 }: {
-  tick: bigint;
-  tickStep: number;
+  rate: number;
   isPositiveAMM: boolean;
   state: AMMContractState;
 }): bigint {
-  const rate = getRateAtTick(tick, BigInt(tickStep)).value;
-
   return isPositiveAMM
-    ? PositiveAMMMath.calcSwapSize(state, rate).swapSize
-    : NegativeAMMMath.calcSwapSize(state, rate).swapSize;
+    ? PositiveAMMMath.calcSwapSize(state, FixedX18.fromNumber(rate).value).swapSize
+    : NegativeAMMMath.calcSwapSize(state, FixedX18.fromNumber(rate).value).swapSize;
 }
 
 function _abs(value: bigint): bigint {

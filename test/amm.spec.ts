@@ -3,7 +3,6 @@ import { combineMarketOrderBookAndAMM } from '../src/entities/amm/amm';
 
 describe('combineMarketOrderBookAndAmm', () => {
   it('should combine correctly when AMMImpliedRate is between best bid and best ask rate', () => {
-    const tickStep = 2;
     const tickSize = 0.001;
     const marketOrderBook: OrderBooksV3Response = {
       long: {
@@ -51,44 +50,43 @@ describe('combineMarketOrderBookAndAmm', () => {
     };
 
     const isPositiveAMM = true;
-    const result = combineMarketOrderBookAndAMM(tickStep, tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
 
     expect(result).toEqual({
       long: {
         ia: [99, 98, 97, 96, 95, 94, 93, 92, 91, 90],
         sz: [
-          '13469387449995588864',
-          '15197063310689495087',
-          '13890632559344360547',
-          '14097889056309584524',
-          '90510346274915562000',
-          '14528188188937266811',
-          '14751607206558286703',
-          '14980804647123297951',
-          '16921442190619585810',
-          '15504602812753246400',
+          '13610271445662834034',
+          '13823956795392007353',
+          '14043229375344512552',
+          '14268294856529239993',
+          '90699368720230901400',
+          '14736676835031245605',
+          '14980456074323246577',
+          '15230954977629720703',
+          '15488434459348057372',
+          '15773168568885510655',
         ],
       },
       short: {
         ia: [101, 102, 103, 104, 105, 106, 107, 108, 109, 110],
         sz: [
-          '13256149061401262872',
-          '13068998040241425862',
-          '12886207633981198949',
-          '12707637313820576755',
-          '112323152309234337147',
-          '12362623322574915750',
-          '12195926260227065178',
-          '12032941979217477849',
-          '11873556048263233334',
-          '11738658522319630463',
+          '13401976925864881432',
+          '13198885601549638906',
+          '13000818131378430078',
+          '12807603024194660579',
+          '112409076223751861521',
+          '12435080719130635879',
+          '12255466179024632144',
+          '12080088608230235523',
+          '11908810024795855525',
+          '11762498156413929530',
         ],
       },
     });
   });
 
   it('should combine correctly when AMMImpliedRate is bigger than best ask rate', () => {
-    const tickStep = 2;
     const tickSize = 0.001;
     const marketOrderBook: OrderBooksV3Response = {
       long: {
@@ -122,44 +120,43 @@ describe('combineMarketOrderBookAndAmm', () => {
     };
 
     const isPositiveAMM = true;
-    const result = combineMarketOrderBookAndAMM(tickStep, tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
 
     expect(result).toEqual({
       long: {
         ia: [45, 44, 43, 42, 41, 40, 39, 38, 37, 36],
         sz: [
-          '1357836823497773771912',
-          '49242658065339397967',
-          '45863254089799740980',
-          '52731869341950595334',
-          '54736252496614680688',
-          '51083083582284077891',
-          '58910928761147819185',
-          '61324701415538667748',
-          '59394730352154065625',
-          '66388260859717645191',
+          '1357153517029052544660',
+          '47080397283345538776',
+          '48780094547287888044',
+          '50540918152084506696',
+          '52431557283860113679',
+          '54441682338251692879',
+          '56582083565453219501',
+          '58864833446254588147',
+          '63303477607764975319',
+          '63913260221613883276',
         ],
       },
       short: {
         ia: [71, 101, 102, 103, 104, 105, 106, 107, 108, 109],
         sz: [
           '99790000000000000000',
-          '13277149061401262872',
-          '13068998040241425862',
-          '12886207633981198949',
-          '12707637313820576755',
-          '12533152309234337147',
-          '12362623322574915750',
-          '12195926260227065178',
-          '12032941979217477849',
-          '11873556048263233334',
+          '13422976925864881432',
+          '13198885601549638906',
+          '13000818131378430078',
+          '12807603024194660579',
+          '12619076223751861521',
+          '12435080719130635879',
+          '12255466179024632144',
+          '12080088608230235523',
+          '11908810024795855525',
         ],
       },
     });
   });
 
   it('should combine correctly when AMMImpliedRate is smaller than best bid rate', () => {
-    const tickStep = 2;
     const tickSize = 0.001;
     const marketOrderBook: OrderBooksV3Response = {
       long: {
@@ -207,7 +204,7 @@ describe('combineMarketOrderBookAndAmm', () => {
     };
 
     const isPositiveAMM = true;
-    const result = combineMarketOrderBookAndAMM(tickStep, tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
 
     expect(result).toEqual({
       long: {
@@ -218,26 +215,150 @@ describe('combineMarketOrderBookAndAmm', () => {
           '2000000000000000000',
           '10000000000000000',
           '3205182798196236520',
-          '13469387449995588864',
-          '15197063310689495087',
-          '13890632559344360547',
-          '14097889056309584524',
-          '14320346274915562000',
+          '13610271445662834034',
+          '13823956795392007353',
+          '14043229375344512552',
+          '14268294856529239993',
+          '14509368720230901400',
         ],
       },
       short: {
         ia: [125, 126, 127, 128, 129, 130, 131, 132, 133, 134],
         sz: [
-          '382486409921008001884',
-          '9634847800606456112',
-          '9524670706353569713',
-          '9416581131980945241',
-          '9310524254791670607',
-          '9227447086024814586',
-          '9104298396522904446',
-          '8008475273661071900',
-          '8916438585903682390',
-          '8819588460258548052',
+          '383633451925382102155',
+          '9514319706898152496',
+          '9398574504476352559',
+          '9285132254809610763',
+          '9173929608098238095',
+          '9085905431920864840',
+          '8958000717258359437',
+          '8853158489183583616',
+          '8750323721951933935',
+          '8649443258244524649',
+        ],
+      },
+    });
+  });
+
+  it('should combine correctly when there is no long order book', () => {
+    const tickSize = 0.0001;
+    const marketOrderBook: OrderBooksV3Response = {
+      long: {
+        ia: [378, 120, 109],
+        sz: ['1640000000000000000', '2000000000000000000', '3000000000000000000'],
+      },
+      short: {
+        ia: [],
+        sz: [],
+      },
+    };
+
+    const ammStateResponse: AMMStateResponse = {
+      totalFloatAmount: '2174227079878783975899',
+      normFixedAmount: '274847956387325199884',
+      totalLp: '787656033893671113961',
+      latestFTime: '1744358400',
+      maturity: '1747872000',
+      seedTime: '1743062400',
+      minAbsRate: '10000000000000000',
+      maxAbsRate: '300000000000000000',
+      cutOffTimestamp: '1747872000',
+    };
+
+    const isPositiveAMM = true;
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+
+    expect(result).toEqual({
+      long: {
+        ia: [1264, 1263, 1262, 1261, 1260, 1259, 1258, 1257, 1256, 1255],
+        sz: [
+          '117276086588422569',
+          '994651736318755365',
+          '995895122636397853',
+          '997141050375768105',
+          '998389526753001425',
+          '999640559008461068',
+          '1000894154410851532',
+          '1002150320254347700',
+          '1003409063859710089',
+          '1004670392575387017',
+        ],
+      },
+      short: {
+        ia: [1265, 1266, 1267, 1268, 1269, 1270, 1271, 1272, 1273, 1274],
+        sz: [
+          '876134797645411483',
+          '992172559218609858',
+          '990936754134965881',
+          '989703461872536446',
+          '988472675344631494',
+          '987244387491092444',
+          '986018591277206457',
+          '984795279692587869',
+          '983574445754036324',
+          '982356082501477759',
+        ],
+      },
+    });
+  });
+
+  it('should combine correctly when there is no short order book', () => {
+    const tickSize = 0.0001;
+    const marketOrderBook: OrderBooksV3Response = {
+      long: {
+        ia: [],
+        sz: [],
+      },
+      short: {
+        ia: [1268, 1270, 1272],
+        sz: ['1640000000000000000', '2000000000000000000', '3000000000000000000'],
+      },
+    };
+
+    const ammStateResponse: AMMStateResponse = {
+      totalFloatAmount: '2174227079878783975899',
+      normFixedAmount: '274847956387325199884',
+      totalLp: '787656033893671113961',
+      latestFTime: '1744358400',
+      maturity: '1747872000',
+      seedTime: '1743062400',
+      minAbsRate: '10000000000000000',
+      maxAbsRate: '300000000000000000',
+      cutOffTimestamp: '1747872000',
+    };
+
+    const isPositiveAMM = true;
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+
+    expect(result).toEqual({
+      long: {
+        ia: [1264, 1263, 1262, 1261, 1260, 1259, 1258, 1257, 1256, 1255],
+        sz: [
+          '117276086588422569',
+          '994651736318755365',
+          '995895122636397853',
+          '997141050375768105',
+          '998389526753001425',
+          '999640559008461068',
+          '1000894154410851532',
+          '1002150320254347700',
+          '1003409063859710089',
+          '1004670392575387017',
+        ],
+      },
+      short: {
+        ia: [1265, 1266, 1267, 1268, 1269, 1270, 1271, 1272, 1273, 1274],
+        sz: [
+          '876134797645411483',
+          '992172559218609858',
+          '990936754134965881',
+          '2629703461872536446',
+          '988472675344631494',
+          '2987244387491092444',
+          '986018591277206457',
+          '3984795279692587869',
+          '983574445754036324',
+          '982356082501477759',
         ],
       },
     });
