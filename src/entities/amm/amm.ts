@@ -24,23 +24,39 @@ export function combineMarketOrderBookAndAMM(
   let ammShortRate = AMMImpliedRate;
   let ammLongRate = AMMImpliedRate;
 
-  let impliedRate = AMMImpliedRate;
-  let longIa = Math.floor(AMMImpliedRate / tickSize);
-  let shortIa = Math.ceil(AMMImpliedRate / tickSize);
-  if (AMMImpliedRate < bestBidRate) {
-    impliedRate = bestBidRate;
-    longIa = marketOrderBook.long.ia[0] ?? longIa;
-    shortIa = longIa + 1;
-  } else if (AMMImpliedRate > bestAskRate) {
-    impliedRate = bestAskRate;
-    shortIa = marketOrderBook.short.ia[0] ?? shortIa;
-    longIa = shortIa - 1;
-  }
-
   const short: SideTickResponse = {
     ia: [],
     sz: [],
   };
+
+  const long: SideTickResponse = {
+    ia: [],
+    sz: [],
+  };
+
+  let longIa = Math.floor(AMMImpliedRate / tickSize);
+  let shortIa = Math.ceil(AMMImpliedRate / tickSize);
+  if (AMMImpliedRate < bestBidRate) {
+    while (
+      longOrderBookIndex < marketOrderBook.long.ia.length &&
+      marketOrderBook.long.ia[longOrderBookIndex] >= longIa
+    ) {
+      long.ia.push(marketOrderBook.long.ia[longOrderBookIndex]);
+      long.sz.push(marketOrderBook.long.sz[longOrderBookIndex]);
+      longOrderBookIndex++;
+    }
+    shortIa = (marketOrderBook.long.ia[0] ?? longIa) + 1;
+  } else if (AMMImpliedRate > bestAskRate) {
+    while (
+      shortOrderBookIndex < marketOrderBook.short.ia.length &&
+      marketOrderBook.short.ia[shortOrderBookIndex] <= shortIa
+    ) {
+      short.ia.push(marketOrderBook.short.ia[shortOrderBookIndex]);
+      short.sz.push(marketOrderBook.short.sz[shortOrderBookIndex]);
+      shortOrderBookIndex++;
+    }
+    longIa = (marketOrderBook.short.ia[0] ?? shortIa) - 1;
+  }
 
   while (short.ia.length < ORDER_BOOK_SIZE_PER_SIDE) {
     let sz = 0n;
@@ -72,11 +88,6 @@ export function combineMarketOrderBookAndAMM(
 
     shortIa++;
   }
-
-  const long: SideTickResponse = {
-    ia: [],
-    sz: [],
-  };
 
   while (long.ia.length < ORDER_BOOK_SIZE_PER_SIDE) {
     let sz = 0n;

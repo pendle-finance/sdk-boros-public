@@ -1,4 +1,3 @@
-import { PositiveAMMMath } from '../src';
 import { AMMStateResponse, OrderBooksV3Response } from '../src/backend/secrettune/BorosBackendSDK';
 import { combineMarketOrderBookAndAMM } from '../src/entities/amm/amm';
 
@@ -360,6 +359,142 @@ describe('combineMarketOrderBookAndAmm', () => {
           '3984795279692587869',
           '983574445754036324',
           '982356082501477759',
+        ],
+      },
+    });
+  });
+
+  it('should combine correctly when there is no short order book bigger than implied rate', () => {
+    const tickSize = 0.00001;
+    const marketOrderBook: OrderBooksV3Response = {
+      long: {
+        ia: [5992, 4990, 2993, 1511, 1207],
+        sz: [
+          '12000000000000000000',
+          '3890000000000000000',
+          '10000000000000000000',
+          '98000000000000000000',
+          '2000000000000000000',
+        ],
+      },
+      short: {
+        ia: [7005],
+        sz: ['50310000000000000000'],
+      },
+    };
+
+    const ammStateResponse: AMMStateResponse = {
+      totalFloatAmount: '1659216901752019617400',
+      normFixedAmount: '165564091360090085983',
+      totalLp: '524057998646386757088',
+      latestFTime: '1744588800',
+      maturity: '1750291200',
+      seedTime: '1743062400',
+      minAbsRate: '10000000000000000',
+      maxAbsRate: '300000000000000000',
+      cutOffTimestamp: '1750291200',
+    };
+
+    const isPositiveAMM = true;
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+
+    expect(result).toEqual({
+      long: {
+        ia: [7004, 7003, 7002, 7001, 7000, 6999, 6998, 6997, 6996, 6995],
+        sz: [
+          '363028996100075664150',
+          '161422304899901297',
+          '161458245015192617',
+          '161494198266493798',
+          '161530164661128043',
+          '161566144205450405',
+          '161602136906801899',
+          '161638142770901724',
+          '161674161804928512',
+          '161710194015909929',
+        ],
+      },
+      short: {
+        ia: [7005, 9979, 9980, 9981, 9982, 9983, 9984, 9985, 9986, 9987],
+        sz: [
+          '50310000000000000000',
+          '51332916451658574',
+          '92938607491118397',
+          '92924090273008656',
+          '92909576776664907',
+          '92895067000946193',
+          '92880560944341716',
+          '92866058605337820',
+          '92851559982798049',
+          '92837065075675480',
+        ],
+      },
+    });
+  });
+
+  it('should combine correctly when there is no long order book smaller than implied rate', () => {
+    const tickSize = 0.00001;
+    const marketOrderBook: OrderBooksV3Response = {
+      long: {
+        ia: [11000, 10900, 10800, 10700, 10600],
+        sz: [
+          '12000000000000000000',
+          '3890000000000000000',
+          '10000000000000000000',
+          '98000000000000000000',
+          '2000000000000000000',
+        ],
+      },
+      short: {
+        ia: [12000],
+        sz: ['50310000000000000000'],
+      },
+    };
+
+    const ammStateResponse: AMMStateResponse = {
+      totalFloatAmount: '1659216901752019617400',
+      normFixedAmount: '165564091360090085983',
+      totalLp: '524057998646386757088',
+      latestFTime: '1744588800',
+      maturity: '1750291200',
+      seedTime: '1743062400',
+      minAbsRate: '10000000000000000',
+      maxAbsRate: '300000000000000000',
+      cutOffTimestamp: '1750291200',
+    };
+
+    const isPositiveAMM = true;
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM);
+
+    expect(result).toEqual({
+      long: {
+        ia: [11000, 10900, 10800, 10700, 10600, 9978, 9977, 9976, 9975, 9974],
+        sz: [
+          '12000000000000000000',
+          '3890000000000000000',
+          '10000000000000000000',
+          '98000000000000000000',
+          '2000000000000000000',
+          '41620211980384147',
+          '92967653097670245',
+          '92982181489045068',
+          '92996713607316625',
+          '93011249453996134',
+        ],
+      },
+      short: {
+        ia: [11001, 11002, 11003, 11004, 11005, 11006, 11007, 11008, 11009, 11010],
+        sz: [
+          '88065839346999884998',
+          '79832988518345581',
+          '79821676719501255',
+          '79810367551309988',
+          '79799061012762201',
+          '79787757103165764',
+          '79776455821987320',
+          '79765157167583312',
+          '79753861139903146',
+          '79742567737611489',
         ],
       },
     });
