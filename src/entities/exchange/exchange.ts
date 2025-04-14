@@ -61,7 +61,7 @@ export class Exchange {
     let events = [];
     const decodedEvents = receipt.logs.map((log) => decodeLog(log));
     for (const event of decodedEvents) {
-      if (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed') {
+      if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
         events.push(event);
         logGroups.push([...events]);
         events = [];
@@ -99,7 +99,7 @@ export class Exchange {
     let events = [];
 
     for (const event of decodedEvents) {
-      if (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed') {
+      if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
         events.push(event);
         logGroups.push([...events]);
         events = [];
@@ -127,9 +127,9 @@ export class Exchange {
       });
 
     const placeOrderResponse = await this.signAndExecute(placeOrderCalldataResponse as unknown as AgentExecuteParams);
-    const event = placeOrderResponse.events.filter((event) => event.eventName === 'LimitOrderPlaced')[0];
+    const event = placeOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
     let orderInfo;
-    if (event.eventName === 'LimitOrderPlaced') {
+    if (event && event.eventName === 'LimitOrderPlaced') {
       orderInfo = {
         side,
         placedSize: event.args.sizes[0],
@@ -169,9 +169,9 @@ export class Exchange {
       bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams[]
     );
     const results = placeOrdersResponse.map((response, index) => {
-      const event = response.events.filter((event) => event.eventName === 'LimitOrderPlaced')[0];
+      const event = response.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
       let orderInfo;
-      if (event.eventName === 'LimitOrderPlaced') {
+      if (event?.eventName === 'LimitOrderPlaced') {
         orderInfo = {
           side: orderRequests[index].side,
           placedSize: event.args.sizes[0],
@@ -206,7 +206,7 @@ export class Exchange {
         orderId,
       });
     const modifyOrderResponse = await this.signAndExecute(modifyOrderCalldataResponse as unknown as AgentExecuteParams);
-    const event = modifyOrderResponse.events.filter((event) => event.eventName === 'LimitOrderPlaced')[0];
+    const event = modifyOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
     let orderInfo;
     if (event.eventName === 'LimitOrderPlaced') {
       const { side } = OrderIdLib.unpack(event.args.orderIds[0]);
@@ -253,9 +253,9 @@ export class Exchange {
 
     const cancelOrderResponse = await this.signAndExecute(cancelOrderCalldataResponse as unknown as AgentExecuteParams);
 
-    const event = cancelOrderResponse.events.filter((event) => event.eventName === 'LimitOrderCancelled')[0];
+    const event = cancelOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderCancelled')[0];
     let cancelledOrderInfo;
-    if (event.eventName === 'LimitOrderCancelled') {
+    if (event?.eventName === 'LimitOrderCancelled') {
       cancelledOrderInfo = event.args;
     }
     const results = {

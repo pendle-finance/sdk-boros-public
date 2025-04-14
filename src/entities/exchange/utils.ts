@@ -17,7 +17,11 @@ export function decodeLog(log: Log<bigint, number, false>) {
     try {
       return decodeEventLog({ abi: iMarketHubAbi, data: log.data, topics: log.topics });
     } catch (secondError) {
-      return decodeEventLog({ abi: iRouterAbi, data: log.data, topics: log.topics });
+      try {
+        return decodeEventLog({ abi: iRouterAbi, data: log.data, topics: log.topics });
+      } catch (thirdError) {
+        return null;
+      }
     }
   }
 }
