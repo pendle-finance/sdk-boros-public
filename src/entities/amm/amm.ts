@@ -30,11 +30,11 @@ export function combineMarketOrderBookAndAMM(
   if (AMMImpliedRate < bestBidRate) {
     impliedRate = bestBidRate;
     longIa = marketOrderBook.long.ia[0] ?? longIa;
-    shortIa = marketOrderBook.short.ia[0] ?? shortIa;
+    shortIa = longIa + 1;
   } else if (AMMImpliedRate > bestAskRate) {
     impliedRate = bestAskRate;
-    longIa = marketOrderBook.long.ia[0] ?? longIa;
     shortIa = marketOrderBook.short.ia[0] ?? shortIa;
+    longIa = shortIa - 1;
   }
 
   const short: SideTickResponse = {
