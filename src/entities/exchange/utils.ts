@@ -19,6 +19,11 @@ export function decodeLog(log: Log<bigint, number, false>) {
       continue;
     }
   }
-  console.log('Could not decode log with any ABI:', log);
   return null;
+}
+
+export async function getTransactionData(txHash: Hex) {
+  const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+  const decodedLogs = receipt.logs.map((log) => decodeLog(log));
+  return { decodedLogs };
 }
