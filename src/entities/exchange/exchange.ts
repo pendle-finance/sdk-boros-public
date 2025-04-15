@@ -373,8 +373,8 @@ export class Exchange {
     return updateSettingsCalldataResponse;
   }
 
-  async getMarkets(params: GetMarketsParams) {
-    const { skip, limit, isWhitelisted } = params;
+  async getMarkets(params?: GetMarketsParams) {
+    const { skip, limit, isWhitelisted } = params ?? {};
     const { data: getMarketsCalldataResponse } = await this.borosBackendSdk.markets.marketsControllerGetMarkets({
       skip,
       limit,
@@ -393,8 +393,8 @@ export class Exchange {
     return getOrderBookCalldataResponse;
   }
 
-  async getPnlLimitOrders(params: GetPnlLimitOrdersParams) {
-    const { skip, limit, isActive, marketAddress, orderBy } = params;
+  async getPnlLimitOrders(params?: GetPnlLimitOrdersParams) {
+    const { skip, limit, isActive, marketAddress, orderBy } = params ?? {};
     const { data: getPnlLimitOrdersCalldataResponse } = await this.borosBackendSdk.pnL.pnlControllerGetLimitOrders({
       userAddress: this.root,
       accountId: this.accountId,
@@ -414,6 +414,12 @@ export class Exchange {
         accountId: this.accountId,
       });
     return getCollateralsCalldataResponse;
+  }
+
+  async getAssets() {
+    const { data: getAssetsCalldataResponse } =
+      await this.borosBackendSdk.assets.assetsControllerGetAllAssets();
+    return getAssetsCalldataResponse;
   }
 
   async getActivePositions(params: GetActivePositionsParams) {
