@@ -1,10 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "ignore": [
-      "./package.json",
-      "src/backend/secrettune/BorosBackendSDK.ts"
-    ],
+    "ignore": ["./package.json", "src/backend/secrettune/BorosBackendSDK.ts"],
     "include": ["src/**/*.ts", "src/**/*.js", "test/**/*.ts", "test/**/*.js"]
   },
   "vcs": {

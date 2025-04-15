@@ -5354,3 +5354,355 @@ export const iFIndexOracleAbi = [
     type: 'function',
   },
 ] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IAMM
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iAMMAbi = [
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'account', type: 'bytes26' },
+      { internalType: 'uint256', name: 'balance', type: 'uint256' },
+      { internalType: 'uint256', name: 'value', type: 'uint256' },
+    ],
+    name: 'BOROS20NotEnoughBalance',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint128', name: 'minAbsRate', type: 'uint128' },
+      { indexed: false, internalType: 'uint128', name: 'maxAbsRate', type: 'uint128' },
+      { indexed: false, internalType: 'uint32', name: 'cutOffTimestamp', type: 'uint32' },
+    ],
+    name: 'AMMConfigUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'MarketAcc', name: 'from', type: 'bytes26' },
+      { indexed: false, internalType: 'MarketAcc', name: 'to', type: 'bytes26' },
+      { indexed: false, internalType: 'uint256', name: 'value', type: 'uint256' },
+    ],
+    name: 'BOROS20Transfer',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'MarketAcc', name: 'payer', type: 'bytes26' },
+      { indexed: false, internalType: 'uint256', name: 'netLpBurned', type: 'uint256' },
+      { indexed: false, internalType: 'int256', name: 'netCashOut', type: 'int256' },
+      { indexed: false, internalType: 'int256', name: 'netSizeOut', type: 'int256' },
+    ],
+    name: 'Burn',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint256', name: 'newFeeRate', type: 'uint256' }],
+    name: 'FeeRateUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint32', name: 'newWindow', type: 'uint32' }],
+    name: 'ImpliedRateObservationWindowUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'MarketAcc', name: 'receiver', type: 'bytes26' },
+      { indexed: false, internalType: 'uint256', name: 'netLpMinted', type: 'uint256' },
+      { indexed: false, internalType: 'int256', name: 'netCashIn', type: 'int256' },
+      { indexed: false, internalType: 'int256', name: 'netSizeIn', type: 'int256' },
+    ],
+    name: 'Mint',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'int256', name: 'sizeOut', type: 'int256' },
+      { indexed: false, internalType: 'int256', name: 'costOut', type: 'int256' },
+    ],
+    name: 'Swap',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'MARKET',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'MATURITY',
+    outputs: [{ internalType: 'uint32', name: '', type: 'uint32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ROUTER',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'SEED_TIME',
+    outputs: [{ internalType: 'uint32', name: '', type: 'uint32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'SELF_ACC',
+    outputs: [{ internalType: 'MarketAcc', name: '', type: 'bytes26' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: '_storage',
+    outputs: [
+      { internalType: 'uint128', name: 'minAbsRate', type: 'uint128' },
+      { internalType: 'uint128', name: 'maxAbsRate', type: 'uint128' },
+      { internalType: 'uint32', name: 'cutOffTimestamp', type: 'uint32' },
+      { internalType: 'uint64', name: 'feeRate', type: 'uint64' },
+      { internalType: 'uint32', name: 'oracleImpliedRateWindow', type: 'uint32' },
+      { internalType: 'uint128', name: 'totalFloatAmount', type: 'uint128' },
+      { internalType: 'uint128', name: 'normFixedAmount', type: 'uint128' },
+      { internalType: 'uint32', name: 'lastTradedTime', type: 'uint32' },
+      { internalType: 'int128', name: 'prevOracleImpliedRate', type: 'int128' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'MarketAcc', name: 'account', type: 'bytes26' }],
+    name: 'balanceOf',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'payer', type: 'bytes26' },
+      { internalType: 'int256', name: 'totalCash', type: 'int256' },
+      { internalType: 'int256', name: 'totalSize', type: 'int256' },
+      { internalType: 'uint256', name: 'lpToBurn', type: 'uint256' },
+    ],
+    name: 'burnByBorosRouter',
+    outputs: [
+      { internalType: 'int256', name: 'netCashOut', type: 'int256' },
+      { internalType: 'int256', name: 'netSizeOut', type: 'int256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'int256', name: 'targetRate', type: 'int256' }],
+    name: 'calcSwapSize',
+    outputs: [{ internalType: 'int256', name: '', type: 'int256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'feeRate',
+    outputs: [{ internalType: 'uint64', name: '', type: 'uint64' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'impliedRate',
+    outputs: [{ internalType: 'int256', name: '', type: 'int256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'receiver', type: 'bytes26' },
+      { internalType: 'int256', name: 'totalCash', type: 'int256' },
+      { internalType: 'int256', name: 'totalSize', type: 'int256' },
+      { internalType: 'int256', name: 'desiredCashIn', type: 'int256' },
+      { internalType: 'int256', name: 'exactSizeIn', type: 'int256' },
+    ],
+    name: 'mintByBorosRouter',
+    outputs: [
+      { internalType: 'int256', name: 'netCashIn', type: 'int256' },
+      { internalType: 'uint256', name: 'netLpOut', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'name',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'oracleImpliedRate',
+    outputs: [
+      { internalType: 'int128', name: 'oracleImpliedRate', type: 'int128' },
+      { internalType: 'uint32', name: 'observationWindow', type: 'uint32' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'readState',
+    outputs: [
+      {
+        components: [
+          { internalType: 'uint256', name: 'totalFloatAmount', type: 'uint256' },
+          { internalType: 'uint256', name: 'normFixedAmount', type: 'uint256' },
+          { internalType: 'uint256', name: 'totalLp', type: 'uint256' },
+          { internalType: 'uint256', name: 'latestFTime', type: 'uint256' },
+          { internalType: 'uint256', name: 'maturity', type: 'uint256' },
+          { internalType: 'uint256', name: 'seedTime', type: 'uint256' },
+          { internalType: 'uint256', name: 'minAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'maxAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'cutOffTimestamp', type: 'uint256' },
+        ],
+        internalType: 'struct AMMState',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint128', name: 'minAbsRate', type: 'uint128' },
+      { internalType: 'uint128', name: 'maxAbsRate', type: 'uint128' },
+      { internalType: 'uint32', name: 'cutOffTimestamp', type: 'uint32' },
+    ],
+    name: 'setAMMConfig',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint64', name: 'newFeeRate', type: 'uint64' }],
+    name: 'setFeeRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint32', name: 'newWindow', type: 'uint32' }],
+    name: 'setImpliedRateObservationWindow',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'int256', name: 'sizeOut', type: 'int256' }],
+    name: 'swapByBorosRouter',
+    outputs: [{ internalType: 'int256', name: 'costOut', type: 'int256' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'int256', name: 'sizeOut', type: 'int256' }],
+    name: 'swapView',
+    outputs: [{ internalType: 'int256', name: 'costOut', type: 'int256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'symbol',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBOROS20
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBOROS20Abi = [
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'account', type: 'bytes26' },
+      { internalType: 'uint256', name: 'balance', type: 'uint256' },
+      { internalType: 'uint256', name: 'value', type: 'uint256' },
+    ],
+    name: 'BOROS20NotEnoughBalance',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'MarketAcc', name: 'from', type: 'bytes26' },
+      { indexed: false, internalType: 'MarketAcc', name: 'to', type: 'bytes26' },
+      { indexed: false, internalType: 'uint256', name: 'value', type: 'uint256' },
+    ],
+    name: 'BOROS20Transfer',
+    type: 'event',
+  },
+  {
+    inputs: [{ internalType: 'MarketAcc', name: 'account', type: 'bytes26' }],
+    name: 'balanceOf',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'name',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'symbol',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;

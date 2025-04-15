@@ -127,21 +127,22 @@ export class Exchange {
       });
 
     const placeOrderResponse = await this.signAndExecute(placeOrderCalldataResponse as unknown as AgentExecuteParams);
-    const event = placeOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-    let orderInfo;
-    if (event && event.eventName === 'LimitOrderPlaced') {
-      orderInfo = {
-        side,
-        placedSize: event.args.sizes[0],
-        orderId: event.args.orderIds[0],
-        root: this.root,
-        marketAddress,
-        accountId: this.accountId,
-        isCross: MarketAccLib.isCrossMarket(marketAcc),
-        blockTimestamp: placeOrderResponse.blockTimestamp,
-        marketAcc,
-      };
-    }
+    const limitOrderPlacedEvent = placeOrderResponse.events.find(
+      (event) => event?.eventName === 'LimitOrderPlaced'
+    );
+    const swapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'Swap');
+    const otcSwapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'OtcSwap');
+    let orderInfo = {
+      side,
+      placedSize: limitOrderPlacedEvent?.args.sizes[0],
+      orderId: limitOrderPlacedEvent?.args.orderIds[0],
+      root: this.root,
+      marketAddress,
+      accountId: this.accountId,
+      isCross: MarketAccLib.isCrossMarket(marketAcc),
+      blockTimestamp: placeOrderResponse.blockTimestamp,
+      marketAcc,
+    };
     const results = {
       executeResponse: placeOrderResponse.executeResponse,
       result: {
