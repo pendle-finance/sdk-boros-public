@@ -1,9 +1,6 @@
 import { createWalletClient, http, Address, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { Exchange, Agent } from '../../..';
-import { Side, TimeInForce } from '../../../../types';
-import { MarketAccLib } from '../../../../utils';
-
+import { Exchange, Agent, MarketAccLib, Side, TimeInForce } from '../../src';
 export interface ExampleConfig {
   privateKey: `0x${string}`;
   rpcUrl: string;

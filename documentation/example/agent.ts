@@ -1,8 +1,7 @@
 import { http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { Exchange } from "../../exchange";
 import { createWalletClient } from "viem";
-import { Agent } from "../../../agent";
+import { Agent, Exchange } from "../../src";
 
 async function createAndApproveAgentExample() {
 

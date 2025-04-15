@@ -1,4 +1,4 @@
-import { Side, TimeInForce } from '../../../../types';
+import { Side, TimeInForce } from '../../src';
 import { ExampleConfig, setupExchange, createMarketAcc, placeExampleOrder } from './utils';
 
 async function placeAndCancelOrderExample() {

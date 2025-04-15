@@ -2,6 +2,13 @@
 
 The `Exchange` class provides an interface for interacting with the Boros trading platform. It handles operations such as placing orders, modifying orders, managing positions, and interacting with the blockchain.
 
+## Installation
+
+```bash
+yarn add @pendle/sdk-boros
+
+```
+
 ## Initialization
 
 ```typescript
