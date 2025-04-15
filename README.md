@@ -2,6 +2,12 @@
 
 The `Exchange` class provides an interface for interacting with the Boros trading platform. It handles operations such as placing orders, modifying orders, managing positions, and interacting with the blockchain.
 
+Below is the documentation for the SDK. For more details about the overall architecture, contracts, API, and more, please refer to the [documentation](documentation/) folder.
+
+You can start with the [lite paper](documentation/lite-paper.md) to understand the overall architecture and mechanics of the platform.
+Then you can go to the [API docs](documentation/API.docs.md) to understand the API and parameters.
+After that, you can refer to [SDK docs](documentation/SDK.docs.md) and [example](documentation/example/) to see how to use the SDK.
+
 ## Installation
 
 ```bash

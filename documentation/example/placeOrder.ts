@@ -1,7 +1,6 @@
 import { Address } from 'viem';
-import { Side, TimeInForce } from '../../../../types';
 import { ExampleConfig, createMarketAcc, setupExchange } from './utils';
-import { CancelOrdersParams, PlaceOrderParams } from '../../types';
+import { PlaceOrderParams, Side, TimeInForce, getTickAtInterest } from '../../src';
 
 async function main() {
   const config: ExampleConfig = {
@@ -19,6 +18,7 @@ async function main() {
       tokenId,
       marketId
     );
+    const interestRate = 1.5;
 
     const limitOrderParams: PlaceOrderParams = {
       marketAcc,
@@ -26,7 +26,7 @@ async function main() {
       ammAddresses: [],
       side: Side.LONG,
       size: BigInt('1000000000000000000'),
-      limitTick: 1000,
+      limitTick: Number(getTickAtInterest(interestRate, Side.LONG)),
       tif: TimeInForce.GOOD_TIL_CANCELLED,
       useOrderBook: true
     };

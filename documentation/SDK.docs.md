@@ -101,6 +101,26 @@ This example demonstrates the complete flow from initializing the Exchange class
 
 ## Order Management
 
+### Get Tick at Interest
+
+```typescript
+getTickAtInterest(rate: number, side: Side): bigint
+```
+
+Returns the tick price limit for a given interest rate and side.
+
+Parameters:
+- `rate`: The interest rate
+- `side`: The trade side (Side.LONG or Side.SHORT)
+
+Example:
+```typescript
+const tick = getTickAtInterest(1.5, Side.LONG);
+console.log('Tick:', tick);
+```
+
+
+
 ### Place Order
 
 ```typescript
