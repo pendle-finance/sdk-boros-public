@@ -37,7 +37,6 @@
   "dependencies": {
     "@pendle/boros-offchain-math": "^1.0.1",
     "@pendle/core-v3": "0.3.4",
-    "@pendle/sdk-boros": "^0.1.34",
     "axios": "^1.8.4",
     "viem": "^2.22.5"
   },
