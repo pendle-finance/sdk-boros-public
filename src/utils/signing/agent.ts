@@ -33,12 +33,13 @@ export async function bulkSignWithAgent(params: {
   const calldatas = calls.map((call) => call.data);
   const messages: PendleSignTxStruct[] = [];
   for (let i = 0; i < calldatas.length; i++) {
+    const nonce = BigInt(Date.now());
     const message: PendleSignTxStruct = {
       account: AccountLib.pack(root, accountId),
       connectionId: keccak256(calldatas[i]),
-      nonce: BigInt(Date.now()),
+      nonce,
     };
-    await new Promise((resolve) => setTimeout(resolve, 1));
+    await new Promise((resolve) => setTimeout(resolve, 5));
     messages.push(message);
   }
 
