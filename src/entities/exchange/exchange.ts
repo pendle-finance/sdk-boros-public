@@ -19,6 +19,7 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog, parseEvents } from './utils';
+import { bulkSignWithAgent } from '../../utils/signing/agent';
 
 export class Exchange {
   static readonly DEFAULT_SLIPPAGE = 0.05;
@@ -36,15 +37,11 @@ export class Exchange {
   }
 
   async bulkSignAndExecute(calls: AgentExecuteParams[]) {
-    const signs = await Promise.all(
-      calls.map(async (call) =>
-        signWithAgent({
-          root: this.root,
-          accountId: this.accountId,
-          call,
-        })
-      )
-    );
+    const signs = await bulkSignWithAgent({
+      root: this.root,
+      accountId: this.accountId,
+      calls,
+    });
     const { data: executeResponses } = await this.borosBackendSdk.calldata.calldataControllerBulkAgentDirectCall({
       datas: signs.map((sign) => ({
         ...sign,
@@ -127,9 +124,7 @@ export class Exchange {
       });
 
     const placeOrderResponse = await this.signAndExecute(placeOrderCalldataResponse as unknown as AgentExecuteParams);
-    const limitOrderPlacedEvent = placeOrderResponse.events.find(
-      (event) => event?.eventName === 'LimitOrderPlaced'
-    );
+    const limitOrderPlacedEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
     const swapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'Swap');
     const otcSwapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'OtcSwap');
     let orderInfo = {
@@ -418,8 +413,7 @@ export class Exchange {
   }
 
   async getAssets() {
-    const { data: getAssetsCalldataResponse } =
-      await this.borosBackendSdk.assets.assetsControllerGetAllAssets();
+    const { data: getAssetsCalldataResponse } = await this.borosBackendSdk.assets.assetsControllerGetAllAssets();
     return getAssetsCalldataResponse;
   }
 

@@ -50,15 +50,22 @@ export async function getAgentExecuteCalldata(query: SignedAgentExecution) {
   return calldata;
 }
 
-export async function simulateDirectCall(publicClient: PublicClient, signedAgentExecution: SignedAgentExecution): Promise<SimulateReturnType> {
+export async function simulateDirectCall(
+  publicClient: PublicClient,
+  signedAgentExecution: SignedAgentExecution
+): Promise<SimulateReturnType> {
   const calldata = await getAgentExecuteCalldata(signedAgentExecution);
   const result = await publicClient.simulate({
-    blocks: [{
-      calls: [{
-        to: ROUTER_ADDRESS,
-        data: calldata,
-      }]
-    }]
+    blocks: [
+      {
+        calls: [
+          {
+            to: ROUTER_ADDRESS,
+            data: calldata,
+          },
+        ],
+      },
+    ],
   });
   return result;
 }
