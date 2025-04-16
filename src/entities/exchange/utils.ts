@@ -1,7 +1,10 @@
-import { Address, Hex, Log, PublicClient, decodeEventLog, parseEventLogs } from 'viem';
+import { Hex, Log, PublicClient, decodeEventLog, encodeFunctionData, parseEventLogs } from 'viem';
 import * as Abis from '../../contracts/viemAbis';
 import { publicClient } from '../publicClient';
 import { SimulateReturnType } from 'viem/actions';
+import { iRouterAbi } from '../../contracts/viemAbis';
+import { SignedAgentExecution } from '../../utils';
+import { ROUTER_ADDRESS } from '../../addresses';
 
 export async function parseEvents(txHash: Hex) {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -29,12 +32,31 @@ export async function getTransactionData(txHash: Hex) {
   return { decodedLogs };
 }
 
-export async function simulate(publicClient: PublicClient, to: Address, data: Hex): Promise<SimulateReturnType> {
+export async function getAgentExecuteCalldata(query: SignedAgentExecution) {
+  const calldata = encodeFunctionData({
+    abi: iRouterAbi,
+    functionName: 'agentExecute',
+    args: [
+      query.agent,
+      {
+        account: query.message.account,
+        connectionId: query.message.connectionId,
+        nonce: BigInt(query.message.nonce),
+      },
+      query.signature,
+      query.calldata,
+    ],
+  });
+  return calldata;
+}
+
+export async function simulateDirectCall(publicClient: PublicClient, signedAgentExecution: SignedAgentExecution): Promise<SimulateReturnType> {
+  const calldata = await getAgentExecuteCalldata(signedAgentExecution);
   const result = await publicClient.simulate({
     blocks: [{
       calls: [{
-        to,
-        data,
+        to: ROUTER_ADDRESS,
+        data: calldata,
       }]
     }]
   });
