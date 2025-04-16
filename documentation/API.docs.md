@@ -1,8 +1,8 @@
-# Secret Tune Core V2 API Documentation
+# Boros Core V2 API Documentation
 
 ## Overview
 
-Secret Tune Core V2 provides a comprehensive REST API for interacting with the protocol. The API is organized into several main categories.
+Boros Core V2 provides a comprehensive REST API for interacting with the protocol. The API is organized into several main categories.
 
 ## API Endpoints and Related Terms
 

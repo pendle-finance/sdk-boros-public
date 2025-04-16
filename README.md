@@ -1,19 +1,35 @@
 # Pendle SDK Boros
 
-The `Exchange` class provides an interface for interacting with the Boros trading platform. It handles operations such as placing orders, modifying orders, managing positions, and interacting with the blockchain.
+## Overview
 
 Below is the documentation for the SDK. For more details about the overall architecture, contracts, API, and more, please refer to the [documentation](documentation/) folder.
 
+The repository is organized as follows:
+
+- [documentation](documentation/):
+  - [lite-paper](documentation/lite-paper.md): lite paper for how boros works
+  - [contracts-docs](documentation/contracts-docs/): contains the documentation to deep dive into the contracts, the overall architecture, and terminology
+  - [API.docs.md](documentation/API.docs.md): API documentation
+  - [SDK.docs.md](documentation/SDK.docs.md): SDK documentation
+  - [example](documentation/example/): example code for the SDK
+- [src](src/): contains the source code of the SDK
+
 You can start with the [lite paper](documentation/lite-paper.md) to understand the overall architecture and mechanics of the platform.
+
 Then you can go to the [API docs](documentation/API.docs.md) to understand the API and parameters.
 After that, you can refer to [SDK docs](documentation/SDK.docs.md) and [example](documentation/example/) to see how to use the SDK.
 
 ## Installation
 
-```bash
-yarn add @pendle/sdk-boros
+To use the SDK, you can install it using yarn. Our SDK is yet to be published to npm, so you need to config private credentials to install it. Can have a look at [.yarnrc.yml](.yarnrc.yml) for more details.
 
+```bash
+export PENDLE_SDK_BOROS_NPM_AUTH_TOKEN=<your-npm-auth-token>
+# config your .yarnrc.yml follow our .yarnrc.yml file
+# then install the package
+yarn add @pendle/sdk-boros
 ```
+
 
 ## Initialization
 

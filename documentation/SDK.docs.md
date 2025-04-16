@@ -572,7 +572,7 @@ Parameters:
 - `orderBy`: Optional field to order by ('timeClosed', 'positionSize', 'avgFixedApr', 'avgUnderlyingApr', 'pnl')
 
 Example:
-```typitten
+```typescript
 const closedPositions = await exchange.getClosedPositions({
   marketAddress: '0xMarketAddress',
   skip: 0,
