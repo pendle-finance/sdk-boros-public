@@ -1,6 +1,7 @@
-import { Hex, Log, decodeEventLog, parseEventLogs } from 'viem';
+import { Address, Hex, Log, PublicClient, decodeEventLog, parseEventLogs } from 'viem';
 import * as Abis from '../../contracts/viemAbis';
 import { publicClient } from '../publicClient';
+import { SimulateReturnType } from 'viem/actions';
 
 export async function parseEvents(txHash: Hex) {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -26,4 +27,16 @@ export async function getTransactionData(txHash: Hex) {
   const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
   const decodedLogs = receipt.logs.map((log) => decodeLog(log));
   return { decodedLogs };
+}
+
+export async function simulate(publicClient: PublicClient, to: Address, data: Hex): Promise<SimulateReturnType> {
+  const result = await publicClient.simulate({
+    blocks: [{
+      calls: [{
+        to,
+        data,
+      }]
+    }]
+  });
+  return result;
 }
