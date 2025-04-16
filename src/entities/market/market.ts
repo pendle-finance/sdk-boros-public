@@ -1,7 +1,6 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 
-const MARKET_ORDER_BUFFER_RATE = FixedX18.fromNumber(0.1); // 10%
-const BUFFERED_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.01); // 1%
+const BUFFERED_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.001); // 0.1%
 const SECONDS_PER_YEARS = 3600 * 24 * 365;
 
 export type MarketConfig = {
@@ -41,23 +40,28 @@ export type GetOrderValueParams = {
 };
 
 export class Market {
-  static getOrderSizeByExactInitialMargin(params: GetOrderSizeByExactInitialMarginParams): bigint {
+  static getOrderSizeByExactInitialMargin(
+    params: GetOrderSizeByExactInitialMarginParams,
+    useBuffer: boolean = true
+  ): bigint {
     const imSuf = Market.getIMSuf(params);
 
     // calculate the order size
-    const orderSize = FixedX18.fromRawValue(params.initialMargin)
-      .divDown(imSuf)
-      .divDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO)).value;
+    let orderSize = FixedX18.fromRawValue(params.initialMargin).divDown(imSuf);
+    if (useBuffer) {
+      orderSize = orderSize.divDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO));
+    }
 
-    return orderSize;
+    return orderSize.value;
   }
 
-  static getInitialMarginByOrderSize(params: GetInitialMarginByOrderSizeParams): bigint {
+  static getInitialMarginByOrderSize(params: GetInitialMarginByOrderSizeParams, useBuffer: boolean = true): bigint {
     const imSuf = Market.getIMSuf(params);
-
-    return FixedX18.fromRawValue(params.orderSize)
-      .mulDown(imSuf)
-      .mulDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO)).value;
+    let initialMargin = FixedX18.fromRawValue(params.orderSize).mulDown(imSuf);
+    if (useBuffer) {
+      initialMargin = initialMargin.mulDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO));
+    }
+    return initialMargin.value;
   }
 
   private static getIMSuf(data: MarketConfig & LeverageConfig & TradeInfo): FixedX18 {
@@ -69,7 +73,6 @@ export class Market {
       minMarginIndexRate,
       marketExpiry_s,
       minMarginIndexDuration_s,
-      isMarketOrder,
     } = data;
 
     const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
