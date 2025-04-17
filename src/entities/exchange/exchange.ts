@@ -4,6 +4,7 @@ import { AgentExecuteParams, MarketAccLib, OrderIdLib, signWithAgent } from '../
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
+  BulkPlaceOrderParams,
   CancelOrdersParams,
   CashTransferParams,
   CloseActivePositionsParams,
@@ -36,22 +37,20 @@ export class Exchange {
     this.borosBackendSdk = BorosBackend.getSdk();
   }
 
-  async bulkSignAndExecute(calls: AgentExecuteParams[]) {
-    const signs = await bulkSignWithAgent({
+  async bulkSignAndExecute(call: AgentExecuteParams) {
+    const sign = await signWithAgent({
       root: this.root,
       accountId: this.accountId,
-      calls,
+      call,
     });
-    const { data: executeResponses } = await this.borosBackendSdk.calldata.calldataControllerBulkAgentDirectCall({
-      datas: signs.map((sign) => ({
-        ...sign,
-        message: {
-          ...sign.message,
-          nonce: sign.message.nonce.toString(),
-        },
-      })),
+    const { data: executeResponse } = await this.borosBackendSdk.calldata.calldataControllerDirectCall({
+      ...sign,
+      message: {
+        ...sign.message,
+        nonce: sign.message.nonce.toString(),
+      },
     });
-    const txHash = executeResponses[0].txHash;
+    const txHash = executeResponse.txHash;
     const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash as Hex });
     const blockTimestamp = receipt.blockNumber;
     const logGroups = [];
@@ -67,8 +66,8 @@ export class Exchange {
       }
     }
 
-    return logGroups.map((log, index) => ({
-      executeResponse: executeResponses[index],
+    return logGroups.map((log) => ({
+      executeResponse,
       events: log,
       blockTimestamp,
     }));
@@ -142,52 +141,49 @@ export class Exchange {
       executeResponse: placeOrderResponse.executeResponse,
       result: {
         order: orderInfo,
+        events: placeOrderResponse.events,
       },
     };
     return results;
   }
 
-  async bulkPlaceOrders(orderRequests: PlaceOrderParams[]) {
+  async bulkPlaceOrders(request: BulkPlaceOrderParams) {
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
-        orders: orderRequests.map((orderRequest) => ({
-          marketAcc: orderRequest.marketAcc,
-          marketAddress: orderRequest.marketAddress,
-          ammAddresses: orderRequest.ammAddresses.join(','),
-          side: orderRequest.side,
-          size: orderRequest.size.toString(),
-          limitTick: orderRequest.limitTick,
-          tif: orderRequest.tif,
-          useOrderBook: orderRequest.useOrderBook,
-        })),
+        marketAcc: request.marketAcc,
+        marketAddress: request.marketAddress,
+        side: request.side,
+        sizes: request.sizes.map((size) => size.toString()),
+        limitTicks: request.limitTicks,
+        tif: request.tif,
+        slippage: request.slippage,
       });
-    const placeOrdersResponse = await this.bulkSignAndExecute(
-      bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams[]
+    const placeOrdersResponse = await this.signAndExecute(
+      bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams
     );
-    const results = placeOrdersResponse.map((response, index) => {
-      const event = response.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-      let orderInfo;
+    // const results = placeOrdersResponse.map((response, index) => {
+      const event = placeOrdersResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
+      let orderInfos;
       if (event?.eventName === 'LimitOrderPlaced') {
-        orderInfo = {
-          side: orderRequests[index].side,
-          placedSize: event.args.sizes[0],
-          orderId: event.args.orderIds[0],
-          root: this.root,
-          marketAddress: orderRequests[index].marketAddress,
-          accountId: this.accountId,
-          isCross: MarketAccLib.isCrossMarket(orderRequests[index].marketAcc),
-          blockTimestamp: response.blockTimestamp,
-          marketAcc: orderRequests[index].marketAcc,
-        };
-      }
-      return {
-        executeResponse: response.executeResponse,
-        result: {
-          order: orderInfo,
-        },
-      };
-    });
-    return results;
+        orderInfos = event.args.orderIds.map((orderId, index) => ({
+            side: request.side,
+            placedSize: event.args.sizes[index],
+            orderId: orderId,
+            root: this.root,
+            marketAddress: request.marketAddress,
+            accountId: this.accountId,
+            isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+            blockTimestamp: placeOrdersResponse.blockTimestamp,
+            marketAcc: request.marketAcc,
+      }))}
+
+    return {
+      executeResponse: placeOrdersResponse.executeResponse,
+      result: {
+        orders: orderInfos,
+        events: placeOrdersResponse.events,
+      },
+    };
   }
 
   async modifyOrder(params: ModifyOrderParams) {
@@ -222,6 +218,7 @@ export class Exchange {
       executeResponse: modifyOrderResponse.executeResponse,
       result: {
         order: orderInfo,
+        events: modifyOrderResponse.events,
       },
     };
     return results;

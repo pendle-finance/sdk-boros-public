@@ -15,6 +15,16 @@ export type PlaceOrderParams = {
   useOrderBook: boolean;
 };
 
+export type BulkPlaceOrderParams = {
+  marketAcc: Hex;
+  marketAddress: Address;
+  side: Side;
+  sizes: bigint[];
+  limitTicks: number[];
+  tif: TimeInForce;
+  slippage?: number;
+};
+
 export type ModifyOrderParams = {
   orderId: string;
   marketAcc: Hex;

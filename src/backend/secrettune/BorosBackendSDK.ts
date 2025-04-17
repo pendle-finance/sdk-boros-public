@@ -13,6 +13,8 @@ export interface MarketFIndexConfigResponse {
   oracle: string;
   paymentPeriod: number;
   maxUpdateDelay: number;
+  ammAddress?: object;
+  isPositiveAMM?: boolean;
 }
 
 export interface MarketConfigResponse {
@@ -29,8 +31,8 @@ export interface MarketConfigResponse {
 }
 
 export interface MarketDataResponse {
-  volume24h?: number;
-  notionalOI?: number;
+  volume24h: number;
+  notionalOI: number;
   /** TWAP apr of the market */
   markApr: number;
   /** last traded apr of the market */
@@ -69,6 +71,8 @@ export interface MarketResponse {
   collateralAddress: string;
   /** Isolated only market */
   isIsolatedOnly: boolean;
+  /** Tick step */
+  tickStep: number;
   fIndexCfg: MarketFIndexConfigResponse;
   config: MarketConfigResponse;
   data?: MarketDataResponse;
@@ -246,7 +250,7 @@ export interface PlaceOrderSimulationResponse {
   /** bigint string of margin required */
   marginRequired: string;
   /** liquidation apr */
-  liquidationApr: number;
+  liquidationApr?: number;
   /** profit 25% apr */
   profit25PercentApr: number;
   /** price impact */
@@ -299,7 +303,7 @@ export interface CloseActivePositionSimulationResponse {
   /** bigint string of margin required */
   marginRequired: string;
   /** liquidation apr */
-  liquidationApr: number;
+  liquidationApr?: number;
   /** profit 25% apr */
   profit25PercentApr: number;
   /** price impact */
@@ -363,27 +367,19 @@ export interface AgentExecuteParamsResponse {
   data: string;
 }
 
-export interface PlaceOrderQueryDto {
+export interface BulkPlaceOrderQueryDto {
   marketAcc: string;
   marketAddress: string;
-  /** comma separated amm addresses */
-  ammAddresses?: string;
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
-  /** bigint string of size */
-  size: string;
-  /**
-   * @min -32768
-   * @max 32767
-   */
-  limitTick: number;
+  /** sizes */
+  sizes: string[];
+  /** limit ticks */
+  limitTicks: number[];
+  /** @default 0.05 */
+  slippage?: number;
   /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
   tif: 0 | 1 | 2 | 3;
-  useOrderBook: boolean;
-}
-
-export interface BulkPlaceOrderQueryDto {
-  orders: PlaceOrderQueryDto[];
 }
 
 export interface PendleSignTxDto {
@@ -760,7 +756,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core-v2" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "http://localhost:8000" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -852,7 +848,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl http://localhost:8000
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -965,7 +961,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1744106150
+         * @default 1744874836
          */
         endTimestamp?: number;
       },
@@ -1164,10 +1160,12 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @min -32768
          * @max 32767
          */
-        limitTick: number;
+        limitTick?: number;
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
         useOrderBook: boolean;
+        /** @default 0.05 */
+        slippage?: number;
         /** @default false */
         mockTransfer?: boolean;
       },
@@ -1267,6 +1265,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         size: string;
         /** Required if type is limit */
         rate?: number;
+        /**
+         * Slippage
+         * @default 0.05
+         */
+        slippage?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -1391,7 +1394,9 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @min -32768
          * @max 32767
          */
-        limitTick: number;
+        limitTick?: number;
+        /** @default 0.05 */
+        slippage?: number;
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
         useOrderBook: boolean;
@@ -1412,12 +1417,12 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Calldata
      * @name CalldataControllerGetBulkPlaceOrderCalldata
      * @summary Get place multiple limit orders contract params
-     * @request GET:/v1/calldata/place-orders
+     * @request POST:/v1/calldata/place-orders
      */
     calldataControllerGetBulkPlaceOrderCalldata: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
-      this.request<AgentExecuteParamsResponse[], any>({
+      this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/place-orders`,
-        method: "GET",
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: "json",
@@ -1467,6 +1472,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         size: string;
         /** Required if type is limit */
         rate?: number;
+        /**
+         * Slippage
+         * @default 0.05
+         */
+        slippage?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -1771,7 +1781,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1744106151
+         * @default 1744874836
          */
         endTimestamp?: number;
       },
