@@ -19,6 +19,6 @@ export function getWelcomeMessage(): string {
 }
 
 export const UPDATE_SETTINGS_TYPES = [
-  { name: 'marketAcc', type: 'bytes28' },
+  { name: 'marketAcc', type: 'bytes26' },
   { name: 'timestamp', type: 'uint256' },
 ] as const;
