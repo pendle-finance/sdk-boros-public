@@ -75,12 +75,15 @@ export class Market {
       minMarginIndexDuration_s,
     } = data;
 
+    const absOrderRate = orderRate.abs();
+    const absMarkRate = markRate.abs();
+
     const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
     const minTime_y = minMarginIndexDuration_s / SECONDS_PER_YEARS;
 
     const time = FixedX18.fromNumber(Math.max(timeToMaturity_y, minTime_y));
-    const contractRate = markRate.gt(minMarginIndexRate) ? markRate : minMarginIndexRate;
-    const offchainRate = orderRate.gt(minMarginIndexRate) ? orderRate : minMarginIndexRate;
+    const contractRate = absMarkRate.gt(minMarginIndexRate) ? absMarkRate : minMarginIndexRate;
+    const offchainRate = absOrderRate.gt(minMarginIndexRate) ? absOrderRate : minMarginIndexRate;
 
     const contractSuf = contractRate.mulDown(time).mulDown(marginFactor);
     const offchainSuf = offchainRate.mulDown(time).divDown(FixedX18.fromNumber(leverage));
