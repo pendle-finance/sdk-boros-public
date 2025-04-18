@@ -160,6 +160,52 @@ export interface OrderBooksV3Response {
   short: SideTickResponse;
 }
 
+export interface GetSingleVaultResponse {
+  /** market id */
+  marketId: number;
+  /** token id */
+  tokenId: number;
+  /** amm address */
+  ammAddress: string;
+  /** bigint string of total lp */
+  totalLp: string;
+  /** bigint string of total tvl */
+  totalValue: string;
+  /** lp apy */
+  lpApy: number;
+  /** user deposit */
+  userDeposit: string;
+  /** user unclaimed rewards */
+  userUnclaimedRewards: number;
+}
+
+export interface CollateralVaultResponse {
+  tokenId: number;
+  collateralAddress: string;
+  vaults: GetSingleVaultResponse[];
+}
+
+export interface GetAllVaultResponse {
+  collaterals: CollateralVaultResponse[];
+  /** total tvl in usd */
+  totalTvl: number;
+  /** bigint string of total pendle rewards */
+  totalPendleRewards: string;
+}
+
+export interface VaultApyEntryResponse {
+  /** Period start timestamp */
+  ts: number;
+  /** APY */
+  a: number;
+  /** 30-day average APY */
+  a30: number;
+}
+
+export interface GetVaultApyChartResponse {
+  results: VaultApyEntryResponse[];
+}
+
 export interface AMMStateResponse {
   totalFloatAmount: string;
   normFixedAmount: string;
@@ -314,6 +360,48 @@ export interface CloseActivePositionSimulationResponse {
   limitOrderValue: string;
   /** actual leverage */
   actualLeverage: number;
+}
+
+export interface AddLiquiditySingleCashStateResponse {
+  /** bigint string of net lp out */
+  collateralBalance: string;
+  /** margin ratio */
+  marginRatio: number;
+}
+
+export interface AddLiquiditySingleCashMatchedResponse {
+  /** bigint string of net lp out */
+  netLpOut: string;
+  /** bigint string of net cash used */
+  netCashUsed: string;
+  /** bigint string of fees */
+  fees: string;
+}
+
+export interface AddLiquiditySingleCashSimulationResponse {
+  preUserInfo: AddLiquiditySingleCashStateResponse;
+  postUserInfo: AddLiquiditySingleCashStateResponse;
+  matched: AddLiquiditySingleCashMatchedResponse;
+}
+
+export interface RemoveLiquiditySingleCashStateResponse {
+  /** bigint string of collateral balance */
+  collateralBalance: string;
+  /** margin ratio */
+  marginRatio: number;
+}
+
+export interface RemoveLiquiditySingleCashMatchedResponse {
+  /** bigint string of net cash out */
+  netCashOut: string;
+  /** bigint string of fees */
+  fees: string;
+}
+
+export interface RemoveLiquiditySingleCashSimulationResponse {
+  preUserInfo: RemoveLiquiditySingleCashStateResponse;
+  postUserInfo: RemoveLiquiditySingleCashStateResponse;
+  matched: RemoveLiquiditySingleCashMatchedResponse;
 }
 
 export interface AssetMetadataResponse {
@@ -756,7 +844,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "http://localhost:8000" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core-v2" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -848,7 +936,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl http://localhost:8000
+ * @baseUrl https://secrettune.io/core-v2
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -961,7 +1049,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1744874836
+         * @default 1744880633
          */
         endTimestamp?: number;
       },
@@ -1047,6 +1135,85 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
   };
   amm = {
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetAllVaultStates
+     * @summary Get all vaults states
+     * @request GET:/v1/amm/summary
+     */
+    ammControllerGetAllVaultStates: (
+      query?: {
+        account?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetAllVaultResponse, any>({
+        path: `/v1/amm/summary`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetSingleVaultState
+     * @summary Get single vault state
+     * @request GET:/v1/amm/summary/single
+     */
+    ammControllerGetSingleVaultState: (
+      query: {
+        marketId: number;
+        account?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetSingleVaultResponse, any>({
+        path: `/v1/amm/summary/single`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetVaultApyChart
+     * @summary Get vault apy chart
+     * @request GET:/v1/amm/chart
+     */
+    ammControllerGetVaultApyChart: (
+      query: {
+        marketId: number;
+        /** TimeFrame { ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: "1h" | "1d" | "1w";
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1744880633
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetVaultApyChartResponse, any>({
+        path: `/v1/amm/chart`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -1275,6 +1442,56 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<CloseActivePositionSimulationResponse, any>({
         path: `/v1/simulations/close-active-position`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Simulations
+     * @name SimulationsControllerGetAddLiquiditySingleCashToAmm
+     * @summary Add liquidity single cash to amm
+     * @request GET:/v1/simulations/add-liquidity-single-cash
+     */
+    simulationsControllerGetAddLiquiditySingleCashToAmm: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        desiredCashIn: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AddLiquiditySingleCashSimulationResponse, any>({
+        path: `/v1/simulations/add-liquidity-single-cash`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Simulations
+     * @name SimulationsControllerGetRemoveLiquiditySingleCashFromAmm
+     * @summary Remove liquidity single cash from amm
+     * @request GET:/v1/simulations/remove-liquidity-single-cash
+     */
+    simulationsControllerGetRemoveLiquiditySingleCashFromAmm: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        lpToRemove: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<RemoveLiquiditySingleCashSimulationResponse, any>({
+        path: `/v1/simulations/remove-liquidity-single-cash`,
         method: "GET",
         query: query,
         format: "json",
@@ -1515,6 +1732,58 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/modify-order`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldata
+     * @summary Get add liquidity single cash to amm contract params
+     * @request GET:/v1/calldata/add-liquidity-single-cash-to-amm
+     */
+    calldataControllerGetAddLiquiditySingleCashToAmmCalldata: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        desiredCashIn: string;
+        minLpOut: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AgentExecuteParamsResponse, any>({
+        path: `/v1/calldata/add-liquidity-single-cash-to-amm`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata
+     * @summary Get remove liquidity single cash from amm contract params
+     * @request GET:/v1/calldata/remove-liquidity-single-cash-from-amm
+     */
+    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        lpToRemove: string;
+        minCashOut: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AgentExecuteParamsResponse, any>({
+        path: `/v1/calldata/remove-liquidity-single-cash-from-amm`,
         method: "GET",
         query: query,
         format: "json",
@@ -1781,7 +2050,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1744874836
+         * @default 1744880633
          */
         endTimestamp?: number;
       },
