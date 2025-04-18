@@ -9,7 +9,9 @@ const BASE = (100005n * PRECISION) / 100000n;
 /**
  * Calculate $1.00005 ^ {tickIndex * step} - 1$
  */
-export function getRateAtTick(tickIndex: bigint, step: bigint): FixedX18 {
+export function getRateAtTick(tickIndex: bigint, step: bigint, opts?: { precision?: number }): FixedX18 {
+  const { precision } = opts ?? {};
+
   if (tickIndex < 0) {
     return getRateAtTick(-tickIndex, step).neg();
   }
@@ -28,8 +30,9 @@ export function getRateAtTick(tickIndex: bigint, step: bigint): FixedX18 {
 
   const PRECISION_SHIFT = PRECISION / FixedX18.RAW_ONE;
 
-  // round to nearest
-  return FixedX18.fromRawValue((rawAns + PRECISION_SHIFT / 2n) / PRECISION_SHIFT);
+  const result = FixedX18.fromRawValue((rawAns + PRECISION_SHIFT / 2n) / PRECISION_SHIFT);
+
+  return precision ? result.round(precision) : result;
 }
 
 export function getTickAtRate(rate: FixedX18, step: number, side: Side): number {
