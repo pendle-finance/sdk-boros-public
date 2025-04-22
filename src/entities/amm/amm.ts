@@ -8,21 +8,20 @@ export function combineMarketOrderBookAndAMM(
   tickSize: number,
   marketOrderBook: OrderBooksV3Response,
   ammStateResponse: AMMStateResponse,
-  isPositiveAMM: boolean
+  isPositiveAMM: boolean,
+  ammFeeRateBigInt: string
 ): OrderBooksV3Response {
+  const ammFeeRate = FixedX18.fromRawValue(BigInt(ammFeeRateBigInt)).toNumber();
   const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
   const { normFixedAmount, totalFloatAmount } = ammState;
   const AMMImpliedRate = isPositiveAMM
     ? FixedX18.fromRawValue(PositiveAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber()
     : FixedX18.fromRawValue(NegativeAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber();
 
-  const bestBidRate = marketOrderBook.long.ia.length > 0 ? marketOrderBook.long.ia[0] * tickSize : AMMImpliedRate;
-  const bestAskRate = marketOrderBook.short.ia.length > 0 ? marketOrderBook.short.ia[0] * tickSize : AMMImpliedRate;
-
   let longOrderBookIndex = 0,
     shortOrderBookIndex = 0;
-  let ammShortRate = AMMImpliedRate;
-  let ammLongRate = AMMImpliedRate;
+  let ammShortRate = AMMImpliedRate + ammFeeRate;
+  let ammLongRate = AMMImpliedRate - ammFeeRate;
 
   const short: SideTickResponse = {
     ia: [],
@@ -34,28 +33,30 @@ export function combineMarketOrderBookAndAMM(
     sz: [],
   };
 
-  let longIa = Math.floor(AMMImpliedRate / tickSize);
-  let shortIa = Math.ceil(AMMImpliedRate / tickSize);
-  if (AMMImpliedRate < bestBidRate) {
-    while (
-      longOrderBookIndex < marketOrderBook.long.ia.length &&
-      marketOrderBook.long.ia[longOrderBookIndex] >= longIa
-    ) {
-      long.ia.push(marketOrderBook.long.ia[longOrderBookIndex]);
-      long.sz.push(marketOrderBook.long.sz[longOrderBookIndex]);
-      longOrderBookIndex++;
-    }
-    shortIa = (marketOrderBook.long.ia[0] ?? longIa) + 1;
-  } else if (AMMImpliedRate > bestAskRate) {
-    while (
-      shortOrderBookIndex < marketOrderBook.short.ia.length &&
-      marketOrderBook.short.ia[shortOrderBookIndex] <= shortIa
-    ) {
-      short.ia.push(marketOrderBook.short.ia[shortOrderBookIndex]);
-      short.sz.push(marketOrderBook.short.sz[shortOrderBookIndex]);
-      shortOrderBookIndex++;
-    }
-    longIa = (marketOrderBook.short.ia[0] ?? shortIa) - 1;
+  let longIa = Math.floor(ammLongRate / tickSize);
+  let shortIa = Math.ceil(ammShortRate / tickSize);
+
+  while (longOrderBookIndex < marketOrderBook.long.ia.length && marketOrderBook.long.ia[longOrderBookIndex] > longIa) {
+    long.ia.push(marketOrderBook.long.ia[longOrderBookIndex]);
+    long.sz.push(marketOrderBook.long.sz[longOrderBookIndex]);
+    longOrderBookIndex++;
+  }
+
+  while (
+    shortOrderBookIndex < marketOrderBook.short.ia.length &&
+    marketOrderBook.short.ia[shortOrderBookIndex] < shortIa
+  ) {
+    short.ia.push(marketOrderBook.short.ia[shortOrderBookIndex]);
+    short.sz.push(marketOrderBook.short.sz[shortOrderBookIndex]);
+    shortOrderBookIndex++;
+  }
+
+  if (marketOrderBook.short.ia.length > 0) {
+    longIa = Math.min(longIa, marketOrderBook.short.ia[0] - 1);
+  }
+
+  if (marketOrderBook.long.ia.length > 0) {
+    shortIa = Math.max(shortIa, marketOrderBook.long.ia[0] + 1);
   }
 
   while (short.ia.length < ORDER_BOOK_SIZE_PER_SIDE) {
@@ -71,8 +72,8 @@ export function combineMarketOrderBookAndAMM(
     const newAMMShortRate = shortIa * tickSize;
 
     sz += calSwapAMMFromToRate({
-      fromRate: ammShortRate,
-      toRate: newAMMShortRate,
+      fromRate: Math.max(AMMImpliedRate, ammShortRate - ammFeeRate),
+      toRate: Math.max(AMMImpliedRate, newAMMShortRate - ammFeeRate),
       isPositiveAMM,
       state: ammState,
     });
@@ -102,8 +103,8 @@ export function combineMarketOrderBookAndAMM(
     const newAMMLongRate = longIa * tickSize;
 
     sz += calSwapAMMFromToRate({
-      fromRate: newAMMLongRate,
-      toRate: ammLongRate,
+      fromRate: Math.min(AMMImpliedRate, newAMMLongRate + ammFeeRate),
+      toRate: Math.min(AMMImpliedRate, ammLongRate + ammFeeRate),
       isPositiveAMM,
       state: ammState,
     });
