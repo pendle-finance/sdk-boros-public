@@ -67,14 +67,16 @@ export type PendleSignTxStruct = {
 };
 
 export type ApproveAgentMessage = {
-  account: Account;
+  root: Address;
+  accountId: number;
   agent: Address;
   expiry: bigint;
   nonce: bigint;
 };
 
 export type SetAccManagerStruct = {
-  account: Account;
+  root: Address;
+  accountId: number;
   accManager: Address;
   nonce: bigint;
 };

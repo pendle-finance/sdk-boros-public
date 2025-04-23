@@ -1,7 +1,6 @@
 export * from './signing';
 export * from './accountLib';
 export * from './orderLib';
-export * from './tickLib';
 
 import { Address, Hex, WalletClient } from 'viem';
 import { ROUTER_ADDRESS } from '../addresses';

@@ -21,24 +21,17 @@ interface SubaccountTransferParams {
 
 interface CashTransferReq {
   marketId: MarketId;
-  amount: bigint;
-  isDeposit: boolean;
-}
-
-interface OpenIsolatedPositionRequest {
-  order: Order;
-  cashIn: bigint;
-  enterMarket: boolean;
+  signedAmount: bigint;
 }
 
 interface Order {
   cross: boolean;
   marketId: MarketId;
-  useAmm: boolean;
+  ammId: number;
   side: Side;
   tif: TimeInForce;
-  tick: number;
   size: bigint;
+  tick: number;
 }
 
 interface BulkOrders {
@@ -48,6 +41,8 @@ interface BulkOrders {
   tif: TimeInForce;
   sizes: bigint[];
   limitTicks: number[];
+  idsToStrictCancel: OrderId[];
+  desiredMatchRate: bigint;
 }
 
 interface BulkCancels {
@@ -55,21 +50,6 @@ interface BulkCancels {
   marketId: MarketId;
   cancelAll: boolean;
   orderIds: OrderId[];
-}
-
-interface ModifyOrderReq {
-  idToCancel: OrderId;
-  newOrder: Order;
-}
-
-interface EnterMarketsReq {
-  cross: boolean;
-  marketIds: MarketId[];
-}
-
-interface ExitMarketsReq {
-  cross: boolean;
-  marketIds: MarketId[];
 }
 
 interface LiquidateParams {
@@ -85,46 +65,56 @@ interface SettlePaymentAndOrdersParams {
 
 interface SwapWithAmmReq {
   cross: boolean;
-  marketId: MarketId;
-  ammAddr: Address;
+  ammId: number;
   signedSize: bigint;
-  maxCost: bigint;
+  desiredSwapRate: bigint;
 }
 
 interface AddLiquidityDualToAmmReq {
   cross: boolean;
-  marketId: MarketId;
-  ammAddr: Address;
-  desiredCashIn: bigint;
+  ammId: number;
+  maxCashIn: bigint;
   exactSizeIn: bigint;
   minLpOut: bigint;
 }
 
 interface AddLiquiditySingleCashToAmmReq {
   cross: boolean;
-  marketId: MarketId;
-  ammAddr: Address;
-  desiredCashIn: bigint;
+  ammId: number;
+  netCashIn: bigint;
   minLpOut: bigint;
-  maxIteration: bigint;
-  eps: bigint;
 }
 
 interface RemoveLiquidityDualFromAmmReq {
   cross: boolean;
-  marketId: MarketId;
-  ammAddr: Address;
+  ammId: number;
   lpToRemove: bigint;
   minCashOut: bigint;
-  desiredSizeOut: bigint;
+  minSizeOut: bigint;
+  maxSizeOut: bigint;
 }
 
 interface RemoveLiquiditySingleCashFromAmmReq {
   cross: boolean;
-  marketId: MarketId;
-  ammAddr: Address;
+  ammId: number;
   lpToRemove: bigint;
   minCashOut: bigint;
+}
+
+interface PlaceSingleOrderReq {
+  order: Order;
+  enterMarket: boolean;
+  idToStrictCancel: OrderId;
+  exitMarket: boolean;
+  isolated_cashIn: bigint;
+  isolated_cashTransferAll: boolean;
+  desiredMatchRate: bigint;
+}
+
+interface EnterExitMarketsReq {
+  cross: boolean;
+  isEnter: boolean;
+  marketIds: MarketId[];
 }
 
 export const functionEncoder = {
@@ -152,27 +142,11 @@ export const functionEncoder = {
     });
   },
 
-  openIsolatedPosition(req: OpenIsolatedPositionRequest) {
+  placeSingleOrder(req: PlaceSingleOrderReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
-      functionName: 'openIsolatedPosition',
+      functionName: 'placeSingleOrder',
       args: [req],
-    });
-  },
-
-  closeIsolatedPosition(order: Order) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'closeIsolatedPosition',
-      args: [order],
-    });
-  },
-
-  placeOrder(order: Order) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'placeOrder',
-      args: [order],
     });
   },
 
@@ -192,26 +166,10 @@ export const functionEncoder = {
     });
   },
 
-  modifyOrder(req: ModifyOrderReq) {
+  enterExitMarkets(req: EnterExitMarketsReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
-      functionName: 'modifyOrder',
-      args: [req],
-    });
-  },
-
-  enterMarkets(req: EnterMarketsReq) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'enterMarkets',
-      args: [req],
-    });
-  },
-
-  exitMarkets(req: ExitMarketsReq) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'exitMarkets',
+      functionName: 'enterExitMarkets',
       args: [req],
     });
   },

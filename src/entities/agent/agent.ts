@@ -5,7 +5,7 @@ import { ROUTER_ADDRESS } from '../../addresses';
 import { RPC_URL } from '../../common';
 import { iRouterAbi } from '../../contracts/viemAbis';
 import { ApproveAgentMessage, Account as BorosAccount } from '../../types/common';
-import { AccountLib, getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
+import { getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
 import { getWelcomeMessage } from '../../utils/signing/common';
 import { publicClient } from '../publicClient';
 
@@ -32,7 +32,8 @@ export class Agent {
     const agentAddress = await this.getAddress();
     const nonce = BigInt(Date.now());
     return {
-      account: AccountLib.pack(userAddress, 0),
+      root: userAddress,
+      accountId: 0,
       agent: agentAddress,
       expiry: BigInt(expiry_s),
       nonce,
