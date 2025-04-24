@@ -1,7 +1,9 @@
 import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
+import { ROUTER_ADDRESS } from '../../addresses';
 import { iRouterAbi } from '../../contracts/viemAbis';
-import { SetAccManagerStruct } from '../../types/common';
+import { Account, SetAccManagerStruct } from '../../types/common';
 import { getUserAddressFromWalletClient, signSetAccManagerMessage } from '../../utils';
+import { publicClient } from '../publicClient';
 
 export class AccManager {
   private static async createSetAccManagerMessage(
@@ -16,6 +18,7 @@ export class AccManager {
       nonce,
     };
   }
+
   static async setAccManager(userWalletClient: WalletClient, accManagerAddress: Address): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const setAccManagerStruct = await AccManager.createSetAccManagerMessage(userAddress, accManagerAddress);
@@ -30,5 +33,15 @@ export class AccManager {
       args: [setAccManagerStruct, signature],
     });
     return data;
+  }
+
+  static async getAccManager(account: Account): Promise<Address> {
+    const accManagerAddress = await publicClient.readContract({
+      address: ROUTER_ADDRESS,
+      abi: iRouterAbi,
+      functionName: 'accountManager',
+      args: [account],
+    });
+    return accManagerAddress;
   }
 }
