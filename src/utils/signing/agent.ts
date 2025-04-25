@@ -123,10 +123,10 @@ export async function signWithAgent(params: {
 
 export async function signUpdateSettings(params: {
   marketAcc: MarketAcc;
-  marketAddress: Address;
+  marketId: number;
   leverage: number;
 }) {
-  const { marketAcc, marketAddress, leverage } = params;
+  const { marketAcc, marketId, leverage } = params;
 
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
@@ -149,7 +149,7 @@ export async function signUpdateSettings(params: {
 
   return {
     marketAcc,
-    marketAddress,
+    marketId,
     leverage,
     signature,
     agent: agentAddress,
