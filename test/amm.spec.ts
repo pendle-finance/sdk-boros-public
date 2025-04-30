@@ -506,4 +506,67 @@ describe('combineMarketOrderBookAndAmm', () => {
       },
     });
   });
+
+  it('should combine correctly when there is no order book', () => {
+    const tickSize = 0.001;
+    const marketOrderBook: OrderBooksV3Response = {
+      long: {
+        ia: [],
+        sz: [],
+      },
+      short: {
+        ia: [],
+        sz: [],
+      },
+    };
+
+    const ammStateResponse: AMMStateResponse = {
+      totalFloatAmount: '2490787079878783975900',
+      normFixedAmount: '249078707987878397590',
+      totalLp: '787656033893671113961',
+      latestFTime: '1743811200',
+      maturity: '1747872000',
+      seedTime: '1743062400',
+      minAbsRate: '10000000000000000',
+      maxAbsRate: '300000000000000000',
+      cutOffTimestamp: '1747872000',
+    };
+
+    const isPositiveAMM = true;
+    const ammFeeRate = '1000000000000000';
+    const result = combineMarketOrderBookAndAMM(tickSize, marketOrderBook, ammStateResponse, isPositiveAMM, ammFeeRate);
+
+    expect(result).toEqual({
+      long: {
+        ia: [98, 97, 96, 95, 94, 93, 92, 91, 90, 89],
+        sz: [
+          '13610271445662834034',
+          '13823956795392007353',
+          '14043229375344512552',
+          '14268294856529239993',
+          '14499368720230901400',
+          '14736676835031245605',
+          '14980456074323246577',
+          '15230954977629720703',
+          '15488434459348057372',
+          '15753168568885510655',
+        ],
+      },
+      short: {
+        ia: [102, 103, 104, 105, 106, 107, 108, 109, 110, 111],
+        sz: [
+          '13401976925864881432',
+          '13198885601549638906',
+          '13000818131378430078',
+          '12807603024194533774',
+          '12619076223751988326',
+          '12435080719130635879',
+          '12255466179024632144',
+          '12080088608230235523',
+          '11908810024795855525',
+          '11741498156413929530',
+        ],
+      },
+    });
+  });
 });

@@ -36,6 +36,14 @@ export function combineMarketOrderBookAndAMM(
   let longIa = Math.floor(ammLongRate / tickSize);
   let shortIa = Math.ceil(ammShortRate / tickSize);
 
+  if (longIa * tickSize === ammLongRate) {
+    longIa--;
+  }
+
+  if (shortIa * tickSize === ammShortRate) {
+    shortIa++;
+  }
+
   while (longOrderBookIndex < marketOrderBook.long.ia.length && marketOrderBook.long.ia[longOrderBookIndex] > longIa) {
     long.ia.push(marketOrderBook.long.ia[longOrderBookIndex]);
     long.sz.push(marketOrderBook.long.sz[longOrderBookIndex]);
@@ -69,16 +77,16 @@ export function combineMarketOrderBookAndAMM(
       shortOrderBookIndex++;
     }
 
-    const newAMMShortRate = shortIa * tickSize;
+    const nextAMMShortRate = shortIa * tickSize;
 
     sz += calSwapAMMFromToRate({
       fromRate: Math.max(AMMImpliedRate, ammShortRate - ammFeeRate),
-      toRate: Math.max(AMMImpliedRate, newAMMShortRate - ammFeeRate),
+      toRate: Math.max(AMMImpliedRate, nextAMMShortRate - ammFeeRate),
       isPositiveAMM,
       state: ammState,
     });
 
-    ammShortRate = Math.max(ammShortRate, newAMMShortRate);
+    ammShortRate = Math.max(ammShortRate, nextAMMShortRate);
 
     if (sz > 0n) {
       short.ia.push(shortIa);
@@ -100,16 +108,16 @@ export function combineMarketOrderBookAndAMM(
       longOrderBookIndex++;
     }
 
-    const newAMMLongRate = longIa * tickSize;
+    const nextAMMLongRate = longIa * tickSize;
 
     sz += calSwapAMMFromToRate({
-      fromRate: Math.min(AMMImpliedRate, newAMMLongRate + ammFeeRate),
+      fromRate: Math.min(AMMImpliedRate, nextAMMLongRate + ammFeeRate),
       toRate: Math.min(AMMImpliedRate, ammLongRate + ammFeeRate),
       isPositiveAMM,
       state: ammState,
     });
 
-    ammLongRate = Math.min(ammLongRate, newAMMLongRate);
+    ammLongRate = Math.min(ammLongRate, nextAMMLongRate);
 
     if (sz > 0n) {
       long.ia.push(longIa);
