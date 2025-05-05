@@ -9,39 +9,51 @@
  * ---------------------------------------------------------------
  */
 
-export interface MarketFIndexConfigResponse {
-  oracle: string;
-  paymentPeriod: number;
-  maxUpdateDelay: number;
-  ammAddress?: object;
-  isPositiveAMM?: boolean;
+export interface MarketIMDataResponse {
+  /** Name of the market */
+  name: string;
+  /** Symbol of the market */
+  symbol: string;
+  /** Isolated only market */
+  isIsolatedOnly: boolean;
+  /** Maturity date of the market */
+  maturity: number;
+  /** Tick step of the market */
+  tickStep: number;
+}
+
+export interface MarketLiqIncentiveResponse {
+  base: string;
+  slope: string;
 }
 
 export interface MarketConfigResponse {
-  openInterestCap: string;
-  orderBookFeesFactor: string;
-  otcFeesFactor: string;
-  settlementFeesFactor: string;
+  maxOpenOrders: number;
+  markRateOracle: string;
+  fIndexOracle: string;
+  oiCap: string;
+  takerFee: string;
+  otcFee: string;
+  liqIncentive: MarketLiqIncentiveResponse;
   imFactor: string;
   mmFactor: string;
-  /** @deprecated */
-  maxMarginIndexRate: string;
-  minMarginIndexRate: string;
+  minMarginIndexTick: number;
   minMarginIndexDuration: number;
 }
 
-export interface MarketDataResponse {
-  volume24h: number;
-  notionalOI: number;
-  /** TWAP apr of the market */
-  markApr: number;
-  /** last traded apr of the market */
-  lastTradedApr: number;
-  /** the average of best bid apr and best ask apr of the market */
-  impliedApr: number;
-  floatingApr: number;
-  longYieldApr?: number;
-  nextSettlementTime?: number;
+export interface MarketExtendedConfigResponse {
+  /** Amm address */
+  ammAddress?: string;
+  /** Amm id */
+  ammId?: number;
+  /** Is positive amm */
+  isPositiveAMM?: boolean;
+  /** Settle fee rate */
+  settleFeeRate: string;
+  /** Payment period */
+  paymentPeriod: number;
+  /** Max update delay */
+  maxUpdateDelay: number;
 }
 
 export interface MarketMetadataResponse {
@@ -60,29 +72,32 @@ export interface MarketMetadataResponse {
   isWhitelisted: boolean;
 }
 
+export interface MarketDataResponse {
+  volume24h: number;
+  notionalOI: number;
+  /** TWAP apr of the market */
+  markApr: number;
+  /** last traded apr of the market */
+  lastTradedApr: number;
+  midApr: number;
+  floatingApr: number;
+  longYieldApr?: number;
+  nextSettlementTime?: number;
+}
+
 export interface MarketResponse {
   /** marketId used for MarketAcc packing */
   marketId: number;
   /** Market address */
   address: string;
-  /** Maturity date of the market */
-  maturity: number;
-  /** Collateral token address */
-  collateralAddress: string;
-  /** Isolated only market */
-  isIsolatedOnly: boolean;
-  /** Tick step */
-  tickStep: number;
-  fIndexCfg: MarketFIndexConfigResponse;
+  /** Token id of the market */
+  tokenId: number;
+  /** Immutable data of the market */
+  imData: MarketIMDataResponse;
   config: MarketConfigResponse;
-  data?: MarketDataResponse;
+  extConfig: MarketExtendedConfigResponse;
   metadata?: MarketMetadataResponse;
-  /** Block number of the market creation */
-  block: number;
-  /** Timestamp of the market creation, in seconds */
-  timestamp: number;
-  /** indicate whether the market is whitelisted */
-  isWhitelisted: boolean;
+  data?: MarketDataResponse;
 }
 
 export interface MarketsResponse {
@@ -136,18 +151,6 @@ export interface ChartResponse {
   results: CandleResponse[];
 }
 
-export interface TickResponse {
-  /** implied apy */
-  ia: number;
-  /** bigint string of notional size */
-  sz: string;
-}
-
-export interface OrderBooksResponse {
-  long: TickResponse[];
-  short: TickResponse[];
-}
-
 export interface SideTickResponse {
   /** implied apy in term of tick size */
   ia: number[];
@@ -155,9 +158,18 @@ export interface SideTickResponse {
   sz: string[];
 }
 
-export interface OrderBooksV3Response {
+export interface OrderBooksResponse {
   long: SideTickResponse;
   short: SideTickResponse;
+}
+
+export interface UserVaultInfo {
+  /** user deposit */
+  depositValue: string;
+  /** user unclaimed rewards */
+  unclaimedRewards: string;
+  /** bigint string of total lp */
+  totalLp: string;
 }
 
 export interface GetSingleVaultResponse {
@@ -165,18 +177,16 @@ export interface GetSingleVaultResponse {
   marketId: number;
   /** token id */
   tokenId: number;
-  /** amm address */
-  ammAddress: string;
+  /** amm id */
+  ammId: number;
   /** bigint string of total lp */
   totalLp: string;
   /** bigint string of total tvl */
   totalValue: string;
   /** lp apy */
   lpApy: number;
-  /** user deposit */
-  userDeposit: string;
-  /** user unclaimed rewards */
-  userUnclaimedRewards: number;
+  /** user vault info */
+  user: UserVaultInfo;
 }
 
 export interface CollateralVaultResponse {
@@ -200,6 +210,8 @@ export interface VaultApyEntryResponse {
   a: number;
   /** 30-day average APY */
   a30: number;
+  /** TVL */
+  tv: string;
 }
 
 export interface GetVaultApyChartResponse {
@@ -220,6 +232,12 @@ export interface AMMStateResponse {
 
 export interface GetAMMStateByMarketIdResponse {
   ammState: AMMStateResponse;
+}
+
+export interface GetAMMInfoByAmmIdResponse {
+  state: AMMStateResponse;
+  isPositive: boolean;
+  feeRate: string;
 }
 
 export interface DepositStateResponse {
@@ -409,6 +427,8 @@ export interface AssetMetadataResponse {
   proSymbol: string;
   /** Asset icon */
   icon: string;
+  /** Asset avatar */
+  avatar: string;
   /**
    * Asset accent color
    * @example "#B9BABE"
@@ -418,7 +438,7 @@ export interface AssetMetadataResponse {
    * indicate whether the asset is whitelisted
    * @example false
    */
-  isWhiteListed: boolean;
+  isWhitelisted: boolean;
 }
 
 export interface AssetResponse {
@@ -435,8 +455,6 @@ export interface AssetResponse {
   /** Price in USD */
   usdPrice: string;
   metadata: AssetMetadataResponse;
-  /** indicate whether the asset is whitelisted */
-  isWhiteListed: boolean;
 }
 
 export interface AssetsResponse {
@@ -457,15 +475,16 @@ export interface AgentExecuteParamsResponse {
 
 export interface BulkPlaceOrderQueryDto {
   marketAcc: string;
-  marketAddress: string;
+  marketId: number;
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
   /** sizes */
   sizes: string[];
   /** limit ticks */
   limitTicks: number[];
-  /** @default 0.05 */
-  slippage?: number;
+  /** ids to strict cancel */
+  idsToStrictCancel?: string[];
+  desiredMatchRate: number;
   /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
   tif: 0 | 1 | 2 | 3;
 }
@@ -497,12 +516,18 @@ export interface BulkAgentExecuteDto {
 }
 
 export interface ApproveAgentQueryDto {
-  calldata: string;
+  setAccountManagerCalldata?: string;
+  approveAgentCalldata: string;
+}
+
+export interface ApproveAgentResponse {
+  setAccountManagerResult?: TxResponse;
+  approveAgentResult: TxResponse;
 }
 
 export interface SettingsByMarketResponse {
-  /** Market address */
-  marketAddress: string;
+  /** Market id */
+  marketId: number;
   /** Leverage for cross market */
   crossLeverage?: number;
   /** Leverage for isolated market */
@@ -516,7 +541,7 @@ export interface AccountSettingsResponse {
 
 export interface UpdateAccountSettingBodyDto {
   marketAcc: string;
-  marketAddress: string;
+  marketId: number;
   leverage: number;
   /** EIP-712 signature */
   signature: string;
@@ -543,8 +568,8 @@ export interface PositionPnlResponse {
 export interface ActivePnlPositionResponse {
   /** Position id */
   id: string;
-  /** The market address */
-  marketAddress: string;
+  /** The market id */
+  marketId: number;
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
   /** bigint string of notional size */
@@ -572,8 +597,8 @@ export interface ActivePnlPositionResponse {
 export interface ClosedPnlPositionResponse {
   /** Position id */
   id: string;
-  /** The market address */
-  marketAddress: string;
+  /** The market id */
+  marketId: number;
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
   /** The position closure time */
@@ -601,8 +626,8 @@ export interface ClosedPnlPositionsResponse {
 export interface PnlTransactionResponse {
   /** Transaction id */
   id: string;
-  /** The market address */
-  marketAddress: string;
+  /** The market id */
+  marketId: number;
   /** The transaction time */
   time: number;
   /** Side { LONG : 0, SHORT : 1 } */
@@ -651,8 +676,13 @@ export interface LimitOrderResponse {
   placedSize: string;
   /** Remaining Notional Size of the order */
   unfilledSize: string;
-  /** the fixed APR of the order */
+  /**
+   * the fixed APR of the order
+   * @deprecated
+   */
   impliedApr: number;
+  /** the tick of the order */
+  tick: number;
   /** Order value */
   orderValue: string;
   /** Margin required */
@@ -661,8 +691,8 @@ export interface LimitOrderResponse {
   orderId: string;
   /** Maker address */
   root: string;
-  /** Market address */
-  marketAddress: string;
+  /** Market id */
+  marketId: number;
   /** Maker sub account id */
   accountId: number;
   /** Is cross market */
@@ -677,7 +707,7 @@ export interface LimitOrderResponse {
   marketAcc: string;
 }
 
-export interface LimitOrdersResponseV2 {
+export interface LimitOrdersResponse {
   results: LimitOrderResponse[];
   total: number;
 }
@@ -689,8 +719,8 @@ export interface SettlementResponse {
   timestamp: number;
   /** The account position */
   marketAcc: string;
-  /** The market address */
-  marketAddress: string;
+  /** The market id */
+  marketId: number;
   /** The side of the settlement { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
   /** bigint string of position size */
@@ -721,7 +751,7 @@ export interface PnlResponse {
 }
 
 export interface MarketPositionResponse {
-  marketAddress: string;
+  marketId: number;
   /** TWAP apr of the market */
   markApr: number;
   /** last traded apr of the market */
@@ -764,8 +794,7 @@ export interface MarketAccCollateralResponse {
 }
 
 export interface CollateralSummaryResponse {
-  /** the address of the collateral */
-  collateralAddress: string;
+  tokenId: number;
   /** List collateral info for isolated positions */
   isolatedPositions: MarketAccCollateralResponse[];
   /** Collateral info for crossed position */
@@ -844,7 +873,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core-v2" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -936,7 +965,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl https://secrettune.io/core
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -947,25 +976,9 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Markets
-     * @name MarketsControllerGetMarketInfo
-     * @summary Get market data by address
-     * @request GET:/v1/markets/market/{address}
-     */
-    marketsControllerGetMarketInfo: (address: string, params: RequestParams = {}) =>
-      this.request<MarketResponse, any>({
-        path: `/v1/markets/market/${address}`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Markets
      * @name MarketsControllerGetMarkets
      * @summary Get all markets
-     * @request GET:/v1/markets/markets
+     * @request GET:/v1/markets
      */
     marketsControllerGetMarkets: (
       query?: {
@@ -988,7 +1001,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       params: RequestParams = {},
     ) =>
       this.request<MarketsResponse, any>({
-        path: `/v1/markets/markets`,
+        path: `/v1/markets`,
         method: "GET",
         query: query,
         format: "json",
@@ -1015,8 +1028,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @default 10
          */
         limit?: number;
-        /** Market address */
-        marketAddress: string;
+        /** Market id */
+        marketId: number;
       },
       params: RequestParams = {},
     ) =>
@@ -1038,8 +1051,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     marketsControllerGetChartData: (
       query: {
-        /** Market address */
-        marketAddress: string;
+        /** Market id */
+        marketId: number;
         /** ClosePositionType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
         timeFrame: "5m" | "1h" | "1d" | "1w";
         /**
@@ -1049,7 +1062,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1744880633
+         * @default 1745814350
          */
         endTimestamp?: number;
       },
@@ -1062,55 +1075,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Markets
+     * @name MarketsControllerGetMarketInfo
+     * @summary Get market data by marketId
+     * @request GET:/v1/markets/{marketId}
+     */
+    marketsControllerGetMarketInfo: (marketId: number, params: RequestParams = {}) =>
+      this.request<MarketResponse, any>({
+        path: `/v1/markets/${marketId}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   orderBooks = {
-    /**
-     * No description
-     *
-     * @tags OrderBooks
-     * @name OrderBooksControllerGetOrderBooks
-     * @summary Get order books by marketAddress
-     * @request GET:/v1/order-books
-     * @deprecated
-     */
-    orderBooksControllerGetOrderBooks: (
-      query: {
-        marketAddress: string;
-        nSigFigs?: number;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<OrderBooksResponse, any>({
-        path: `/v1/order-books`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags OrderBooks
-     * @name OrderBooksControllerGetOrderBooksV2
-     * @summary Get order books by marketAddress V2
-     * @request GET:/v2/order-books
-     */
-    orderBooksControllerGetOrderBooksV2: (
-      query: {
-        marketAddress: string;
-        tickSize: 0.00001 | 0.0001 | 0.001 | 0.01 | 0.1;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<OrderBooksResponse, any>({
-        path: `/v2/order-books`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
     /**
      * No description
      *
@@ -1126,7 +1108,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<OrderBooksV3Response, any>({
+      this.request<OrderBooksResponse, any>({
         path: `/v1/order-books/${marketId}`,
         method: "GET",
         query: query,
@@ -1191,8 +1173,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ammControllerGetVaultApyChart: (
       query: {
         marketId: number;
-        /** TimeFrame { ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
-        timeFrame: "1h" | "1d" | "1w";
+        /** TimeFrame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: "5m" | "1h" | "1d" | "1w";
         /**
          * Start timestamp
          * @default 0
@@ -1200,7 +1182,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1744880633
+         * @default 1745814350
          */
         endTimestamp?: number;
       },
@@ -1229,6 +1211,22 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetAmmInfoByAmmId
+     * @summary Get amm info by amm address
+     * @request GET:/v2/amm/{ammId}
+     */
+    ammControllerGetAmmInfoByAmmId: (ammId: number, params: RequestParams = {}) =>
+      this.request<GetAMMInfoByAmmIdResponse, any>({
+        path: `/v2/amm/${ammId}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   simulations = {
     /**
@@ -1242,7 +1240,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     simulationsControllerGetDeposit: (
       query: {
         userAddress: string;
-        collateralAddress: string;
+        tokenId: number;
         amount: string;
       },
       params: RequestParams = {},
@@ -1266,7 +1264,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     simulationsControllerGetWithdraw: (
       query: {
         userAddress: string;
-        collateralAddress: string;
+        tokenId: number;
         amount: string;
       },
       params: RequestParams = {},
@@ -1316,9 +1314,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     simulationsControllerGetPlaceOrder: (
       query: {
         marketAcc: string;
-        marketAddress: string;
-        /** comma separated amm addresses */
-        ammAddresses?: string;
+        marketId: number;
         /** Side { LONG : 0, SHORT : 1 } */
         side: 0 | 1;
         /** bigint string of size */
@@ -1330,7 +1326,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limitTick?: number;
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
-        useOrderBook: boolean;
         /** @default 0.05 */
         slippage?: number;
         /** @default false */
@@ -1357,7 +1352,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     simulationsControllerGetCancelOrder: (
       query: {
         marketAcc: string;
-        marketAddress: string;
+        marketId: number;
         cancelAll: boolean;
         /** comma separated orderIds */
         orderIds?: string[];
@@ -1384,12 +1379,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         /** account position that the order is modified on */
         marketAcc: string;
-        /** market address that the order is modified on */
-        marketAddress: string;
+        /** market id that the order is modified on */
+        marketId: number;
         /** order id that is modified */
         orderId: string;
-        /** comma separated amm addresses of modified order */
-        ammAddresses?: string;
         /** Side { LONG : 0, SHORT : 1 } of modified order */
         side: 0 | 1;
         /** bigint string of size of modified order */
@@ -1426,7 +1419,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     simulationsControllerCloseActiveMarketPosition: (
       query: {
         marketAcc: string;
-        marketAddress: string;
+        marketId: number;
         /** ClosePositionType { LIMIT : limit, MARKET : market } */
         type: "limit" | "market";
         size: string;
@@ -1461,7 +1454,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
         marketId: number;
-        desiredCashIn: string;
+        netCashIn: string;
       },
       params: RequestParams = {},
     ) =>
@@ -1527,7 +1520,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetDepositCalldata: (
       query: {
         userAddress: string;
-        collateralAddress: string;
+        tokenId: number;
         amount: string;
       },
       params: RequestParams = {},
@@ -1551,7 +1544,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetWithdrawCalldata: (
       query: {
         userAddress: string;
-        collateralAddress: string;
+        tokenId: number;
         amount: string;
       },
       params: RequestParams = {},
@@ -1600,9 +1593,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetPlaceOrderCalldata: (
       query: {
         marketAcc: string;
-        marketAddress: string;
-        /** comma separated amm addresses */
-        ammAddresses?: string;
+        marketId: number;
         /** Side { LONG : 0, SHORT : 1 } */
         side: 0 | 1;
         /** bigint string of size */
@@ -1616,7 +1607,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         slippage?: number;
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
-        useOrderBook: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -1657,7 +1647,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetCancelOrderCalldata: (
       query: {
         marketAcc: string;
-        marketAddress: string;
+        marketId: number;
         cancelAll: boolean;
         /** comma separated orderIds */
         orderIds?: string;
@@ -1683,7 +1673,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetCloseActiveMarketPosition: (
       query: {
         marketAcc: string;
-        marketAddress: string;
+        marketId: number;
         /** ClosePositionType { LIMIT : limit, MARKET : market } */
         type: "limit" | "market";
         size: string;
@@ -1716,7 +1706,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetModifyOrderCalldata: (
       query: {
         marketAcc: string;
-        marketAddress: string;
+        marketId: number;
         orderId: string;
         /** bigint string of size */
         size: string;
@@ -1724,7 +1714,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @min -32768
          * @max 32767
          */
-        tick: number;
+        limitTick: number;
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
       },
@@ -1748,10 +1738,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     calldataControllerGetAddLiquiditySingleCashToAmmCalldata: (
       query: {
-        userAddress: string;
-        accountId: number;
         marketId: number;
-        desiredCashIn: string;
+        netCashIn: string;
         minLpOut: string;
       },
       params: RequestParams = {},
@@ -1774,8 +1762,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata: (
       query: {
-        userAddress: string;
-        accountId: number;
         marketId: number;
         lpToRemove: string;
         minCashOut: string;
@@ -1853,30 +1839,12 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerRouterDirectCall
-     * @summary Send direct call to router
-     * @request POST:/v1/calldata/router-direct-call
-     */
-    calldataControllerRouterDirectCall: (data: ApproveAgentQueryDto, params: RequestParams = {}) =>
-      this.request<TxResponse, any>({
-        path: `/v1/calldata/router-direct-call`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerApproveAgent
      * @summary Approve agent
      * @request POST:/v1/calldata/approve-agent
      */
     calldataControllerApproveAgent: (data: ApproveAgentQueryDto, params: RequestParams = {}) =>
-      this.request<TxResponse, any>({
+      this.request<ApproveAgentResponse, any>({
         path: `/v1/calldata/approve-agent`,
         method: "POST",
         body: data,
@@ -1939,7 +1907,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        marketAddress?: string;
+        marketId?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -1963,7 +1931,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        marketAddress?: string;
+        marketId?: number;
         /**
          * Maximum number of results to return. The parameter is capped at 100.
          * @default 10
@@ -2003,7 +1971,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        marketAddress?: string;
+        marketId?: number;
         /**
          * Maximum number of results to return. The parameter is capped at 100.
          * @default 10
@@ -2036,7 +2004,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     pnlControllerGetHistoricalPnlChart: (
       query: {
         userAddress: string;
-        marketAddress: string;
+        marketId: number;
         accountId: number;
         /**
          * Time frame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w }
@@ -2050,7 +2018,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1744880633
+         * @default 1745814350
          */
         endTimestamp?: number;
       },
@@ -2076,7 +2044,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        marketAddress?: string;
+        marketId?: number;
         /**
          * Maximum number of results to skip.
          * @default 0
@@ -2100,7 +2068,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<LimitOrdersResponseV2, any>({
+      this.request<LimitOrdersResponse, any>({
         path: `/v1/pnl/limit-orders`,
         method: "GET",
         query: query,
@@ -2131,7 +2099,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         skip?: number;
         userAddress: string;
         accountId: number;
-        marketAddress?: string;
+        marketId?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -2179,7 +2147,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        collateralAddress: string;
+        tokenId: number;
       },
       params: RequestParams = {},
     ) =>
@@ -2205,7 +2173,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
         /** if not provided, will return balance of all collateral */
-        collateralAddress?: string;
+        tokenId?: number;
         /** Balance chart time { SEVEN_DAYS : 7d, THIRTY_DAYS : 30d, SIXTY_DAYS : 60d, NINETY_DAYS : 90d, ALL_TIME : all } */
         time: "7d" | "30d" | "60d" | "90d" | "all";
       },

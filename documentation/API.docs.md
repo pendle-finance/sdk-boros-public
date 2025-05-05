@@ -9,50 +9,49 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 ### Markets
 
 #### Endpoints
-- **Get Market Info** (`GET /v1/markets/market/{address}`)
-  - Retrieve detailed information about a specific market by address
+- **Get Market Info** (`GET /v1/markets/{marketId}`)
+  - Retrieve detailed information about a specific market by id
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core-v2/v1/markets/market/0xc463e26c9001f7838a079e9a936ff7697c96c14e"
+  curl -X GET "https://secrettune.io/core/v1/markets/1"
   ```
 
   Response:
   ```json
   {
     "marketId": 1,
-    "address": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
-    "maturity": 1747872000,
-    "collateralAddress": "0x70a5cc7c683e7431a7f0a596305b870161fc515d",
-    "isIsolatedOnly": false,
-    "tickStep": 2,
-    "fIndexCfg": {
-      "oracle": "0x47cb1fefe30d9ff95cc2f1a32ac866854f6ac278",
-      "paymentPeriod": 28800,
-      "maxUpdateDelay": 300,
-      "ammAddress": "0xb7495b9008696a7ea8d913941d116e10200d98ef",
-      "isPositiveAMM": true
+    "address": "0x878dcc6fa06f66eab72943a9ef8143a67f98f48e",
+    "tokenId": 1,
+    "imData": {
+      "name": "BTCUSDT 22 May 2025",
+      "symbol": "BTCUSDT22MAY2025",
+      "isIsolatedOnly": false,
+      "maturity": 1747872000,
+      "tickStep": 2
     },
     "config": {
-      "openInterestCap": "100000000000000000000000",
-      "orderBookFeesFactor": "1000000000000000",
-      "otcFeesFactor": "1000000000000000",
-      "settlementFeesFactor": "0",
+      "maxOpenOrders": 100,
+      "markRateOracle": "0x0000000000000000000000000000000000000001",
+      "fIndexOracle": "0x86a329b73db9de3a0a80af12ae3d9fb66910f366",
+      "oiCap": "150000000000000000000",
+      "takerFee": "1000000000000000",
+      "otcFee": "1000000000000000",
+      "liqIncentive": {
+        "base": "100000000000000000",
+        "slope": "0"
+      },
       "imFactor": "500000000000000000",
       "mmFactor": "250000000000000000",
-      "maxMarginIndexRate": "100000000000000000",
-      "minMarginIndexRate": "100000000000000000",
+      "minMarginIndexTick": 953,
       "minMarginIndexDuration": 604800
     },
-    "data": {
-      "volume24h": 2658.961147186426,
-      "notionalOI": 2007.8880180397387,
-      "markApr": 0.07004243605986377,
-      "lastTradedApr": 0.07004243605986377,
-      "impliedApr": 0.05396963751431831,
-      "floatingApr": 0.07508415,
-      "longYieldApr": 0.005041713940136236,
-      "nextSettlementTime": 1744300800
+    "extConfig": {
+      "ammAddress": "0x44ac4e061f72be85623b4ec3e39b8579f88fbb76",
+      "ammId": 1,
+      "settleFeeRate": "1000000000000000",
+      "paymentPeriod": 28800,
+      "maxUpdateDelay": 300
     },
     "metadata": {
       "name": "BTCUSDT",
@@ -63,9 +62,16 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
       "icon": "https://storage.googleapis.com/pendle-v3/BTCUSDT%20BINANCE.svg",
       "isWhitelisted": true
     },
-    "block": 317266015,
-    "timestamp": 1742373620,
-    "isWhitelisted": true
+    "data": {
+      "volume24h": 0.1140445245882061,
+      "notionalOI": 123.37536790466751,
+      "markApr": 0.09002196244680642,
+      "lastTradedApr": 0.09002196244680642,
+      "midApr": 0.08958605174745624,
+      "floatingApr": -0.0263238,
+      "longYieldApr": -0.11634576244680642,
+      "nextSettlementTime": 1746432000
+    }
   }
   ```
   
@@ -78,7 +84,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core-v2/v1/markets/markets?skip=0&limit=10&isWhitelisted=true"
+  curl -X GET "https://secrettune.io/core/v1/markets/markets?skip=0&limit=10&isWhitelisted=true"
   ```
 
   Response:
@@ -87,38 +93,37 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
     "results": [
       {
         "marketId": 1,
-        "address": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
-        "maturity": 1747872000,
-        "collateralAddress": "0x70a5cc7c683e7431a7f0a596305b870161fc515d",
-        "isIsolatedOnly": false,
-        "tickStep": 2,
-        "fIndexCfg": {
-          "oracle": "0x47cb1fefe30d9ff95cc2f1a32ac866854f6ac278",
-          "paymentPeriod": 28800,
-          "maxUpdateDelay": 300,
-          "ammAddress": "0xb7495b9008696a7ea8d913941d116e10200d98ef",
-          "isPositiveAMM": true
+        "address": "0x878dcc6fa06f66eab72943a9ef8143a67f98f48e",
+        "tokenId": 1,
+        "imData": {
+          "name": "BTCUSDT 22 May 2025",
+          "symbol": "BTCUSDT22MAY2025",
+          "isIsolatedOnly": false,
+          "maturity": 1747872000,
+          "tickStep": 2
         },
         "config": {
-          "openInterestCap": "100000000000000000000000",
-          "orderBookFeesFactor": "1000000000000000",
-          "otcFeesFactor": "1000000000000000",
-          "settlementFeesFactor": "0",
+          "maxOpenOrders": 100,
+          "markRateOracle": "0x0000000000000000000000000000000000000001",
+          "fIndexOracle": "0x86a329b73db9de3a0a80af12ae3d9fb66910f366",
+          "oiCap": "150000000000000000000",
+          "takerFee": "1000000000000000",
+          "otcFee": "1000000000000000",
+          "liqIncentive": {
+            "base": "100000000000000000",
+            "slope": "0"
+          },
           "imFactor": "500000000000000000",
           "mmFactor": "250000000000000000",
-          "maxMarginIndexRate": "100000000000000000",
-          "minMarginIndexRate": "100000000000000000",
+          "minMarginIndexTick": 953,
           "minMarginIndexDuration": 604800
         },
-        "data": {
-          "volume24h": 1998.7906721186987,
-          "notionalOI": 2007.8880180397387,
-          "markApr": 0.07004243605986377,
-          "lastTradedApr": 0.07004243605986377,
-          "impliedApr": 0.05396963751431831,
-          "floatingApr": 0.07508415,
-          "longYieldApr": 0.005041713940136236,
-          "nextSettlementTime": 1744300800
+        "extConfig": {
+          "ammAddress": "0x44ac4e061f72be85623b4ec3e39b8579f88fbb76",
+          "ammId": 1,
+          "settleFeeRate": "1000000000000000",
+          "paymentPeriod": 28800,
+          "maxUpdateDelay": 300
         },
         "metadata": {
           "name": "BTCUSDT",
@@ -129,57 +134,16 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
           "icon": "https://storage.googleapis.com/pendle-v3/BTCUSDT%20BINANCE.svg",
           "isWhitelisted": true
         },
-        "block": 317266015,
-        "timestamp": 1742373620,
-        "isWhitelisted": true
-      },
-      {
-        "marketId": 2,
-        "address": "0x1cfc2a2fc782c36fd6e6b0d30413f9734bcfa930",
-        "maturity": 1750291200,
-        "collateralAddress": "0x70a5cc7c683e7431a7f0a596305b870161fc515d",
-        "isIsolatedOnly": false,
-        "tickStep": 2,
-        "fIndexCfg": {
-          "oracle": "0x714267311877e10ed4c94fdb69b4eb3b4dd4037b",
-          "paymentPeriod": 28800,
-          "maxUpdateDelay": 300,
-          "ammAddress": "0xad9372d055c233f55886763e9af97d874583fb84",
-          "isPositiveAMM": true
-        },
-        "config": {
-          "openInterestCap": "100000000000000000000000",
-          "orderBookFeesFactor": "1000000000000000",
-          "otcFeesFactor": "1000000000000000",
-          "settlementFeesFactor": "0",
-          "imFactor": "500000000000000000",
-          "mmFactor": "250000000000000000",
-          "maxMarginIndexRate": "100000000000000000",
-          "minMarginIndexRate": "100000000000000000",
-          "minMarginIndexDuration": 604800
-        },
         "data": {
-          "volume24h": 3169.768119282555,
-          "notionalOI": 1242.739730661385,
-          "markApr": 0.049904053673639856,
-          "lastTradedApr": 0.049904053673639856,
-          "impliedApr": 0.06498225046172433,
-          "floatingApr": 0.07508415,
-          "longYieldApr": 0.025180096326360146,
-          "nextSettlementTime": 1744300800
-        },
-        "metadata": {
-          "name": "BTCUSDT",
-          "platformIcon": "https://storage.googleapis.com/pendle-v3/binance.svg",
-          "platformName": "Binance",
-          "maxLeverage": 2,
-          "defaultLeverage": 1,
-          "icon": "https://storage.googleapis.com/pendle-v3/BTCUSDT%20BINANCE.svg",
-          "isWhitelisted": true
-        },
-        "block": 317266055,
-        "timestamp": 1742373630,
-        "isWhitelisted": true
+          "volume24h": 0.1140445245882061,
+          "notionalOI": 123.37536790466751,
+          "markApr": 0.09002196244680642,
+          "lastTradedApr": 0.09002196244680642,
+          "midApr": 0.08958605174745624,
+          "floatingApr": -0.0263238,
+          "longYieldApr": -0.11634576244680642,
+          "nextSettlementTime": 1746432000
+        }
       },
     ],
     "total": 2,
@@ -193,7 +157,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core-v2/v1/markets/market-trades?skip=0&limit=10&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e"
+  curl -X GET "https://secrettune.io/core/v1/markets/market-trades?skip=0&limit=10&marketId=1"
   ```
 
   Response:
@@ -201,37 +165,67 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
   {
     "results": [
       {
-        "size": -1,
-        "rate": 0.08792607033025755,
-        "txHash": "0xd4f4648e0e46c67ac5be9e717e9efe7afb1441908d4cfa7961852aa6c02af2f8",
-        "blockTimestamp": 1744270941
+        "size": 0.21651433837446463,
+        "rate": 0.09002196244680642,
+        "txHash": "0xcca1be5dd7a9b798402a8338a6cf0721c6198c2db3b5c0f82d6d86bd194dfb3b",
+        "blockTimestamp": 1746356369
+      },
+      {
+        "size": 0.2608519997236286,
+        "rate": 0.08958605174745624,
+        "txHash": "0xcca1be5dd7a9b798402a8338a6cf0721c6198c2db3b5c0f82d6d86bd194dfb3b",
+        "blockTimestamp": 1746356369
+      },
+      {
+        "size": 0.2611826175112882,
+        "rate": 0.08915031537316037,
+        "txHash": "0xcca1be5dd7a9b798402a8338a6cf0721c6198c2db3b5c0f82d6d86bd194dfb3b",
+        "blockTimestamp": 1746356369
+      },
+      {
+        "size": 0.26145104439061856,
+        "rate": 0.08871475325420448,
+        "txHash": "0xcca1be5dd7a9b798402a8338a6cf0721c6198c2db3b5c0f82d6d86bd194dfb3b",
+        "blockTimestamp": 1746356369
       },
       {
         "size": -1,
-        "rate": 0.08799615185356213,
-        "txHash": "0xd908f9f8e86f820ab313eca8bf853f6a376b94f611a675491e3de9fd11495edc",
-        "blockTimestamp": 1744270723
+        "rate": 0.08841371796409392,
+        "txHash": "0x388cacf6d3f5519886737dc624c9d01ca2bf5373e5bf8945c55023b20ade3c2c",
+        "blockTimestamp": 1746356226
+      },
+      {
+        "size": 1,
+        "rate": 0.09041371796409392,
+        "txHash": "0x41a02c7c8602e33d8353a12df6da594f9d33f66606b8af479b05c7be1e7527bb",
+        "blockTimestamp": 1746352371
       },
       {
         "size": -1,
-        "rate": 0.08806631138871669,
-        "txHash": "0xcc871f067ca9e446e5ee205f0a9606043d1ea12cb34d576335b189744c63d2a5",
-        "blockTimestamp": 1744270702
+        "rate": 0.08841371796409392,
+        "txHash": "0x43a7913db95488d19880171af1647cad82424ad83a43b5c228716bd9ba63e95a",
+        "blockTimestamp": 1746352358
       },
       {
-        "size": -1,
-        "rate": 0.08813654905359394,
-        "txHash": "0x0fbdf4bb508d27cee7ef139e0d6632060737fa686df48e8c39766b94d532cebd",
-        "blockTimestamp": 1744270625
+        "size": 1,
+        "rate": 0.09041371796409392,
+        "txHash": "0x7d78802d89372656271a1a2f30ab5444a6dea9592c0b6bf546f002ffd0fe436e",
+        "blockTimestamp": 1746352239
       },
       {
-        "size": -1,
-        "rate": 0.08820686496629322,
-        "txHash": "0xd11d819bbe43330df4fc2fc8699ea8bb4abac3493968d32050bb9262945612be",
-        "blockTimestamp": 1744270480
+        "size": -0.7482494371491292,
+        "rate": 0.08834738044739718,
+        "txHash": "0x2a2aaa199aec699d59880103fe47926bc1ab1ad6d022814043c66198fffcd489",
+        "blockTimestamp": 1746350130
       },
+      {
+        "size": -0.050358444595882845,
+        "rate": 0.08827936532090212,
+        "txHash": "0x2a2aaa199aec699d59880103fe47926bc1ab1ad6d022814043c66198fffcd489",
+        "blockTimestamp": 1746350130
+      }
     ],
-    "total": 68,
+    "total": 99,
     "skip": 0
   }
   ```
@@ -243,7 +237,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core-v2/v1/markets/chart?marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&timeFrame=5m&startTimestamp=0&endTimestamp=1744186550"
+  curl -X GET "https://secrettune.io/core/v1/markets/chart?marketId=1&timeFrame=5m&startTimestamp=0&endTimestamp=1746356141"
   ```
 
   Response:
@@ -302,37 +296,41 @@ Available chart intervals:
 - **Get Order Books V2** (`GET /v2/order-books`)
   - Latest version for retrieving order books
   - Parameters:
-    - `marketAddress`: Target market
+    - `marketId`: Target market
     - `tickSize`: Supported values: [0.00001, 0.0001, 0.001, 0.01, 0.1]
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core-v2/v2/order-books?marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&tickSize=0.00001"
+  curl -X GET "https://secrettune.io/core/v1/order-books/1?tickSize=0.00001"
   ```
 
   Response:
   ```json
   {
-    "long": [
-      {
-        "ia": 0.03789,
-        "sz": "1640000000000000000"
-      },
-      {
-        "ia": 0.032510000000000004,
-        "sz": "10000000000000000"
-      },
-    ],
-    "short": [
-      {
-        "ia": 0.07005,
-        "sz": "54759260253906250001"
-      },
-      {
-        "ia": 0.10010000000000001,
-        "sz": "21000000000000000"
-      }
-    ]
+    "long": {
+      "ia": [
+        8960,
+        8920,
+        8870,
+      ],
+      "sz": [
+        "58724227191248872",
+        "58757442160557416",
+        "58776533001426712",
+      ]
+    },
+    "short": {
+      "ia": [
+        9050,
+        9090,
+        9130,
+      ],
+      "sz": [
+        "250306054222955776",
+        "250044477691435296",
+        "249723379463267488",
+      ]
+    }
   }
   ```
 
@@ -368,23 +366,28 @@ Supported price increments for order placement:
 ### AMM
 
 #### Endpoints
-- **Get AMM State** (`GET /v1/amm/{marketId}`)
+- **Get AMM State by marketId** (`GET /v1/amm/{marketId}`)
   - Retrieve current AMM state for a specific market
 
   Example:
   ```bash
-  curl -X GET "https://api.secretune.com/v1/amm/0x1234...5678"
+  curl -X GET "https://secrettune.io/core/v1/amm/1"
   ```
 
   Response:
   ```json
   {
-    "marketAddress": "0x1234...5678",
-    "liquidity": "1000000000000000000000",
-    "baseApr": 5.75,
-    "currentTick": 57500,
-    "sqrtPrice": "1000000000000000000",
-    "lastUpdateTimestamp": "2024-03-15T10:30:00Z"
+    "ammState": {
+      "totalFloatAmount": "1918418277747312072260",
+      "normFixedAmount": "301314915788208257462",
+      "totalLp": "833913532766018254293",
+      "latestFTime": "1746403200",
+      "maturity": "1747872000",
+      "seedTime": "1743062400",
+      "minAbsRate": "10000000000000000",
+      "maxAbsRate": "300000000000000000",
+      "cutOffTimestamp": "1747872000"
+    }
   }
   ```
 
@@ -399,7 +402,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core-v2/v1/simulations/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
+   curl -X GET "https://secrettune.io/core/v1/simulations/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
    ```
 
    Response:
@@ -446,7 +449,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core-v2/v1/simulations/cash-transfer?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&marketId=1&isDeposit=true&amount=1000"
+   curl -X GET "https://secrettune.io/core/v1/simulations/cash-transfer?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&marketId=1&isDeposit=true&amount=1000"
    ```
 
    Response:
@@ -481,7 +484,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core-v2/v1/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=1&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true&mockTransfer=false"
+   curl -X GET "https://secrettune.io/core/v1/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&tif=0&slippage=0.05&mockTransfer=false"
    ```
 
    Response:
@@ -523,7 +526,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core-v2/v1/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
+    curl -X GET "https://secrettune.io/core/v1/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
     ```
     
     Response:
@@ -540,7 +543,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core-v2/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=0&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true"
+    curl -X GET "https://secrettune.io/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=0&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true"
     ```
 
     Response:
@@ -555,7 +558,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core-v2/v1/calldata/cash-transfer?marketId=1&isDeposit=true&amount=1000"
+    curl -X GET "https://secrettune.io/core/v1/calldata/cash-transfer?marketId=1&isDeposit=true&amount=1000"
     ```
 
     Response:
@@ -571,7 +574,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core-v2/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=1&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true&mockTransfer=false"
+    curl -X GET "https://secrettune.io/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&slippage=0.05&tif=0"
 
 5. **Agent Direct Call** (`POST /v1/calldata/agent-direct-call`)
     - execute calldata by agent
@@ -579,7 +582,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://secrettune.io/core-v2/v1/calldata/agent-direct-call' \
+    'https://secrettune.io/core/v1/calldata/agent-direct-call' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
@@ -607,7 +610,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://secrettune.io/core-v2/v1/calldata/approve-agent' \
+    'https://secrettune.io/core/v1/calldata/approve-agent' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
@@ -630,34 +633,58 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core-v2/v1/pnl/positions/active?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
+    'https://secrettune.io/core/v1/pnl/positions/active?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
     -H 'accept: application/json'
     ```
     
     Response:
     ```json
-    [{
-        "id": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff-0xc463e26c9001f7838a079e9a936ff7697c96c14e",
-        "marketAddress": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
-        "side": 0,
-        "notionalSize": "100214817201803763480",
+    [
+      {
+        "id": "0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff-3",
+        "marketId": 3,
+        "side": 1,
+        "notionalSize": "1000000000000000000",
         "positionValue": {
-        "settledPosition": "65923822021389188",
-        "remainingPosition": "785152851052656471"
+          "settledPosition": "0",
+          "remainingPosition": "2366135570900737"
         },
-        "underlyingApy": 0.04640012727272727,
-        "fixedApr": 0.020604654706455696,
-        "impliedApr": 0.07004243605986377,
-        "liquidationApr": -0.8417884705592992,
+        "underlyingApy": 0.00198195,
+        "fixedApr": 0.09896691323484517,
+        "impliedApr": 0.05126978233177614,
+        "liquidationApr": 205.9525541191084,
         "pnl": {
-        "rateSettlementPnl": "94043488646261628",
-        "unrealisedPnl": "81541966065981887"
+          "rateSettlementPnl": "0",
+          "unrealisedPnl": "-46575342465753"
         },
-        "initialMargin": "1132177040337973362",
-        "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
+        "initialMargin": "2309522598555182",
+        "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff",
         "accountId": 0,
-        "profit25PercentApr": 0.02575581838306962
-    }]
+        "profit25PercentApr": 0.07917353058787614
+      },
+      {
+        "id": "0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff-4",
+        "marketId": 4,
+        "side": 1,
+        "notionalSize": "4000000000000000000",
+        "positionValue": {
+          "settledPosition": "645554783590686",
+          "remainingPosition": "43492050931793347"
+        },
+        "underlyingApy": 0.00198195,
+        "fixedApr": 0.08836031100397534,
+        "impliedApr": 0.08849703751870093,
+        "liquidationApr": 19.536107077273712,
+        "pnl": {
+          "rateSettlementPnl": "737808847517630",
+          "unrealisedPnl": "-500456621004564"
+        },
+        "initialMargin": "30742220520097106",
+        "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff",
+        "accountId": 0,
+        "profit25PercentApr": 0.07068824880318028
+      }
+    ]
     ```
 
 2. **Get Closed Position** (`GET /v1/pnl/positions/closed`)
@@ -666,28 +693,64 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core-v2/v1/pnl/positions/closed?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&limit=10&skip=0&orderBy=timeClosed%3A-1' \
+    'https://secrettune.io/core/v1/pnl/positions/closed?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&limit=10&skip=0&orderBy=timeClosed%3A-1' \
     -H 'accept: application/json'
     ```
     
     Response:
     ```json
     {
-    "results": [
+      "results": [
         {
-        "id": "0xc463e26c9001f7838a079e9a936ff7697c96c14e-0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff-1",
-        "marketAddress": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
-        "side": 1,
-        "timeClosed": 1742973639,
-        "positionSize": "2000000000000000000",
-        "avgFixedApr": 0.055112418349795377,
-        "avgUnderlyingApr": -0.02039574375,
-        "pnl": "11872335006279019",
-        "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
-        "accountId": 0
+          "id": "4-0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff-1",
+          "marketId": 4,
+          "side": 0,
+          "timeClosed": 1746199283,
+          "positionSize": "3380993506628139136",
+          "avgFixedApr": 0.08915030494269266,
+          "avgUnderlyingApr": -0.02116754235135215,
+          "pnl": "-751660286868926",
+          "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000002ffffff",
+          "accountId": 0
+        },
+        {
+          "id": "2-0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff-1",
+          "marketId": 2,
+          "side": 0,
+          "timeClosed": 1746178979,
+          "positionSize": "1000000000000000000",
+          "avgFixedApr": 0.10066600187936002,
+          "avgUnderlyingApr": -0.033203528571428574,
+          "pnl": "-2169480107815867",
+          "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
+          "accountId": 0
+        },
+        {
+          "id": "1-0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff-2",
+          "marketId": 1,
+          "side": 1,
+          "timeClosed": 1746178972,
+          "positionSize": "460000000000000000",
+          "avgFixedApr": 0.09618692521877774,
+          "avgUnderlyingApr": -0.0285457375,
+          "pnl": "60608112705221",
+          "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
+          "accountId": 0
+        },
+        {
+          "id": "1-0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff-1",
+          "marketId": 1,
+          "side": 0,
+          "timeClosed": 1745827628,
+          "positionSize": "1220000000000000000",
+          "avgFixedApr": 0.1010782972757522,
+          "avgUnderlyingApr": 0.000655886440677966,
+          "pnl": "-274438512932167",
+          "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
+          "accountId": 0
         }
-    ],
-    "total": 1
+      ],
+      "total": 4
     }
     ```
 
@@ -697,7 +760,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core-v2/v1/pnl/limit-orders?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&skip=0&limit=10&orderBy=blockTimestamp%3A-1' \
+    'https://secrettune.io/core/v1/pnl/limit-orders?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&skip=0&limit=10&orderBy=blockTimestamp%3A-1' \
     -H 'accept: application/json'
     ```
     
@@ -714,7 +777,7 @@ Supported price increments for order placement:
             "marginRequired": "5592402333840690",
             "orderId": "9259267792966778895",
             "root": "0x1eca053af93a7afaefcd2133a352f422c3c04903",
-            "marketAddress": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
+            "marketId": 1,
             "accountId": 0,
             "isCross": true,
             "status": 0,
@@ -732,7 +795,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core-v2/v1/collaterals/summary?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
+    'https://secrettune.io/core/v1/collaterals/summary?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
     -H 'accept: application/json'
     ```
     
@@ -747,7 +810,7 @@ Supported price increments for order placement:
             "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001000002",
             "marketPositions": [
                 {
-                "marketAddress": "0x1cfc2a2fc782c36fd6e6b0d30413f9734bcfa930",
+                "marketId": 1,
                 "markApr": 0.049904053673639856,
                 "lastTradedApr": 0.049904053673639856,
                 "impliedApr": 0.06498225046172433,
@@ -780,7 +843,7 @@ Supported price increments for order placement:
             "marketAcc": "0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff",
             "marketPositions": [
             {
-                "marketAddress": "0xc463e26c9001f7838a079e9a936ff7697c96c14e",
+                "marketId": 2,
                 "markApr": 0.07004243605986377,
                 "lastTradedApr": 0.07004243605986377,
                 "impliedApr": 0.05396963751431831,

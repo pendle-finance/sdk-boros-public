@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 import { ExampleConfig, createMarketAcc, setupExchange } from './utils';
-import { PlaceOrderParams, Side, TimeInForce, getTickAtInterest } from '../../src';
+import { BulkPlaceOrderParams, PlaceOrderParams, Side, TimeInForce, getTickAtInterest } from '../../src';
 
 async function main() {
   const config: ExampleConfig = {
@@ -22,13 +22,11 @@ async function main() {
 
     const limitOrderParams: PlaceOrderParams = {
       marketAcc,
-      marketAddress,
-      ammAddresses: [],
+      marketId,
       side: Side.LONG,
       size: BigInt('1000000000000000000'),
       limitTick: Number(getTickAtInterest(interestRate, Side.LONG)),
       tif: TimeInForce.GOOD_TIL_CANCELLED,
-      useOrderBook: true
     };
 
     const {result: limitOrderResult, executeResponse} = await exchange.placeOrder(limitOrderParams);
@@ -54,17 +52,36 @@ async function main() {
 
     const marketOrderParams: PlaceOrderParams = {
       marketAcc,
-      marketAddress,
-      ammAddresses: [],
+      marketId,
       side: Side.LONG,
       size: BigInt('1000000000000000000'),
       limitTick: MAX_TICK,
       tif: TimeInForce.FILL_OR_KILL,
-      useOrderBook: true
     };
 
     const marketOrderResult = await exchange.placeOrder(marketOrderParams);
     console.log('Market order result:', marketOrderResult);
+
+
+    const bulkOrderParams: BulkPlaceOrderParams = 
+      {
+        marketAcc,
+        marketId,
+        side: Side.LONG,
+        sizes: [BigInt('1000000000000000000'), BigInt('2000000000000000000')],
+        limitTicks: [Number(getTickAtInterest(interestRate, Side.LONG)), Number(getTickAtInterest(interestRate, Side.LONG))],
+        tif: TimeInForce.GOOD_TIL_CANCELLED,
+      };
+
+    const bulkOrderResult = await exchange.bulkPlaceOrders(bulkOrderParams);
+    const {
+      executeResponse: bulkOrderExecuteResponse,
+      result: {
+        orders
+      }
+    } = bulkOrderResult;
+    console.log('Bulk order result:', bulkOrderResult);
+    
 
   } catch (error) {
     console.error('Error placing order:', error);

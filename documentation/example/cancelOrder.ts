@@ -23,13 +23,11 @@ async function placeAndCancelOrderExample() {
     // Place an order using helper
     const orderResult = await placeExampleOrder(exchange, {
       marketAcc,
-      marketAddress,
-      ammAddresses: [],
+      marketId,
       side: Side.LONG,
       size: 100000000000000000000n, // 100 tokens with 18 decimals
       limitTick: 1000,
       tif: TimeInForce.GOOD_TIL_CANCELLED,
-      useOrderBook: true
     });
     
     console.log('Order placed:', orderResult);
@@ -43,7 +41,7 @@ async function placeAndCancelOrderExample() {
     // Cancel the specific order
     const cancelResult = await exchange.cancelOrders({
       marketAcc,
-      marketAddress,
+      marketId,
       cancelAll: false,
       orderIds: [String(orderId)] // Convert bigint to string
     });
@@ -53,7 +51,7 @@ async function placeAndCancelOrderExample() {
     // Example of cancelling all orders in a market
     const cancelAllResult = await exchange.cancelOrders({
       marketAcc,
-      marketAddress,
+      marketId,
       cancelAll: true,
       orderIds: []
     });

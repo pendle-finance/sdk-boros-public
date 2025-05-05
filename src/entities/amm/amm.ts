@@ -1,16 +1,16 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
-import { AMMStateResponse, OrderBooksV3Response, SideTickResponse } from '../../backend/secrettune/BorosBackendSDK';
+import { AMMStateResponse, OrderBooksResponse, SideTickResponse } from '../../backend/secrettune/BorosBackendSDK';
 import { NegativeAMMMath } from './NegativeAMMMath';
 import { AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
 import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
 
 export function combineMarketOrderBookAndAMM(
   tickSize: number,
-  marketOrderBook: OrderBooksV3Response,
+  marketOrderBook: OrderBooksResponse,
   ammStateResponse: AMMStateResponse,
   isPositiveAMM: boolean,
   ammFeeRateBigInt: string
-): OrderBooksV3Response {
+): OrderBooksResponse {
   const ammFeeRate = FixedX18.fromRawValue(BigInt(ammFeeRateBigInt)).toNumber();
   const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
   const { normFixedAmount, totalFloatAmount } = ammState;

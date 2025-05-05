@@ -1,6 +1,6 @@
 #!/bin/bash
 
-URL=https://secrettune.io/core-v2/docs-json
+URL=https://secrettune.io/core/docs-json
 OUTPUT_DIR="./src/backend/secrettune/"
 FILE_NAME="BorosBackendSDK.ts"
 if [[ "FROM_LOCAL" -eq "1" ]]; then

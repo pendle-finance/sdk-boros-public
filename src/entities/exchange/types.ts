@@ -6,29 +6,27 @@ export type OrderBy = 'timeClosed' | 'positionSize' | 'avgFixedApr' | 'avgUnderl
 
 export type PlaceOrderParams = {
   marketAcc: Hex;
-  marketAddress: Address;
-  ammAddresses: Address[];
+  marketId: number;
   side: Side;
   size: bigint;
   limitTick: number;
+  slippage?: number;
   tif: TimeInForce;
-  useOrderBook: boolean;
 };
 
 export type BulkPlaceOrderParams = {
   marketAcc: Hex;
-  marketAddress: Address;
+  marketId: number;
   side: Side;
   sizes: bigint[];
   limitTicks: number[];
   tif: TimeInForce;
-  slippage?: number;
 };
 
 export type ModifyOrderParams = {
   orderId: string;
   marketAcc: Hex;
-  marketAddress: Address;
+  marketId: number;
   size: bigint;
   limitTick: number;
   tif: TimeInForce;
@@ -36,20 +34,20 @@ export type ModifyOrderParams = {
 
 export type CancelOrdersParams = {
   marketAcc: Hex;
-  marketAddress: Address;
+  marketId: number;
   cancelAll: boolean;
   orderIds: string[];
 };
 
 export type DepositParams = {
   userAddress: Address;
-  collateralAddress: Address;
+  tokenId: number;
   amount: bigint;
 };
 
 export type WithdrawParams = {
   userAddress: Address;
-  collateralAddress: Address;
+  tokenId: number;
   amount: bigint;
 };
 
@@ -61,7 +59,7 @@ export type CashTransferParams = {
 
 export type CloseActivePositionsParams = {
   marketAcc: Hex;
-  marketAddress: Address;
+  marketId: number;
   type: 'market' | 'limit';
   size: bigint;
   rate?: number;
@@ -69,7 +67,7 @@ export type CloseActivePositionsParams = {
 
 export type UpdateSettingsParams = {
   marketAcc: Hex;
-  marketAddress: Address;
+  marketId: number;
   leverage: number;
   signature: Hex;
   agent: Hex;
@@ -83,7 +81,7 @@ export type GetMarketsParams = {
 };
 
 export type GetOrderBookParams = {
-  marketAddress: Address;
+  marketId: number;
   tickSize: 0.00001 | 0.0001 | 0.001 | 0.01 | 0.1;
 };
 
@@ -91,16 +89,16 @@ export type GetPnlLimitOrdersParams = {
   skip?: number;
   limit?: number;
   isActive?: boolean;
-  marketAddress?: Address;
+  marketId?: number;
   orderBy?: OrderBy;
 };
 
 export type GetActivePositionsParams = {
-  marketAddress?: Address;
+  marketId?: number;
 };
 
 export type GetClosedPositionsParams = {
-  marketAddress?: Address;
+  marketId?: number;
   skip?: number;
   limit?: number;
   orderBy?: OrderBy;

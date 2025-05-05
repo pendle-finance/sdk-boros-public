@@ -21,7 +21,11 @@ import {
 } from './types';
 import { decodeLog, parseEvents } from './utils';
 import { bulkSignWithAgent } from '../../utils/signing/agent';
+import { Side } from '../../types';
+import { FixedX18 } from '@pendle/boros-offchain-math';
 
+export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
+export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
 export class Exchange {
   static readonly DEFAULT_SLIPPAGE = 0.05;
 
@@ -108,30 +112,33 @@ export class Exchange {
   }
 
   async placeOrder(params: PlaceOrderParams) {
-    const { marketAcc, marketAddress, ammAddresses, side, size, limitTick, tif, useOrderBook } = params;
-    const ammAddressesStr = ammAddresses.join(',');
+    const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetPlaceOrderCalldata({
         marketAcc,
-        marketAddress,
-        ammAddresses: ammAddressesStr,
+        marketId,
         side,
         size: size.toString(),
         limitTick,
         tif,
-        useOrderBook,
+        slippage,
       });
 
     const placeOrderResponse = await this.signAndExecute(placeOrderCalldataResponse as unknown as AgentExecuteParams);
     const limitOrderPlacedEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
     const swapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'Swap');
     const otcSwapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'OtcSwap');
+    const limitOrderPartiallyFilledEvent = placeOrderResponse.events.find(
+      (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+    );
+    const limitOrderFilledEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderFilled');
+
     let orderInfo = {
       side,
       placedSize: limitOrderPlacedEvent?.args.sizes[0],
       orderId: limitOrderPlacedEvent?.args.orderIds[0],
       root: this.root,
-      marketAddress,
+      marketId,
       accountId: this.accountId,
       isCross: MarketAccLib.isCrossMarket(marketAcc),
       blockTimestamp: placeOrderResponse.blockTimestamp,
@@ -148,34 +155,36 @@ export class Exchange {
   }
 
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
+    const desiredMatchRate = request.side === Side.LONG ? MAX_DESIRED_MATCH_RATE : MIN_DESIRED_MATCH_RATE;
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
         marketAcc: request.marketAcc,
-        marketAddress: request.marketAddress,
+        marketId: request.marketId,
         side: request.side,
         sizes: request.sizes.map((size) => size.toString()),
         limitTicks: request.limitTicks,
         tif: request.tif,
-        slippage: request.slippage,
+        desiredMatchRate: desiredMatchRate.toNumber(),
       });
     const placeOrdersResponse = await this.signAndExecute(
       bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams
     );
     // const results = placeOrdersResponse.map((response, index) => {
-      const event = placeOrdersResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-      let orderInfos;
-      if (event?.eventName === 'LimitOrderPlaced') {
-        orderInfos = event.args.orderIds.map((orderId, index) => ({
-            side: request.side,
-            placedSize: event.args.sizes[index],
-            orderId: orderId,
-            root: this.root,
-            marketAddress: request.marketAddress,
-            accountId: this.accountId,
-            isCross: MarketAccLib.isCrossMarket(request.marketAcc),
-            blockTimestamp: placeOrdersResponse.blockTimestamp,
-            marketAcc: request.marketAcc,
-      }))}
+    const event = placeOrdersResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
+    let orderInfos;
+    if (event?.eventName === 'LimitOrderPlaced') {
+      orderInfos = event.args.orderIds.map((orderId, index) => ({
+        side: request.side,
+        placedSize: event.args.sizes[index],
+        orderId: orderId,
+        root: this.root,
+        marketId: request.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+        blockTimestamp: placeOrdersResponse.blockTimestamp,
+        marketAcc: request.marketAcc,
+      }));
+    }
 
     return {
       executeResponse: placeOrdersResponse.executeResponse,
@@ -187,13 +196,13 @@ export class Exchange {
   }
 
   async modifyOrder(params: ModifyOrderParams) {
-    const { marketAcc, marketAddress, size, limitTick, tif, orderId } = params;
+    const { marketAcc, marketId, size, limitTick, tif, orderId } = params;
     const { data: modifyOrderCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetModifyOrderCalldata({
         marketAcc,
-        marketAddress,
+        marketId,
         size: size.toString(),
-        tick: limitTick,
+        limitTick,
         tif,
         orderId,
       });
@@ -207,7 +216,7 @@ export class Exchange {
         placedSize: event.args.sizes[0],
         orderId: event.args.orderIds[0],
         root: this.root,
-        marketAddress,
+        marketId,
         accountId: this.accountId,
         isCross: MarketAccLib.isCrossMarket(marketAcc),
         blockTimestamp: modifyOrderResponse.blockTimestamp,
@@ -234,12 +243,12 @@ export class Exchange {
   }
 
   async cancelOrders(params: CancelOrdersParams) {
-    const { marketAcc, marketAddress, cancelAll, orderIds } = params;
+    const { marketAcc, marketId, cancelAll, orderIds } = params;
     const orderIdsStr = orderIds.join(',');
     const { data: cancelOrderCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetCancelOrderCalldata({
         marketAcc,
-        marketAddress,
+        marketId,
         cancelAll,
         orderIds: orderIdsStr,
       });
@@ -280,17 +289,17 @@ export class Exchange {
     const approveAgentData = await agentToUse.approveAgent(this.walletClient, 10_000_000_000);
 
     const { data: approveAgentResponse } = await this.borosBackendSdk.calldata.calldataControllerApproveAgent({
-      calldata: approveAgentData,
+      approveAgentCalldata: approveAgentData,
     });
 
     return approveAgentResponse;
   }
 
   async deposit(params: DepositParams) {
-    const { userAddress, collateralAddress, amount } = params;
+    const { userAddress, tokenId, amount } = params;
     const { data: depositCalldataResponse } = await this.borosBackendSdk.calldata.calldataControllerGetDepositCalldata({
       userAddress,
-      collateralAddress,
+      tokenId,
       amount: amount.toString(),
     });
     const hash = await this.walletClient.sendTransaction({
@@ -306,11 +315,11 @@ export class Exchange {
   }
 
   async withdraw(params: WithdrawParams) {
-    const { userAddress, collateralAddress, amount } = params;
+    const { userAddress, tokenId, amount } = params;
     const { data: withdrawCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetWithdrawCalldata({
         userAddress,
-        collateralAddress,
+        tokenId,
         amount: amount.toString(),
       });
 
@@ -339,11 +348,11 @@ export class Exchange {
   }
 
   async closeActivePositions(params: CloseActivePositionsParams) {
-    const { marketAcc, marketAddress, type, size, rate } = params;
+    const { marketAcc, marketId, type, size, rate } = params;
     const { data: closeActivePositionsCalldataResponse } =
       await this.borosBackendSdk.calldata.calldataControllerGetCloseActiveMarketPosition({
         marketAcc,
-        marketAddress,
+        marketId,
         type,
         size: size.toString(),
         rate,
@@ -353,11 +362,11 @@ export class Exchange {
   }
 
   async updateSettings(params: UpdateSettingsParams) {
-    const { marketAcc, marketAddress, leverage, signature, agent, timestamp } = params;
+    const { marketAcc, marketId, leverage, signature, agent, timestamp } = params;
     const { data: updateSettingsCalldataResponse } =
       await this.borosBackendSdk.accounts.accountsControllerUpdateAccountSettings({
         marketAcc,
-        marketAddress,
+        marketId,
         leverage,
         signature,
         agent,
@@ -377,21 +386,20 @@ export class Exchange {
   }
 
   async getOrderBook(params: GetOrderBookParams) {
-    const { marketAddress, tickSize } = params;
+    const { marketId, tickSize } = params;
     const { data: getOrderBookCalldataResponse } =
-      await this.borosBackendSdk.orderBooks.orderBooksControllerGetOrderBooksV2({
-        marketAddress,
+      await this.borosBackendSdk.orderBooks.orderBooksControllerGetOrderBooksByMarketId(marketId, {
         tickSize,
       });
     return getOrderBookCalldataResponse;
   }
 
   async getPnlLimitOrders(params?: GetPnlLimitOrdersParams) {
-    const { skip, limit, isActive, marketAddress, orderBy } = params ?? {};
+    const { skip, limit, isActive, marketId, orderBy } = params ?? {};
     const { data: getPnlLimitOrdersCalldataResponse } = await this.borosBackendSdk.pnL.pnlControllerGetLimitOrders({
       userAddress: this.root,
       accountId: this.accountId,
-      marketAddress,
+      marketId,
       skip,
       limit,
       isActive,
@@ -415,23 +423,23 @@ export class Exchange {
   }
 
   async getActivePositions(params: GetActivePositionsParams) {
-    const { marketAddress } = params;
+    const { marketId } = params;
     const { data: getActivePositionsCalldataResponse } =
       await this.borosBackendSdk.pnL.pnlControllerGetActivePnlPositions({
         userAddress: this.root,
         accountId: this.accountId,
-        marketAddress,
+        marketId,
       });
     return getActivePositionsCalldataResponse;
   }
 
   async getClosedPositions(params: GetClosedPositionsParams) {
-    const { marketAddress, skip, limit, orderBy } = params;
+    const { marketId, skip, limit, orderBy } = params;
     const { data: getClosedPositionsCalldataResponse } =
       await this.borosBackendSdk.pnL.pnlControllerGetClosedPnlPositions({
         userAddress: this.root,
         accountId: this.accountId,
-        marketAddress,
+        marketId,
         skip,
         limit,
         orderBy,

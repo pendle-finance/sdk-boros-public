@@ -5,7 +5,7 @@ import { Sdk } from './BorosBackendSDK';
 
 // in ./index.ts
 
-const BACKEND_URL = 'https://secrettune.io/core-v2';
+const BACKEND_URL = 'https://secrettune.io/core';
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface DefaultSdk extends Sdk<unknown> {}
 /* eslint-enable @typescript-eslint/no-empty-interface */

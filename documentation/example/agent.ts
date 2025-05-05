@@ -22,7 +22,7 @@ async function createAndApproveAgentExample() {
   const {agent, privateKey} = await Agent.create(walletClient);
   
   // Approve the agent (typically done by an admin or authorized user)
-  const txResponse = await exchange.approveAgent(agent);
+  const txResponse = (await exchange.approveAgent(agent)).approveAgentResult;
   
   console.log({
     txHash: txResponse.txHash,

@@ -37,8 +37,7 @@ export async function setupExchange(config: ExampleConfig): Promise<{
 
   const {results: markets} = await exchange.getMarkets();
   const {assets} = await exchange.getAssets();
-  const collateralAddress = markets[0].collateralAddress;
-  const tokenId = assets.find((a) => a.address === collateralAddress)!.tokenId;
+  const tokenId = markets[0].tokenId;
   const marketId = markets[0].marketId;
   const marketAddress = markets[0].address as Address;
 
@@ -56,13 +55,11 @@ export async function createMarketAcc(
 
 export interface PlaceOrderConfig {
   marketAcc: `0x${string}`;
-  marketAddress: Address;
-  ammAddresses: Address[];
+  marketId: number;
   side: Side;
   size: bigint;
   limitTick: number;
   tif?: TimeInForce;
-  useOrderBook?: boolean;
 }
 
 export async function placeExampleOrder(
@@ -71,13 +68,11 @@ export async function placeExampleOrder(
 ) {
   const orderResult = await exchange.placeOrder({
     marketAcc: config.marketAcc,
-    marketAddress: config.marketAddress,
-    ammAddresses: config.ammAddresses,
+    marketId: config.marketId,
     side: config.side,
     size: config.size,
     limitTick: config.limitTick,
     tif: config.tif ?? TimeInForce.GOOD_TIL_CANCELLED,
-    useOrderBook: config.useOrderBook ?? true
   });
 
   return orderResult;

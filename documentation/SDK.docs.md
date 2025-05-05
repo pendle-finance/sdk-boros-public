@@ -76,16 +76,16 @@ async function placeOrderExample() {
 
   const marketAcc = MarketAccLib.pack(account.address, accountId, tokenId, marketId)
   
-  const orderResult = await exchange.placeOrder({
-    marketAcc: marketAcc,
-    marketAddress: '0xMarketAddress',
-    ammAddresses: ['0xAmmAddress1'],
+  const orderParams: PlaceOrderParams = {
+    marketAcc,
+    marketId,
     side: Side.LONG,
-    size: 100000000000000000000n, // 100 tokens with 18 decimals
-    limitTick: 1000,
+    size: BigInt('1000000000000000000'),
+    limitTick: Number(getTickAtInterest(interestRate, Side.LONG)),
     tif: TimeInForce.GOOD_TIL_CANCELLED,
-    useOrderBook: true
-  });
+  };
+
+  const orderResult = await exchange.placeOrder(orderParams);
   
   console.log('Order placed:', orderResult);
   
@@ -134,25 +134,21 @@ Places a new order on the exchange.
 
 Parameters:
 - `marketAcc`: Use MarketAccLib to pack
-- `marketAddress`: Address of the market
-- `ammAddresses`: Array of AMM addresses
+- `marketId`: Id of the market
 - `side`: Trade side (Enum: Side)
 - `size`: Order size as bigint
 - `limitTick`: The tick price limit
 - `tif`: Time-in-force setting enum (GOOD_TIL_CANCELLED = 0, IMMEDIATE_OR_CANCEL = 1, FILL_OR_KILL = 2, POST_ONLY = 3)
-- `useOrderBook`: Boolean indicating whether to use the order book
 
 Example:
 ```typescript
 const result = await exchange.placeOrder({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
-  ammAddresses: ['0xAmmAddress1', '0xAmmAddress2'],
+  marketId: 0,
   side: Side.LONG,
   size: 100000000000000000000n, // 100 tokens with 18 decimals
-  limitTick: 1000,
+  limitTick: Number(getTickAtInterest(interestRate, Side.LONG)),
   tif: TimeInForce.GOOD_TIL_CANCELLED,
-  useOrderBook: true
 });
 ```
 
@@ -172,28 +168,17 @@ Parameters:
 
 Example:
 ```typescript
-const results = await exchange.bulkPlaceOrders([
+const bulkOrderParams: BulkPlaceOrderParams = 
   {
-    marketAcc: '0xMarketAccHex1',
-    marketAddress: '0xMarketAddress1',
-    ammAddresses: ['0xAmmAddress1'],
+    marketAcc,
+    marketId,
     side: Side.LONG,
-    size: 100000000000000000000n,
-    limitTick: 1000,
+    sizes: [BigInt('1000000000000000000'), BigInt('2000000000000000000')],
+    limitTicks: [Number(getTickAtInterest(interestRate, Side.LONG)), Number(getTickAtInterest(interestRate, Side.LONG))],
     tif: TimeInForce.GOOD_TIL_CANCELLED,
-    useOrderBook: true
-  },
-  {
-    marketAcc: '0xMarketAccHex2',
-    marketAddress: '0xMarketAddress2',
-    ammAddresses: ['0xAmmAddress2'],
-    side: Side.SHORT,
-    size: 50000000000000000000n,
-    limitTick: 950,
-    tif: TimeInForce.POST_ONLY,
-    useOrderBook: true
-  }
-]);
+  };
+
+const results = await exchange.bulkPlaceOrders(bulkOrderParams);
 ```
 
 ### Modify Order
@@ -210,7 +195,7 @@ Modifies an existing order.
 Parameters:
 - `orderId`: ID of the order to modify
 - `marketAcc`: Hexadecimal market account identifier
-- `marketAddress`: Address of the market
+- `marketId`: Id of the market
 - `size`: New order size as bigint
 - `limitTick`: New tick price limit
 - `tif`: New time-in-force setting
@@ -220,7 +205,7 @@ Example:
 const result = await exchange.modifyOrder({
   orderId: '123456789',
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   size: 150000000000000000000n, // 150 tokens with 18 decimals
   limitTick: 1050,
   tif: TimeInForce.GOOD_TIL_CANCELLED
@@ -254,7 +239,7 @@ Cancels one or more orders.
 
 Parameters:
 - `marketAcc`: Use MarketAccLib to get
-- `marketAddress`: Address of the market
+- `marketId`: Id of the market
 - `cancelAll`: Boolean indicating whether to cancel all orders
 - `orderIds`: Array of order IDs to cancel (used when cancelAll is false)
 
@@ -263,7 +248,7 @@ Example:
 // Cancel specific orders
 const result = await exchange.cancelOrders({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   cancelAll: false,
   orderIds: ['123456789', '987654321']
 });
@@ -271,7 +256,7 @@ const result = await exchange.cancelOrders({
 // Cancel all orders
 const result = await exchange.cancelOrders({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   cancelAll: true,
   orderIds: []
 });
@@ -397,7 +382,7 @@ Closes active positions.
 
 Parameters:
 - `marketAcc`: Hexadecimal market account identifier
-- `marketAddress`: Address of the market
+- `marketId`: Id of the market
 - `type`: Type of closing ("market" or "limit")
 - `size`: Size to close as bigint
 - `rate`: Optional rate for limit closings
@@ -407,7 +392,7 @@ Example:
 // Close with market order
 const response = await exchange.closeActivePositions({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   type: "market",
   size: 100000000000000000000n // 100 tokens with 18 decimals
 });
@@ -415,7 +400,7 @@ const response = await exchange.closeActivePositions({
 // Close with limit order
 const response = await exchange.closeActivePositions({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   type: "limit",
   size: 100000000000000000000n,
   rate: 0.05 // 5% rate
@@ -434,7 +419,7 @@ Updates account settings.
 
 Parameters:
 - `marketAcc`: Hexadecimal market account identifier
-- `marketAddress`: Address of the market
+- `marketId`: Id of the market
 - `leverage`: Leverage value
 - `signature`: Signature as hexadecimal
 - `agent`: Agent address as hexadecimal
@@ -444,7 +429,7 @@ Example:
 ```typescript
 const response = await exchange.updateSettings({
   marketAcc: '0xMarketAccHex',
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   leverage: 5, // 5x leverage
   signature: '0xSignatureHex',
   agent: '0xAgentAddress',
@@ -485,13 +470,13 @@ async getOrderBook(params: GetOrderBookParams): Promise<any>
 Retrieves the order book for a market.
 
 Parameters:
-- `marketAddress`: Address of the market
+- `marketId`: Id of the market
 - `tickSize`: Tick size (0.00001, 0.0001, 0.001, 0.01, or 0.1)
 
 Example:
 ```typescript
 const orderBook = await exchange.getOrderBook({
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   tickSize: 0.001
 });
 ```
@@ -508,7 +493,7 @@ Parameters:
 - `skip`: Optional number of records to skip
 - `limit`: Optional limit on the number of records
 - `isActive`: Optional filter for active orders
-- `marketAddress`: Optional filter for a specific market
+- `marketId`: Id of the market
 - `orderBy`: Optional field to order by ('timeClosed', 'positionSize', 'avgFixedApr', 'avgUnderlyingApr', 'pnl')
 
 Example:
@@ -517,7 +502,7 @@ const pnlOrders = await exchange.getPnlLimitOrders({
   skip: 0,
   limit: 10,
   isActive: true,
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   orderBy: 'pnl'
 });
 ```
@@ -544,7 +529,7 @@ async getActivePositions(params: GetActivePositionsParams): Promise<any>
 Retrieves active positions.
 
 Parameters:
-- `marketAddress`: Optional filter for a specific market
+- `marketId`: Id of the market
 
 Example:
 ```typescript
@@ -553,7 +538,7 @@ const allPositions = await exchange.getActivePositions({});
 
 // Get active positions for a specific market
 const marketPositions = await exchange.getActivePositions({
-  marketAddress: '0xMarketAddress'
+  marketId: 0
 });
 ```
 
@@ -566,7 +551,7 @@ async getClosedPositions(params: GetClosedPositionsParams): Promise<any>
 Retrieves closed positions.
 
 Parameters:
-- `marketAddress`: Optional filter for a specific market
+- `marketId`: Id of the market
 - `skip`: Optional number of records to skip
 - `limit`: Optional limit on the number of records
 - `orderBy`: Optional field to order by ('timeClosed', 'positionSize', 'avgFixedApr', 'avgUnderlyingApr', 'pnl')
@@ -574,7 +559,7 @@ Parameters:
 Example:
 ```typescript
 const closedPositions = await exchange.getClosedPositions({
-  marketAddress: '0xMarketAddress',
+  marketId: 0,
   skip: 0,
   limit: 10,
   orderBy: 'timeClosed'
