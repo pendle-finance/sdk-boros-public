@@ -1,6 +1,6 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 
-const BUFFERED_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.001); // 0.1%
+const BUFFERED_CONTRACT_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.05); // 5%
 const SECONDS_PER_YEARS = 3600 * 24 * 365;
 
 export type MarketConfig = {
@@ -40,27 +40,18 @@ export type GetOrderValueParams = {
 };
 
 export class Market {
-  static getOrderSizeByExactInitialMargin(
-    params: GetOrderSizeByExactInitialMarginParams,
-    useBuffer: boolean = true
-  ): bigint {
+  static getOrderSizeByExactInitialMargin(params: GetOrderSizeByExactInitialMarginParams): bigint {
     const imSuf = Market.getIMSuf(params);
 
     // calculate the order size
-    let orderSize = FixedX18.fromRawValue(params.initialMargin).divDown(imSuf);
-    if (useBuffer) {
-      orderSize = orderSize.divDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO));
-    }
+    const orderSize = FixedX18.fromRawValue(params.initialMargin).divDown(imSuf);
 
     return orderSize.value;
   }
 
   static getInitialMarginByOrderSize(params: GetInitialMarginByOrderSizeParams, useBuffer: boolean = true): bigint {
     const imSuf = Market.getIMSuf(params);
-    let initialMargin = FixedX18.fromRawValue(params.orderSize).mulDown(imSuf);
-    if (useBuffer) {
-      initialMargin = initialMargin.mulDown(FixedX18.ONE.add(BUFFERED_INITIAL_MARGIN_RATE_RATIO));
-    }
+    const initialMargin = FixedX18.fromRawValue(params.orderSize).mulDown(imSuf);
     return initialMargin.value;
   }
 
@@ -73,6 +64,7 @@ export class Market {
       minMarginIndexRate,
       marketExpiry_s,
       minMarginIndexDuration_s,
+      isMarketOrder,
     } = data;
 
     const absOrderRate = orderRate.abs();
@@ -82,10 +74,18 @@ export class Market {
     const minTime_y = minMarginIndexDuration_s / SECONDS_PER_YEARS;
 
     const time = FixedX18.fromNumber(Math.max(timeToMaturity_y, minTime_y));
-    const contractRate = absMarkRate.gt(minMarginIndexRate) ? absMarkRate : minMarginIndexRate;
     const offchainRate = absOrderRate.gt(minMarginIndexRate) ? absOrderRate : minMarginIndexRate;
 
-    const contractSuf = contractRate.mulDown(time).mulDown(marginFactor);
+    const contractRate = isMarketOrder
+      ? absMarkRate.gt(minMarginIndexRate)
+        ? absMarkRate
+        : minMarginIndexRate
+      : offchainRate; // in case of limit order, the contract rate is the same as the offchain rate
+
+    const contractSuf = contractRate
+      .mulDown(time)
+      .mulDown(marginFactor)
+      .mulDown(FixedX18.ONE.add(BUFFERED_CONTRACT_INITIAL_MARGIN_RATE_RATIO));
     const offchainSuf = offchainRate.mulDown(time).divDown(FixedX18.fromNumber(leverage));
 
     return contractSuf.gt(offchainSuf) ? contractSuf : offchainSuf;
