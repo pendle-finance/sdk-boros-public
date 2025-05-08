@@ -1,6 +1,7 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 
 const BUFFERED_CONTRACT_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.05); // 5%
+const BUFFERED_ORDER_SIZE_BY_EXACT_INITIAL_MARGIN_RATIO = FixedX18.fromNumber(0.001); // 0.1%
 const SECONDS_PER_YEARS = 3600 * 24 * 365;
 
 export type MarketConfig = {
@@ -40,11 +41,18 @@ export type GetOrderValueParams = {
 };
 
 export class Market {
-  static getOrderSizeByExactInitialMargin(params: GetOrderSizeByExactInitialMarginParams): bigint {
+  static getOrderSizeByExactInitialMargin(
+    params: GetOrderSizeByExactInitialMarginParams,
+    useBuffer: boolean = false
+  ): bigint {
     const imSuf = Market.getIMSuf(params);
 
     // calculate the order size
     const orderSize = FixedX18.fromRawValue(params.initialMargin).divDown(imSuf);
+
+    if (useBuffer) {
+      return orderSize.mulDown(FixedX18.ONE.sub(BUFFERED_ORDER_SIZE_BY_EXACT_INITIAL_MARGIN_RATIO)).value;
+    }
 
     return orderSize.value;
   }
