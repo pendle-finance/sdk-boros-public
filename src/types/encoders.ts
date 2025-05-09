@@ -1,8 +1,12 @@
-import { Address, Hex, encodeFunctionData } from 'viem';
-import { iExplorerAbi, iRouterAbi } from '../contracts/viemAbis';
+import { Hex, encodeFunctionData } from 'viem';
+import { iExplorerAbi, iMarketHubAbi, iRouterAbi } from '../contracts/viemAbis';
 import { MarketAcc, MarketId, OrderId, Side, TimeInForce, TokenId } from './common';
 
 export interface GetUserInfoParams {
+  marketAcc: MarketAcc;
+}
+
+export interface AccCashParams {
   marketAcc: MarketAcc;
 }
 
@@ -234,6 +238,14 @@ export const functionEncoder = {
     return encodeFunctionData({
       abi: iExplorerAbi,
       functionName: 'getUserInfo',
+      args: [params.marketAcc],
+    });
+  },
+
+  accCash(params: AccCashParams) {
+    return encodeFunctionData({
+      abi: iMarketHubAbi,
+      functionName: 'accCash',
       args: [params.marketAcc],
     });
   },
