@@ -1,6 +1,5 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 
-const BUFFERED_CONTRACT_INITIAL_MARGIN_RATE_RATIO = FixedX18.fromNumber(0.05); // 5%
 const BUFFERED_ORDER_SIZE_BY_EXACT_INITIAL_MARGIN_RATIO = FixedX18.fromNumber(0.001); // 0.1%
 const SECONDS_PER_YEARS = 3600 * 24 * 365;
 
@@ -90,10 +89,7 @@ export class Market {
         : minMarginIndexRate
       : offchainRate; // in case of limit order, the contract rate is the same as the offchain rate
 
-    const contractSuf = contractRate
-      .mulDown(time)
-      .mulDown(marginFactor)
-      .mulDown(FixedX18.ONE.add(BUFFERED_CONTRACT_INITIAL_MARGIN_RATE_RATIO));
+    const contractSuf = contractRate.mulDown(time).mulDown(marginFactor);
     const offchainSuf = offchainRate.mulDown(time).divDown(FixedX18.fromNumber(leverage));
 
     return contractSuf.gt(offchainSuf) ? contractSuf : offchainSuf;
