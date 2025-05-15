@@ -176,5 +176,5 @@ export async function getAgentSignature() {
     },
   });
 
-  return { agent: agentAddress, signature };
+  return { agent: agentAddress, signature, timestamp };
 }
