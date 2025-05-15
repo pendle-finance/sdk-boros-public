@@ -3,7 +3,7 @@ import { iRouterAbi } from '../../contracts/viemAbis';
 import { getInternalAgent } from '../../entities';
 import { MarketAcc, PendleSignTxStruct, functionEncoder } from '../../types';
 import { AccountLib } from '../accountLib';
-import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
+import { AGENT_MESSAGE_TYPES, EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
 
 export type AgentExecution = keyof typeof functionEncoder;
 
@@ -155,4 +155,26 @@ export async function signUpdateSettings(params: {
     agent: agentAddress,
     timestamp,
   };
+}
+
+export async function getAgentSignature() {
+  const agent = getInternalAgent();
+  const agentAddress = await agent.getAddress();
+  const signer = agent.walletClient;
+  const timestamp = Date.now();
+
+  const signature = await signer.signTypedData({
+    account: agent.walletClient.account!,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN,
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      AgentMessage: AGENT_MESSAGE_TYPES,
+    },
+    primaryType: 'AgentMessage',
+    message: {
+      timestamp: BigInt(timestamp),
+    },
+  });
+
+  return { agent: agentAddress, signature };
 }

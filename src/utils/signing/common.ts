@@ -22,3 +22,5 @@ export const UPDATE_SETTINGS_TYPES = [
   { name: 'marketAcc', type: 'bytes26' },
   { name: 'timestamp', type: 'uint256' },
 ] as const;
+
+export const AGENT_MESSAGE_TYPES = [{ name: 'timestamp', type: 'uint256' }] as const;
