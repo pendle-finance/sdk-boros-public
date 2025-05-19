@@ -3,6 +3,7 @@ import { naiveDistributorAbi } from '../../contracts';
 import { DISTRIBUTOR_ADDRESS } from './constants';
 import { arbitrum } from 'viem/chains';
 import { RPC_URL } from '../../common';
+import { PENDLE_TOKEN } from './metadata';
 
 export class Distributor {
     private distributorContract;
@@ -36,12 +37,18 @@ export class Distributor {
 
     async getAccruedAmount(userAddress: Address) {
         const amount = await this.distributorContract.read.accrued([userAddress]);
-        return amount;
+        return {
+            amount,
+            token: PENDLE_TOKEN,
+        };
     }
 
     async getClaimedAmount(userAddress: Address) {
         const amount = await this.distributorContract.read.claimed([userAddress]);
-        return amount;
+        return {
+            amount,
+            token: PENDLE_TOKEN,
+        };
     }
 }
 
