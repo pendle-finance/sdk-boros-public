@@ -78,6 +78,11 @@ export class Market {
     const absMarkRate = markRate.abs();
 
     const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
+    // expired market will have IM = 0
+    if (timeToMaturity_y <= 0) {
+      return FixedX18.ZERO;
+    }
+
     const minTime_y = minMarginIndexDuration_s / SECONDS_PER_YEARS;
 
     const time = FixedX18.fromNumber(Math.max(timeToMaturity_y, minTime_y));
