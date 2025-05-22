@@ -1,6 +1,6 @@
 import { Address, Hex, getAbiItem, keccak256 } from 'viem';
 import { iRouterAbi } from '../../contracts/viemAbis';
-import { getInternalAgent } from '../../entities';
+import { Agent, getInternalAgent } from '../../entities';
 import { MarketAcc, PendleSignTxStruct, functionEncoder } from '../../types';
 import { AccountLib } from '../accountLib';
 import { AGENT_MESSAGE_TYPES, EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
@@ -81,6 +81,7 @@ export async function signWithAgent(params: {
   root: Address;
   accountId: number;
   call: AgentExecuteParams;
+  agent?: Agent;
 }): Promise<SignedAgentExecution> {
   const {
     root,
@@ -95,7 +96,7 @@ export async function signWithAgent(params: {
     nonce: BigInt(Date.now()),
   };
 
-  const agent = getInternalAgent();
+  const agent = params.agent ?? getInternalAgent();
   const signer = agent.walletClient;
   const pendleSignTxType = getAbiItem({
     abi: iRouterAbi,
