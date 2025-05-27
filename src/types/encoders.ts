@@ -2,33 +2,33 @@ import { Hex, encodeFunctionData } from 'viem';
 import { iExplorerAbi, iMarketHubAbi, iRouterAbi } from '../contracts/viemAbis';
 import { MarketAcc, MarketId, OrderId, Side, TimeInForce, TokenId } from './common';
 
-export interface GetUserInfoParams {
+export interface GetUserInfoReq {
   marketAcc: MarketAcc;
 }
 
-export interface AccCashParams {
+export interface AccCashReq {
   marketAcc: MarketAcc;
 }
 
-interface VaultTransferParams {
+export interface VaultTransferReq {
   tokenId: TokenId;
   amount: bigint;
   isDeposit: boolean;
 }
 
-interface SubaccountTransferParams {
+export interface SubaccountTransferReq {
   accountId: number;
   tokenId: TokenId;
   amount: bigint;
   isDeposit: boolean;
 }
 
-interface CashTransferReq {
+export interface CashTransferReq {
   marketId: MarketId;
   signedAmount: bigint;
 }
 
-interface Order {
+export interface OrderReq {
   cross: boolean;
   marketId: MarketId;
   ammId: number;
@@ -38,7 +38,7 @@ interface Order {
   tick: number;
 }
 
-interface BulkOrders {
+export interface BulkOrdersReq {
   cross: boolean;
   marketId: MarketId;
   side: Side;
@@ -49,32 +49,32 @@ interface BulkOrders {
   desiredMatchRate: bigint;
 }
 
-interface BulkCancels {
+export interface BulkCancelsReq {
   cross: boolean;
   marketId: MarketId;
   cancelAll: boolean;
   orderIds: OrderId[];
 }
 
-interface LiquidateParams {
+export interface LiquidateReq {
   cross: boolean;
   marketId: MarketId;
   violator: MarketAcc;
   sizeToLiquidator: bigint;
 }
 
-interface SettlePaymentAndOrdersParams {
+export interface SettlePaymentAndOrdersReq {
   user: MarketAcc;
 }
 
-interface SwapWithAmmReq {
+export interface SwapWithAmmReq {
   cross: boolean;
   ammId: number;
   signedSize: bigint;
   desiredSwapRate: bigint;
 }
 
-interface AddLiquidityDualToAmmReq {
+export interface AddLiquidityDualToAmmReq {
   cross: boolean;
   ammId: number;
   maxCashIn: bigint;
@@ -82,14 +82,14 @@ interface AddLiquidityDualToAmmReq {
   minLpOut: bigint;
 }
 
-interface AddLiquiditySingleCashToAmmReq {
+export interface AddLiquiditySingleCashToAmmReq {
   cross: boolean;
   ammId: number;
   netCashIn: bigint;
   minLpOut: bigint;
 }
 
-interface RemoveLiquidityDualFromAmmReq {
+export interface RemoveLiquidityDualFromAmmReq {
   cross: boolean;
   ammId: number;
   lpToRemove: bigint;
@@ -98,15 +98,15 @@ interface RemoveLiquidityDualFromAmmReq {
   maxSizeOut: bigint;
 }
 
-interface RemoveLiquiditySingleCashFromAmmReq {
+export interface RemoveLiquiditySingleCashFromAmmReq {
   cross: boolean;
   ammId: number;
   lpToRemove: bigint;
   minCashOut: bigint;
 }
 
-interface PlaceSingleOrderReq {
-  order: Order;
+export interface PlaceSingleOrderReq {
+  order: OrderReq;
   enterMarket: boolean;
   idToStrictCancel: OrderId;
   exitMarket: boolean;
@@ -115,14 +115,14 @@ interface PlaceSingleOrderReq {
   desiredMatchRate: bigint;
 }
 
-interface EnterExitMarketsReq {
+export interface EnterExitMarketsReq {
   cross: boolean;
   isEnter: boolean;
   marketIds: MarketId[];
 }
 
 export const functionEncoder = {
-  vaultTransfer(params: VaultTransferParams) {
+  vaultTransfer(params: VaultTransferReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'vaultTransfer',
@@ -130,7 +130,7 @@ export const functionEncoder = {
     });
   },
 
-  subaccountTransfer(params: SubaccountTransferParams) {
+  subaccountTransfer(params: SubaccountTransferReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'subaccountTransfer',
@@ -154,7 +154,7 @@ export const functionEncoder = {
     });
   },
 
-  bulkOrders(req: BulkOrders) {
+  bulkOrders(req: BulkOrdersReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'bulkOrders',
@@ -162,7 +162,7 @@ export const functionEncoder = {
     });
   },
 
-  bulkCancels(req: BulkCancels) {
+  bulkCancels(req: BulkCancelsReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'bulkCancels',
@@ -178,7 +178,7 @@ export const functionEncoder = {
     });
   },
 
-  liquidate(params: LiquidateParams) {
+  liquidate(params: LiquidateReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'liquidate',
@@ -186,7 +186,7 @@ export const functionEncoder = {
     });
   },
 
-  settlePaymentAndOrders(params: SettlePaymentAndOrdersParams) {
+  settlePaymentAndOrders(params: SettlePaymentAndOrdersReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'settlePaymentAndOrders',
@@ -234,7 +234,7 @@ export const functionEncoder = {
     });
   },
 
-  getUserInfo(params: GetUserInfoParams): Hex {
+  getUserInfo(params: GetUserInfoReq): Hex {
     return encodeFunctionData({
       abi: iExplorerAbi,
       functionName: 'getUserInfo',
@@ -242,7 +242,7 @@ export const functionEncoder = {
     });
   },
 
-  accCash(params: AccCashParams) {
+  accCash(params: AccCashReq) {
     return encodeFunctionData({
       abi: iMarketHubAbi,
       functionName: 'accCash',
