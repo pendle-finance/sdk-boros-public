@@ -20,7 +20,6 @@ export function decodeLog(log: Log<bigint, number, false>) {
     try {
       return decodeEventLog({ abi, data: log.data, topics: log.topics });
     } catch (error) {
-      continue;
     }
   }
   return null;
