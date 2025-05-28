@@ -70,6 +70,8 @@ export interface MarketMetadataResponse {
   /** Icon of the market */
   icon: string;
   isWhitelisted: boolean;
+  /** Symbol to listen to funding rate info */
+  fundingRateSymbol: string;
 }
 
 export interface MarketDataResponse {
@@ -294,8 +296,6 @@ export interface PlaceOrderStateResponse {
   marginRatio: number;
   /** bigint string of active position size */
   activePositionSize: string;
-  /** bigint string of active position value */
-  activePositionValue: string;
 }
 
 export interface ContractSwapPositionResponse {
@@ -321,8 +321,6 @@ export interface PlaceOrderSimulationResponse {
   priceImpact: number;
   /** bigint string of fee */
   fee: string;
-  /** bigint string of limit order value */
-  limitOrderValue: string;
   /** actual leverage */
   actualLeverage: number;
 }
@@ -374,8 +372,6 @@ export interface CloseActivePositionSimulationResponse {
   priceImpact: number;
   /** bigint string of fee */
   fee: string;
-  /** bigint string of limit order value */
-  limitOrderValue: string;
   /** actual leverage */
   actualLeverage: number;
 }
@@ -427,6 +423,8 @@ export interface AssetMetadataResponse {
   proSymbol: string;
   /** Asset icon */
   icon: string;
+  /** Asset mono icon */
+  monoIcon: string;
   /** Asset avatar */
   avatar: string;
   /**
@@ -634,6 +632,8 @@ export interface PnlTransactionResponse {
   side: 0 | 1;
   /** TxType { NORMAL : normal, LIQUIDATE : liquidate, FORCE_DELEVERAGE : force_deleverage } */
   txType: "normal" | "liquidate" | "force_deleverage";
+  /** TradeDirection { INCREASE : 0, DECREASE : 1, CHANGE_DIRECTION : 2 } */
+  tradeDirection: 0 | 1 | 2;
   /** bigint string of notional size */
   notionalSize: string;
   /** bigint string of trade value */
@@ -669,6 +669,11 @@ export interface HistoricalPnlChartResponse {
   realisedPnl: string;
 }
 
+export interface LimitOrderMetadataResponse {
+  /** Is rate improved */
+  isRateImproved: boolean;
+}
+
 export interface LimitOrderResponse {
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
@@ -697,14 +702,15 @@ export interface LimitOrderResponse {
   accountId: number;
   /** Is cross market */
   isCross: boolean;
-  /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2 } */
-  status: 0 | 1 | 2;
+  /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3 } */
+  status: 0 | 1 | 2 | 3;
   /** OrderType { LIMIT : 0, MARKET : 1 } */
   orderType: 0 | 1;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
   /** Account position */
   marketAcc: string;
+  metadata?: LimitOrderMetadataResponse;
 }
 
 export interface LimitOrdersResponse {
@@ -807,6 +813,8 @@ export interface CollateralSummaryResponse {
   oneMonthAgoNetBalance: string;
   /** bigint string of one month ago aggregated vault transfer */
   oneMonthAgoAggregatedVaultTransfer: string;
+  /** bigint string of one month ago aggregated amm transfer (total deposit - total withdraw) */
+  oneMonthAgoAggregatedAmmTransfer: string;
 }
 
 export interface AllCollateralSummaryResponse {
@@ -824,8 +832,191 @@ export interface BalanceResponse {
 }
 
 export interface BalanceChartResponse {
+  /** Token ID */
+  tokenId: number;
   historicalBalances: BalanceResponse[];
   currentBalance: BalanceResponse;
+}
+
+export interface BalanceChartAllTokensResponse {
+  balanceCharts: BalanceChartResponse[];
+}
+
+export interface MarketOrderLog {
+  root: string;
+  isCross: boolean;
+  size: number;
+  rate: number;
+  fees: number;
+}
+
+export interface OtcSwapLog {
+  root: string;
+  isCross: boolean;
+  size: number;
+  rate: number;
+  fees: number;
+}
+
+export interface MarketOrderLogResponse {
+  marketOrderLog: MarketOrderLog[];
+  otcSwapLogs: OtcSwapLog[];
+}
+
+export interface GetUserReferralInfoResponse {
+  /** The referral code of the user */
+  code?: string;
+  /** The address of the user who referred the user */
+  referrer?: string;
+  /** The referral code of the user who referred the user */
+  referrerCode?: string;
+  /**
+   * The referral join date for user
+   * @format date-time
+   */
+  referralJoinDate?: string;
+  /** The total trading volume for user */
+  totalTradingVolume: number;
+  /** The total settled volume for user */
+  totalSettledVolume: number;
+  /** The total fee need to be paid by user */
+  totalPayableFee: number;
+  /** The total shared fee earned by user */
+  totalSharedFee: number;
+}
+
+export interface CheckReferralExistBodyDto {
+  /** referral code to check existence */
+  code: string;
+}
+
+export interface CheckReferralExistResponse {
+  /** Indicate if the referral code exists */
+  exist: boolean;
+}
+
+export interface CreateReferralBodyDto {
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /** referral code by user address */
+  code: string;
+}
+
+export interface JoinReferralBodyDto {
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /** the address of the user who join by referral code */
+  referee: string;
+  /** the referral code */
+  code: string;
+}
+
+export interface JoinReferralResponse {
+  /** Indicate if the referral is successfully joined */
+  success: boolean;
+}
+
+export interface ReferralActivityResponse {
+  /** The address of the user */
+  user: string;
+  /**
+   * The date of the user join the referral
+   * @format date-time
+   */
+  referralJoinDate: string;
+  /**
+   * The asset pro symbols of the user
+   * @example ["ETH","USDC"]
+   */
+  assetProSymbols: string[];
+  /**
+   * The total trading volumes of the user
+   * @example [1000,2000]
+   */
+  totalTradingVolumes: number[];
+  /**
+   * The total settlement volumes of the user
+   * @example [800,1500]
+   */
+  totalSettledVolumes: number[];
+  /**
+   * The total paid fees of the user
+   * @example [5,10]
+   */
+  totalFeesPaids: number[];
+  /**
+   * The total share fee earnings of the user
+   * @example [10,20]
+   */
+  totalFeesEarneds: number[];
+}
+
+export interface ReferralActivitiesResponse {
+  /** The activity of all users used referral code */
+  referralActivities: ReferralActivityResponse[];
+}
+
+export interface Reward {
+  /**
+   * The asset symbol
+   * @example "ETH"
+   */
+  symbol: string;
+  /** The total referral rewards in asset */
+  amountInAsset: number;
+  /** The total referral rewards in usd */
+  amountInUsd: number;
+}
+
+export interface ReferralRewardResponse {
+  /** The referral rewards in assets (10% fee rebate if eligible + 20% fee from referees) */
+  totalReferralRewards: Reward[];
+  /** The unclaimed referral rewards in assets */
+  unclaimedReferralRewards: Reward[];
+}
+
+export interface FaucetDto {
+  /**
+   * The addresses to send the tokens to
+   * @example ["0x1234567890123456789012345678901234567890"]
+   */
+  addresses: string[];
+  /**
+   * The amount of ETH to send to each address
+   * @example 1
+   */
+  ethAmount: number;
+  /**
+   * The amount of BTC to send to each address
+   * @example 0.1
+   */
+  btcAmount: number;
+}
+
+export interface UserMerkleResponse {
+  /**
+   * The array of token addresses that user is eligible for
+   * @example ["0x1234567890123456789012345678901234567890","0x1234567890123456789012345678901234567891"]
+   */
+  tokens: string[];
+  /**
+   * The amount of tokens that user is eligible for
+   * @example 100
+   */
+  accruedAmounts: string[];
+  /**
+   * The proof of the user's eligibility
+   * @example [["0x1234567890123456789012345678901234567890"],["0x1234567890123456789012345678901234567891"]]
+   */
+  proofs: string[][];
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -1062,7 +1253,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1745814350
+         * @default 1748493386
          */
         endTimestamp?: number;
       },
@@ -1182,7 +1373,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1745814350
+         * @default 1748493386
          */
         endTimestamp?: number;
       },
@@ -1328,8 +1519,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tif: 0 | 1 | 2 | 3;
         /** @default 0.05 */
         slippage?: number;
-        /** @default false */
-        mockTransfer?: boolean;
+        /** @default true */
+        isConnected?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -1383,7 +1574,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketId: number;
         /** order id that is modified */
         orderId: string;
-        /** Side { LONG : 0, SHORT : 1 } of modified order */
+        /** Side { LONG : 0, SHORT : 1 } */
         side: 0 | 1;
         /** bigint string of size of modified order */
         size: string;
@@ -1395,8 +1586,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limitTick: number;
         /** define how long the modified order remains active before expiring */
         tif: 0 | 1 | 2 | 3;
-        /** use order book flag of modified order */
-        useOrderBook: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2018,7 +2207,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1745814350
+         * @default 1748493387
          */
         endTimestamp?: number;
       },
@@ -2172,10 +2361,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         userAddress: string;
         accountId: number;
-        /** if not provided, will return balance of all collateral */
-        tokenId?: number;
         /** Balance chart time { SEVEN_DAYS : 7d, THIRTY_DAYS : 30d, SIXTY_DAYS : 60d, NINETY_DAYS : 90d, ALL_TIME : all } */
         time: "7d" | "30d" | "60d" | "90d" | "all";
+        /** if not provided, will return balance of all collateral */
+        tokenId: number;
       },
       params: RequestParams = {},
     ) =>
@@ -2183,6 +2372,196 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1/portfolios/balance-chart`,
         method: "GET",
         query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Portfolio
+     * @name PortfolioControllerGetBalanceChartAllTokens
+     * @summary Get balance chart for all tokens
+     * @request GET:/v1/portfolios/balance-chart/all
+     */
+    portfolioControllerGetBalanceChartAllTokens: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        /** Balance chart time { SEVEN_DAYS : 7d, THIRTY_DAYS : 30d, SIXTY_DAYS : 60d, NINETY_DAYS : 90d, ALL_TIME : all } */
+        time: "7d" | "30d" | "60d" | "90d" | "all";
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<BalanceChartAllTokensResponse, any>({
+        path: `/v1/portfolios/balance-chart/all`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+  };
+  playground = {
+    /**
+     * No description
+     *
+     * @tags Playground
+     * @name PlaygroundControllerGetMarketOrderLogs
+     * @summary Get market order logs
+     * @request GET:/v1/playground/market-order-logs
+     */
+    playgroundControllerGetMarketOrderLogs: (
+      query: {
+        txHash: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<MarketOrderLogResponse, any>({
+        path: `/v1/playground/market-order-logs`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+  };
+  referral = {
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetUserReferralInfo
+     * @summary Get user referral details by user address
+     * @request GET:/v1/referrals/{userAddress}
+     */
+    referralControllerGetUserReferralInfo: (userAddress: string, params: RequestParams = {}) =>
+      this.request<GetUserReferralInfoResponse, any>({
+        path: `/v1/referrals/${userAddress}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerCreateReferralCode
+     * @summary create referral code for user address
+     * @request POST:/v1/referrals/{userAddress}
+     */
+    referralControllerCreateReferralCode: (
+      userAddress: string,
+      data: CreateReferralBodyDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/v1/referrals/${userAddress}`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerCheckReferralExist
+     * @summary check if referral code exists
+     * @request POST:/v1/referrals/check-exist
+     */
+    referralControllerCheckReferralExist: (data: CheckReferralExistBodyDto, params: RequestParams = {}) =>
+      this.request<CheckReferralExistResponse, any>({
+        path: `/v1/referrals/check-exist`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerJoinReferralCode
+     * @summary join by referral code
+     * @request POST:/v1/referrals/{userAddress}/join
+     */
+    referralControllerJoinReferralCode: (userAddress: string, data: JoinReferralBodyDto, params: RequestParams = {}) =>
+      this.request<JoinReferralResponse, any>({
+        path: `/v1/referrals/${userAddress}/join`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralActivities
+     * @summary get all referree activities by user address
+     * @request GET:/v1/referrals/{userAddress}/referral-activities
+     */
+    referralControllerGetReferralActivities: (userAddress: string, params: RequestParams = {}) =>
+      this.request<ReferralActivitiesResponse, any>({
+        path: `/v1/referrals/${userAddress}/referral-activities`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralRewards
+     * @summary get referral rewards by user address
+     * @request GET:/v1/referrals/{userAddress}/referral-rewards
+     */
+    referralControllerGetReferralRewards: (userAddress: string, params: RequestParams = {}) =>
+      this.request<ReferralRewardResponse, any>({
+        path: `/v1/referrals/${userAddress}/referral-rewards`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  admin = {
+    /**
+     * No description
+     *
+     * @tags Admin
+     * @name AdminControllerTransferMockToken
+     * @request POST:/v1/admin/faucet
+     * @secure
+     */
+    adminControllerTransferMockToken: (data: FaucetDto, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/v1/admin/faucet`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  merkels = {
+    /**
+     * No description
+     *
+     * @tags Merkels
+     * @name MerklesControllerGetMerkleByUserAndCampaign
+     * @summary Get merkle by user and campaign
+     * @request GET:/v1/merkels/{campaignId}/user/{user}
+     */
+    merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
+      this.request<UserMerkleResponse, any>({
+        path: `/v1/merkels/${campaignId}/user/${user}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
