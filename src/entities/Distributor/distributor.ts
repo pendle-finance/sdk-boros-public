@@ -42,9 +42,9 @@ export class Distributor {
         ]);
         const unclaimedAmount = accruedAmount.amount - claimedAmount.amount;
         return {
-            accruedAmount,
-            claimedAmount,
-            unclaimedAmount,
+            accruedAmount: accruedAmount.amount,
+            claimedAmount: claimedAmount.amount,
+            unclaimedAmount: unclaimedAmount,
             token: PENDLE_TOKEN,
         };
     }
