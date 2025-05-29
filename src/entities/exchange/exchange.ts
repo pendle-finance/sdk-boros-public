@@ -133,9 +133,14 @@ export class Exchange {
     );
     const limitOrderFilledEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderFilled');
 
-    let orderInfo = {
+    const filledSize =
+      (swapEvent?.args.sizeOut ?? 0n) +
+      (otcSwapEvent?.args.trade ?? 0n) +
+      (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
+    const orderInfo = {
       side,
       placedSize: limitOrderPlacedEvent?.args.sizes[0],
+      filledSize,
       orderId: limitOrderPlacedEvent?.args.orderIds[0],
       root: this.root,
       marketId,
