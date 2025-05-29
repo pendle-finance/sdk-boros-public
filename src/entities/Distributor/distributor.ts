@@ -35,6 +35,29 @@ export class Distributor {
         };
     }
 
+    async getClaimInfo(userAddress: Address) {
+        const [accruedAmount, claimedAmount] = await Promise.all([
+            this.getAccruedAmount(userAddress),
+            this.getClaimedAmount(userAddress),
+        ]);
+        const unclaimedAmount = accruedAmount.amount - claimedAmount.amount;
+        return {
+            accruedAmount,
+            claimedAmount,
+            unclaimedAmount,
+            token: PENDLE_TOKEN,
+        };
+    }
+
+    async getUnclaimedAmount(userAddress: Address) {
+        const accruedAmount = await this.getAccruedAmount(userAddress);
+        const claimedAmount = await this.getClaimedAmount(userAddress);
+        return {
+            amount: accruedAmount.amount - claimedAmount.amount,
+            token: PENDLE_TOKEN,
+        };
+    }
+
     async getAccruedAmount(userAddress: Address) {
         const amount = await this.distributorContract.read.accrued([userAddress]);
         return {
