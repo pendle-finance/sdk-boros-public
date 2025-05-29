@@ -128,3 +128,5 @@ package-lock.json
 # Documentation
 docs/
 /*.csv
+
+local-test.ts
