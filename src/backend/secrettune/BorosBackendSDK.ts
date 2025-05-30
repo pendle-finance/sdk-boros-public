@@ -20,25 +20,35 @@ export interface MarketIMDataResponse {
   maturity: number;
   /** Tick step of the market */
   tickStep: number;
+  /** Tick threshold of the market */
+  iTickThresh: number;
 }
 
-export interface MarketLiqIncentiveResponse {
+export interface LiqSettingsResponse {
   base: string;
   slope: string;
+  feeRate: string;
 }
 
 export interface MarketConfigResponse {
   maxOpenOrders: number;
   markRateOracle: string;
   fIndexOracle: string;
-  oiCap: string;
+  hardOICap: string;
   takerFee: string;
   otcFee: string;
-  liqIncentive: MarketLiqIncentiveResponse;
-  imFactor: string;
-  mmFactor: string;
-  minMarginIndexTick: number;
-  minMarginIndexDuration: number;
+  liqSettings: LiqSettingsResponse;
+  kIM: string;
+  kMM: string;
+  tThresh: number;
+  maxRateDeviationFactorBase1e4: number;
+  closingOrderBoundBase1e4: number;
+  loUpperConstBase1e4: number;
+  loUpperSlopeBase1e4: number;
+  loLowerConstBase1e4: number;
+  loLowerSlopeBase1e4: number;
+  status: number;
+  useImpliedAsMarkRate: boolean;
 }
 
 export interface MarketExtendedConfigResponse {
@@ -702,8 +712,8 @@ export interface LimitOrderResponse {
   accountId: number;
   /** Is cross market */
   isCross: boolean;
-  /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3 } */
-  status: 0 | 1 | 2 | 3;
+  /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
+  status: 0 | 1 | 2 | 3 | 4;
   /** OrderType { LIMIT : 0, MARKET : 1 } */
   orderType: 0 | 1;
   /** The block timestamp of the order placement, in seconds */
@@ -1001,24 +1011,6 @@ export interface FaucetDto {
   btcAmount: number;
 }
 
-export interface UserMerkleResponse {
-  /**
-   * The array of token addresses that user is eligible for
-   * @example ["0x1234567890123456789012345678901234567890","0x1234567890123456789012345678901234567891"]
-   */
-  tokens: string[];
-  /**
-   * The amount of tokens that user is eligible for
-   * @example 100
-   */
-  accruedAmounts: string[];
-  /**
-   * The proof of the user's eligibility
-   * @example [["0x1234567890123456789012345678901234567890"],["0x1234567890123456789012345678901234567891"]]
-   */
-  proofs: string[][];
-}
-
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
 import axios from "axios";
 
@@ -1064,7 +1056,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core" });
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core-v2" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -1156,7 +1148,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core
+ * @baseUrl https://secrettune.io/core-v2
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1253,7 +1245,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748493386
+         * @default 1748592740
          */
         endTimestamp?: number;
       },
@@ -1373,7 +1365,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748493386
+         * @default 1748592740
          */
         endTimestamp?: number;
       },
@@ -2207,7 +2199,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1748493387
+         * @default 1748592740
          */
         endTimestamp?: number;
       },
@@ -2546,23 +2538,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
-        ...params,
-      }),
-  };
-  merkels = {
-    /**
-     * No description
-     *
-     * @tags Merkels
-     * @name MerklesControllerGetMerkleByUserAndCampaign
-     * @summary Get merkle by user and campaign
-     * @request GET:/v1/merkels/{campaignId}/user/{user}
-     */
-    merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
-      this.request<UserMerkleResponse, any>({
-        path: `/v1/merkels/${campaignId}/user/${user}`,
-        method: "GET",
-        format: "json",
         ...params,
       }),
   };
