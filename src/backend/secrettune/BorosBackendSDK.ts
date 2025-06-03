@@ -157,6 +157,8 @@ export interface CandleResponse {
   u: number;
   /** Implied APR */
   i: number;
+  /** Is Oracle Funding Rate */
+  iofr: boolean;
 }
 
 export interface ChartResponse {
@@ -1245,7 +1247,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748592740
+         * @default 1748711303
          */
         endTimestamp?: number;
       },
@@ -1365,7 +1367,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748592740
+         * @default 1748711303
          */
         endTimestamp?: number;
       },
@@ -2199,7 +2201,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1748592740
+         * @default 1748711303
          */
         endTimestamp?: number;
       },

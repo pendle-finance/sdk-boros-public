@@ -1,5 +1,5 @@
-import { Hex, encodeFunctionData } from 'viem';
-import { iExplorerAbi, iMarketHubAbi, iRouterAbi } from '../contracts/viemAbis';
+import { Address, Hex, encodeFunctionData } from 'viem';
+import { iExplorerAbi, iMarketHubAbi, iRouterAbi, iTradeModuleAbi } from '../contracts/viemAbis';
 import { MarketAcc, MarketId, OrderId, Side, TimeInForce, TokenId } from './common';
 
 export interface GetUserInfoReq {
@@ -19,6 +19,7 @@ export interface VaultTransferReq {
 export interface SubaccountTransferReq {
   accountId: number;
   tokenId: TokenId;
+  marketId: MarketId;
   amount: bigint;
   isDeposit: boolean;
 }
@@ -121,12 +122,72 @@ export interface EnterExitMarketsReq {
   marketIds: MarketId[];
 }
 
+export interface VaultDepositReq {
+  accountId: number;
+  tokenId: TokenId;
+  marketId: MarketId;
+  amount: bigint;
+}
+
+export interface RequestVaultWithdrawalReq {
+  tokenId: TokenId;
+  amount: bigint;
+}
+
+export interface CancelVaultWithdrawalReq {
+  tokenId: TokenId;
+}
+
+export interface FinalizeVaultWithdrawalReq {
+  user: Address;
+  tokenId: TokenId;
+}
+
+export interface PayTreasuryReq {
+  accountId: number;
+  tokenId: TokenId;
+  marketId: MarketId;
+  amount: bigint;
+}
+
 export const functionEncoder = {
-  vaultTransfer(params: VaultTransferReq) {
+  vaultDeposit(params: VaultDepositReq) {
     return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'vaultTransfer',
-      args: [params.tokenId, params.amount, params.isDeposit],
+      abi: iTradeModuleAbi,
+      functionName: 'vaultDeposit',
+      args: [params.accountId, params.tokenId, params.marketId, params.amount],
+    });
+  },
+
+  requestVaultWithdrawal(params: RequestVaultWithdrawalReq) {
+    return encodeFunctionData({
+      abi: iTradeModuleAbi,
+      functionName: 'requestVaultWithdrawal',
+      args: [params.tokenId, params.amount],
+    });
+  },
+
+  cancelVaultWithdrawal(params: CancelVaultWithdrawalReq) {
+    return encodeFunctionData({
+      abi: iTradeModuleAbi,
+      functionName: 'cancelVaultWithdrawal',
+      args: [params.tokenId],
+    });
+  },
+
+  finalizeVaultWithdrawal(params: FinalizeVaultWithdrawalReq) {
+    return encodeFunctionData({
+      abi: iTradeModuleAbi,
+      functionName: 'finalizeVaultWithdrawal',
+      args: [params.user, params.tokenId],
+    });
+  },
+
+  payTreasury(params: PayTreasuryReq) {
+    return encodeFunctionData({
+      abi: iTradeModuleAbi,
+      functionName: 'payTreasury',
+      args: [params.accountId, params.tokenId, params.marketId, params.amount],
     });
   },
 
@@ -134,7 +195,7 @@ export const functionEncoder = {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'subaccountTransfer',
-      args: [params.accountId, params.tokenId, params.amount, params.isDeposit],
+      args: [params.accountId, params.tokenId, params.marketId, params.amount, params.isDeposit],
     });
   },
 

@@ -1,5 +1,7 @@
+import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
+import { Side } from '../../types';
 import { AgentExecuteParams, MarketAccLib, OrderIdLib, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
@@ -20,9 +22,6 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog, parseEvents } from './utils';
-import { bulkSignWithAgent } from '../../utils/signing/agent';
-import { Side } from '../../types';
-import { FixedX18 } from '@pendle/boros-offchain-math';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128

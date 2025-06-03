@@ -4,3 +4,4 @@ export * from './entities';
 export * from './constants';
 export * from './addresses';
 export * from './errors';
+export * from './backend';
