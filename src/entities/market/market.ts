@@ -9,7 +9,7 @@ export type MarketConfig = {
   markRate: FixedX18;
   minMarginIndexRate: FixedX18;
   minMarginIndexDuration_s: number;
-  marketExpiry_s: number;
+  timeToMaturity: number; // in seconds
 };
 
 export type LeverageConfig = {
@@ -36,7 +36,7 @@ export type GetInitialMarginByOrderSizeParams = MarketConfig &
 export type GetOrderValueParams = {
   orderSize: bigint;
   orderRate: FixedX18;
-  marketExpiry_s: number;
+  timeToMaturity: number; // in seconds
 };
 
 export class Market {
@@ -69,19 +69,20 @@ export class Market {
       marginFactor,
       markRate,
       minMarginIndexRate,
-      marketExpiry_s,
+      timeToMaturity,
       minMarginIndexDuration_s,
       isMarketOrder,
     } = data;
 
+    if (timeToMaturity <= 0) {
+      // expired market will have IM = 0
+      return FixedX18.ZERO;
+    }
+
     const absOrderRate = orderRate.abs();
     const absMarkRate = markRate.abs();
 
-    const timeToMaturity_y = (marketExpiry_s - Math.floor(Date.now() / 1000)) / SECONDS_PER_YEARS;
-    // expired market will have IM = 0
-    if (timeToMaturity_y <= 0) {
-      return FixedX18.ZERO;
-    }
+    const timeToMaturity_y = timeToMaturity / SECONDS_PER_YEARS;
 
     const minTime_y = minMarginIndexDuration_s / SECONDS_PER_YEARS;
 
@@ -101,12 +102,14 @@ export class Market {
   }
 
   static getOrderValue(params: GetOrderValueParams): bigint {
-    const { orderSize, orderRate, marketExpiry_s } = params;
+    const { orderSize, orderRate, timeToMaturity } = params;
 
-    const timeToMaturity_y = FixedX18.divDown(
-      BigInt(marketExpiry_s - Math.floor(Date.now() / 1000)),
-      BigInt(SECONDS_PER_YEARS)
-    );
+    if (timeToMaturity <= 0) {
+      // expired market will have IM = 0
+      return BigInt(0);
+    }
+
+    const timeToMaturity_y = FixedX18.divDown(BigInt(timeToMaturity), BigInt(SECONDS_PER_YEARS));
 
     const orderValue = FixedX18.fromRawValue(orderSize).mulDown(orderRate).mulDown(timeToMaturity_y).value;
 
