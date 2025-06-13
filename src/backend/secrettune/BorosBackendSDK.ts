@@ -82,6 +82,8 @@ export interface MarketMetadataResponse {
   isWhitelisted: boolean;
   /** Symbol to listen to funding rate info */
   fundingRateSymbol: string;
+  /** Link to realtime funding rate */
+  realtimeFundingRateLink: string;
 }
 
 export interface MarketDataResponse {
@@ -95,6 +97,7 @@ export interface MarketDataResponse {
   floatingApr: number;
   longYieldApr?: number;
   nextSettlementTime?: number;
+  timeToMaturity?: number;
 }
 
 export interface MarketResponse {
@@ -138,11 +141,6 @@ export interface MarketTradesResponse {
 export interface CandleResponse {
   /** Period start timestamp */
   ts: number;
-  /**
-   * Period start timestamp
-   * @deprecated
-   */
-  t: number;
   /** Open price */
   o: number;
   /** High price */
@@ -155,8 +153,6 @@ export interface CandleResponse {
   v: number;
   /** Underlying APR */
   u: number;
-  /** Implied APR */
-  i: number;
   /** Is Oracle Funding Rate */
   iofr: boolean;
 }
@@ -257,6 +253,8 @@ export interface GetAMMInfoByAmmIdResponse {
 export interface DepositStateResponse {
   /** bigint string of collateral balance */
   collateralBalance: string;
+  /** bigint string of maintenance margin */
+  maintenanceMargin: string;
   /** margin ratio */
   marginRatio: number;
 }
@@ -283,6 +281,8 @@ export interface WithdrawSimulationResponse {
 export interface CashTransferStateResponse {
   /** bigint string of collateral balance */
   collateralBalance: string;
+  /** bigint string of maintenance margin */
+  maintenanceMargin: string;
   /** margin ratio */
   marginRatio: number;
 }
@@ -297,6 +297,33 @@ export interface CashTransferSimulationResponse {
   isolatedAccState: CashTransferPrePostSimulationResponse;
 }
 
+export interface ContractSwapPositionResponse {
+  /** bigint string of size */
+  size: string;
+  /** bigint string of cost */
+  cost: string;
+  /** rate */
+  rate: number;
+}
+
+export interface PlaceOrderSimulationResponseV2 {
+  /** bigint string of active position size */
+  preUserInfoActivePositionSize: string;
+  matched: ContractSwapPositionResponse;
+  /** bigint string of margin required */
+  marginRequired: string;
+  /** liquidation apr, can be undefined */
+  liquidationApr?: number;
+  /** price impact */
+  priceImpact: number;
+  /** bigint string of fee */
+  fee: string;
+  /** actual leverage */
+  actualLeverage: number;
+  /** status */
+  status: string;
+}
+
 export interface PlaceOrderStateResponse {
   /** bigint string of total cash */
   totalCash: string;
@@ -308,15 +335,6 @@ export interface PlaceOrderStateResponse {
   marginRatio: number;
   /** bigint string of active position size */
   activePositionSize: string;
-}
-
-export interface ContractSwapPositionResponse {
-  /** bigint string of size */
-  size: string;
-  /** bigint string of cost */
-  cost: string;
-  /** rate */
-  rate: number;
 }
 
 export interface PlaceOrderSimulationResponse {
@@ -351,41 +369,6 @@ export interface UserInfoResponse {
 export interface CancelOrderSimulationResponse {
   preUserInfo: UserInfoResponse;
   postUserInfo: UserInfoResponse;
-}
-
-export interface ModifyOrderSimulationResponse {
-  /** user info before modify order */
-  preUserInfo: PlaceOrderStateResponse;
-  /** user info after modify order */
-  postUserInfo: PlaceOrderStateResponse;
-  /** bigint string of margin required */
-  marginRequired: string;
-  /** liquidation apr after modify order */
-  liquidationApr: number;
-  /** profit 25% apr after modify order */
-  profit25PercentApr: number;
-  /** price impact after modify order */
-  priceImpact: number;
-  /** bigint string of fee */
-  fee: string;
-}
-
-export interface CloseActivePositionSimulationResponse {
-  preUserInfo: PlaceOrderStateResponse;
-  postUserInfo: PlaceOrderStateResponse;
-  matched: ContractSwapPositionResponse;
-  /** bigint string of margin required */
-  marginRequired: string;
-  /** liquidation apr */
-  liquidationApr?: number;
-  /** profit 25% apr */
-  profit25PercentApr: number;
-  /** price impact */
-  priceImpact: number;
-  /** bigint string of fee */
-  fee: string;
-  /** actual leverage */
-  actualLeverage: number;
 }
 
 export interface AddLiquiditySingleCashStateResponse {
@@ -561,78 +544,6 @@ export interface UpdateAccountSettingBodyDto {
   timestamp: number;
 }
 
-export interface PositionValueResponse {
-  /** bigint string of settled position value */
-  settledPosition: string;
-  /** bigint string of remaining position value */
-  remainingPosition: string;
-}
-
-export interface PositionPnlResponse {
-  /** bigint string of rate settlement PnL */
-  rateSettlementPnl: string;
-  /** bigint string of unrealised PnL */
-  unrealisedPnl: string;
-}
-
-export interface ActivePnlPositionResponse {
-  /** Position id */
-  id: string;
-  /** The market id */
-  marketId: number;
-  /** Side { LONG : 0, SHORT : 1 } */
-  side: 0 | 1;
-  /** bigint string of notional size */
-  notionalSize: string;
-  positionValue: PositionValueResponse;
-  /** Underlying APY */
-  underlyingApy: number;
-  /** Fixed APR */
-  fixedApr: number;
-  /** Implied APR */
-  impliedApr: number;
-  /** Liquidation APR */
-  liquidationApr: number;
-  pnl: PositionPnlResponse;
-  /** bigint string of initial margin */
-  initialMargin: string;
-  /** The account position */
-  marketAcc: string;
-  /** The account id */
-  accountId: number;
-  /** profit 25% apr */
-  profit25PercentApr: number;
-}
-
-export interface ClosedPnlPositionResponse {
-  /** Position id */
-  id: string;
-  /** The market id */
-  marketId: number;
-  /** Side { LONG : 0, SHORT : 1 } */
-  side: 0 | 1;
-  /** The position closure time */
-  timeClosed: number;
-  /** bigint string of position size */
-  positionSize: string;
-  /** Average fixed APR */
-  avgFixedApr: number;
-  /** Average underlying APR */
-  avgUnderlyingApr: number;
-  /** bigint string of PnL */
-  pnl: string;
-  /** The account position */
-  marketAcc: string;
-  /** The account id */
-  accountId: number;
-}
-
-export interface ClosedPnlPositionsResponse {
-  results: ClosedPnlPositionResponse[];
-  /** Total number of positions */
-  total: number;
-}
-
 export interface PnlTransactionResponse {
   /** Transaction id */
   id: string;
@@ -700,8 +611,6 @@ export interface LimitOrderResponse {
   impliedApr: number;
   /** the tick of the order */
   tick: number;
-  /** Order value */
-  orderValue: string;
   /** Margin required */
   marginRequired: string;
   /** Order ID */
@@ -728,6 +637,40 @@ export interface LimitOrderResponse {
 export interface LimitOrdersResponse {
   results: LimitOrderResponse[];
   total: number;
+}
+
+export interface FundLocationResponse {
+  /** FundType { Wallet : wallet, CrossAccount : cross_account, IsolatedAccount : isolated_account } */
+  fundType: "wallet" | "cross_account" | "isolated_account";
+  /** The market id */
+  marketId?: number;
+}
+
+export interface TransferLogResponse {
+  /** The transfer log id */
+  transferLogId: string;
+  /** The block timestamp */
+  blockTimestamp: number;
+  /** The root address */
+  root: string;
+  /** The account id */
+  accountId: number;
+  /** The token id */
+  tokenId: number;
+  /** The amount */
+  amount: string;
+  /** The from fund location */
+  fromFundLocation: FundLocationResponse;
+  /** The to fund location */
+  toFundLocation: FundLocationResponse;
+  /** TransferLogStatus { Pending : pending, Success : success, Failed : failed } */
+  status: "pending" | "success" | "failed";
+}
+
+export interface TransferLogsResponse {
+  /** Total number of transfer logs */
+  total: number;
+  results: TransferLogResponse[];
 }
 
 export interface SettlementResponse {
@@ -759,6 +702,13 @@ export interface SettlementsResponse {
   results: SettlementResponse[];
   /** Total number of settlements */
   total: number;
+}
+
+export interface PositionValueResponse {
+  /** bigint string of settled position value */
+  settledPosition: string;
+  /** bigint string of remaining position value */
+  remainingPosition: string;
 }
 
 export interface PnlResponse {
@@ -811,6 +761,13 @@ export interface MarketAccCollateralResponse {
   marginRatio: number;
 }
 
+export interface WithdrawalResponse {
+  /** last timestamp when the token is requesting to withdraw from cross margin account */
+  lastWithdrawalRequestTime: number;
+  /** bigint string of last withdrawal amount */
+  lastWithdrawalAmount: string;
+}
+
 export interface CollateralSummaryResponse {
   tokenId: number;
   /** List collateral info for isolated positions */
@@ -827,6 +784,8 @@ export interface CollateralSummaryResponse {
   oneMonthAgoAggregatedVaultTransfer: string;
   /** bigint string of one month ago aggregated amm transfer (total deposit - total withdraw) */
   oneMonthAgoAggregatedAmmTransfer: string;
+  /** withdrawal info from cross margin account */
+  withdrawal: WithdrawalResponse;
 }
 
 export interface AllCollateralSummaryResponse {
@@ -887,14 +846,8 @@ export interface GetUserReferralInfoResponse {
    * @format date-time
    */
   referralJoinDate?: string;
-  /** The total trading volume for user */
-  totalTradingVolume: number;
-  /** The total settled volume for user */
-  totalSettledVolume: number;
-  /** The total fee need to be paid by user */
-  totalPayableFee: number;
-  /** The total shared fee earned by user */
-  totalSharedFee: number;
+  /** The total trade in USD for user */
+  totalTradeInUsd: number;
 }
 
 export interface CheckReferralExistBodyDto {
@@ -995,6 +948,24 @@ export interface ReferralRewardResponse {
   unclaimedReferralRewards: Reward[];
 }
 
+export interface UserMerkleResponse {
+  /**
+   * The array of token addresses that user is eligible for
+   * @example ["0x1234567890123456789012345678901234567890","0x1234567890123456789012345678901234567891"]
+   */
+  tokens: string[];
+  /**
+   * The amount of tokens that user is eligible for
+   * @example 100
+   */
+  accruedAmounts: string[];
+  /**
+   * The proof of the user's eligibility
+   * @example [["0x1234567890123456789012345678901234567890"],["0x1234567890123456789012345678901234567891"]]
+   */
+  proofs: string[][];
+}
+
 export interface FaucetDto {
   /**
    * The addresses to send the tokens to
@@ -1011,6 +982,49 @@ export interface FaucetDto {
    * @example 0.1
    */
   btcAmount: number;
+}
+
+export interface GlobalConfigsResponse {
+  /** The global cool down in seconds */
+  coolDown: number;
+}
+
+export interface MarketWeeklyIncentiveResponse {
+  /**
+   * market id
+   * @example 1
+   */
+  marketId: number;
+  /**
+   * total maker volume for market with id = marketId in the epoch
+   * @example 1
+   */
+  totalMakerVolume: number;
+  /**
+   * your maker volume for market with id = marketId in the epoch
+   * @example 0.01
+   */
+  makerVolume: number;
+  /**
+   * your reward amount in Pendle distribute by the market with id = marketId in the epoch
+   * @example 0.01
+   */
+  rewardAmount: number;
+}
+
+export interface WeeklyIncentiveResponse {
+  /**
+   * timestamp of the epoch. It should be a Thursday date
+   * @example "2025-11-20T00:00:00.000Z"
+   */
+  timestamp: string;
+  /** Weekly incentives for all markets within epoch start with timestamp */
+  marketWeeklyIncentives: MarketWeeklyIncentiveResponse[];
+}
+
+export interface MakerIncentiveActivitiesResponse {
+  /** Weekly incentives for all markets in all epoches */
+  weeklyIncentives: WeeklyIncentiveResponse[];
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -1247,7 +1261,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748711303
+         * @default 1749808161
          */
         endTimestamp?: number;
       },
@@ -1367,7 +1381,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1748711303
+         * @default 1749808161
          */
         endTimestamp?: number;
       },
@@ -1419,7 +1433,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags Simulations
      * @name SimulationsControllerGetDeposit
-     * @summary Deposit collateral
+     * @summary Deposit collateral to cross margin account
      * @request GET:/v1/simulations/deposit
      */
     simulationsControllerGetDeposit: (
@@ -1432,6 +1446,32 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<DepositSimulationResponse, any>({
         path: `/v1/simulations/deposit`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Simulations
+     * @name SimulationsControllerGetDepositV2
+     * @summary Deposit collateral to isolated/cross margin account
+     * @request GET:/v2/simulations/deposit
+     */
+    simulationsControllerGetDepositV2: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+        amount: string;
+        accountId: number;
+        marketId: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<DepositSimulationResponse, any>({
+        path: `/v2/simulations/deposit`,
         method: "GET",
         query: query,
         format: "json",
@@ -1492,9 +1532,47 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Simulations
+     * @name SimulationsControllerGetPlaceOrderV2
+     * @summary Place limit order
+     * @request GET:/v2/simulations/place-order
+     */
+    simulationsControllerGetPlaceOrderV2: (
+      query: {
+        /** if not provided, it will be simulated as anonymous order */
+        marketAcc?: string;
+        marketId: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+        /** bigint string of size */
+        size: string;
+        /**
+         * @min -32768
+         * @max 32767
+         */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+        tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<PlaceOrderSimulationResponseV2, any>({
+        path: `/v2/simulations/place-order`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Simulations
      * @name SimulationsControllerGetPlaceOrder
      * @summary Place limit order
      * @request GET:/v1/simulations/place-order
+     * @deprecated
      */
     simulationsControllerGetPlaceOrder: (
       query: {
@@ -1556,35 +1634,32 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Simulations
-     * @name SimulationsControllerGetModifyOrder
-     * @summary Modify order
-     * @request GET:/v1/simulations/modify-order
+     * @name SimulationsControllerCloseActiveMarketPositionV2
+     * @summary Close an active market position
+     * @request GET:/v2/simulations/close-active-position
      */
-    simulationsControllerGetModifyOrder: (
+    simulationsControllerCloseActiveMarketPositionV2: (
       query: {
-        /** account position that the order is modified on */
-        marketAcc: string;
-        /** market id that the order is modified on */
         marketId: number;
-        /** order id that is modified */
-        orderId: string;
         /** Side { LONG : 0, SHORT : 1 } */
         side: 0 | 1;
-        /** bigint string of size of modified order */
+        /** bigint string of size */
         size: string;
         /**
-         * limit tick of modified order
          * @min -32768
          * @max 32767
          */
-        limitTick: number;
-        /** define how long the modified order remains active before expiring */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+        marketAcc: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<ModifyOrderSimulationResponse, any>({
-        path: `/v1/simulations/modify-order`,
+      this.request<PlaceOrderSimulationResponseV2, any>({
+        path: `/v2/simulations/close-active-position`,
         method: "GET",
         query: query,
         format: "json",
@@ -1598,6 +1673,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name SimulationsControllerCloseActiveMarketPosition
      * @summary Close an active market position
      * @request GET:/v1/simulations/close-active-position
+     * @deprecated
      */
     simulationsControllerCloseActiveMarketPosition: (
       query: {
@@ -1616,7 +1692,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {},
     ) =>
-      this.request<CloseActivePositionSimulationResponse, any>({
+      this.request<PlaceOrderSimulationResponse, any>({
         path: `/v1/simulations/close-active-position`,
         method: "GET",
         query: query,
@@ -1697,7 +1773,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags Calldata
      * @name CalldataControllerGetDepositCalldata
-     * @summary Get deposit calldata
+     * @summary Get deposit from wallet to root margin account calldata
      * @request GET:/v1/calldata/deposit
      */
     calldataControllerGetDepositCalldata: (
@@ -1710,6 +1786,32 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/deposit`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetDepositCalldataV2
+     * @summary Get deposit from wallet to margin account calldata
+     * @request GET:/v2/calldata/deposit
+     */
+    calldataControllerGetDepositCalldataV2: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+        amount: string;
+        accountId: number;
+        marketId: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetCalldataResponse, any>({
+        path: `/v2/calldata/deposit`,
         method: "GET",
         query: query,
         format: "json",
@@ -1734,6 +1836,76 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetWithdrawRequestCalldata
+     * @summary Get withdraw request calldata
+     * @request GET:/v1/calldata/withdraw/request
+     */
+    calldataControllerGetWithdrawRequestCalldata: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+        amount: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetCalldataResponse, any>({
+        path: `/v1/calldata/withdraw/request`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetWithdrawCancelCalldata
+     * @summary Get cancelled withdraw from margin account to wallet calldata
+     * @request GET:/v1/calldata/withdraw/cancel
+     */
+    calldataControllerGetWithdrawCancelCalldata: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetCalldataResponse, any>({
+        path: `/v1/calldata/withdraw/cancel`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetWithdrawFinalizeCalldata
+     * @summary Get finalized withdraw from margin account to wallet calldata
+     * @request GET:/v1/calldata/withdraw/finalize
+     */
+    calldataControllerGetWithdrawFinalizeCalldata: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetCalldataResponse, any>({
+        path: `/v1/calldata/withdraw/finalize`,
         method: "GET",
         query: query,
         format: "json",
@@ -1769,9 +1941,46 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetPlaceOrderCalldataV2
+     * @summary Get place limit order contract params
+     * @request GET:/v2/calldata/place-order
+     */
+    calldataControllerGetPlaceOrderCalldataV2: (
+      query: {
+        marketId: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+        /** bigint string of size */
+        size: string;
+        /**
+         * @min -32768
+         * @max 32767
+         */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+        tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+        marketAcc: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AgentExecuteParamsResponse, any>({
+        path: `/v2/calldata/place-order`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetPlaceOrderCalldata
      * @summary Get place limit order contract params
      * @request GET:/v1/calldata/place-order
+     * @deprecated
      */
     calldataControllerGetPlaceOrderCalldata: (
       query: {
@@ -1849,9 +2058,46 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetCloseActiveMarketPositionV2
+     * @summary Get close active position contract params
+     * @request GET:/v2/calldata/close-active-position
+     */
+    calldataControllerGetCloseActiveMarketPositionV2: (
+      query: {
+        marketId: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+        /** bigint string of size */
+        size: string;
+        /**
+         * @min -32768
+         * @max 32767
+         */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+        tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+        marketAcc: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<AgentExecuteParamsResponse, any>({
+        path: `/v2/calldata/close-active-position`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetCloseActiveMarketPosition
      * @summary Get close active position contract params
      * @request GET:/v1/calldata/close-active-position
+     * @deprecated
      */
     calldataControllerGetCloseActiveMarketPosition: (
       query: {
@@ -2082,70 +2328,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags PnL
-     * @name PnlControllerGetActivePnlPositions
-     * @summary Get the active PnL position of a user for a market
-     * @request GET:/v1/pnl/positions/active
-     */
-    pnlControllerGetActivePnlPositions: (
-      query: {
-        userAddress: string;
-        accountId: number;
-        marketId?: number;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<ActivePnlPositionResponse[], any>({
-        path: `/v1/pnl/positions/active`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags PnL
-     * @name PnlControllerGetClosedPnlPositions
-     * @summary Get the closed PnL positions of a user for a market
-     * @request GET:/v1/pnl/positions/closed
-     */
-    pnlControllerGetClosedPnlPositions: (
-      query: {
-        userAddress: string;
-        accountId: number;
-        marketId?: number;
-        /**
-         * Maximum number of results to return. The parameter is capped at 100.
-         * @default 10
-         */
-        limit?: number;
-        /**
-         * Maximum number of results to skip.
-         * @default 0
-         */
-        skip?: number;
-        /**
-         * Sort by field: 1 for ascending, -1 for descending. Allowed fields: timeClosed, positionSize, avgFixedApr, avgUnderlyingApr, pnl. Default to timeClosed:-1
-         * @default "timeClosed:-1"
-         * @example "timeClosed:-1"
-         */
-        orderBy?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<ClosedPnlPositionsResponse, any>({
-        path: `/v1/pnl/positions/closed`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags PnL
      * @name PnlControllerGetPnlTransactions
      * @summary Get the PnL transactions of a user for a market
      * @request GET:/v1/pnl/transactions
@@ -2201,7 +2383,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1748711303
+         * @default 1749808161
          */
         endTimestamp?: number;
       },
@@ -2253,6 +2435,84 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<LimitOrdersResponse, any>({
         path: `/v1/pnl/limit-orders`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetFilledLimitOrders
+     * @summary Get limit orders
+     * @request GET:/v1/pnl/limit-orders/filled
+     */
+    pnlControllerGetFilledLimitOrders: (
+      query?: {
+        userAddress?: string;
+        accountId?: number;
+        marketId?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+        /** OrderType { LIMIT : 0, MARKET : 1 } */
+        orderType?: 0 | 1;
+        /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
+        status?: 0 | 1 | 2 | 3 | 4;
+        /**
+         * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
+         * @default "blockTimestamp:-1"
+         * @example "blockTimestamp:-1"
+         */
+        orderBy?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<LimitOrdersResponse, any>({
+        path: `/v1/pnl/limit-orders/filled`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetTransferLogs
+     * @summary Get transfer logs
+     * @request GET:/v1/pnl/transfer-logs
+     */
+    pnlControllerGetTransferLogs: (
+      query: {
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+        root: string;
+        accountId: number;
+        tokenId?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TransferLogsResponse, any>({
+        path: `/v1/pnl/transfer-logs`,
         method: "GET",
         query: query,
         format: "json",
@@ -2524,6 +2784,23 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
+  merkels = {
+    /**
+     * No description
+     *
+     * @tags Merkels
+     * @name MerklesControllerGetMerkleByUserAndCampaign
+     * @summary Get merkle by user and campaign
+     * @request GET:/v1/merkels/{campaignId}/user/{user}
+     */
+    merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
+      this.request<UserMerkleResponse, any>({
+        path: `/v1/merkels/${campaignId}/user/${user}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
   admin = {
     /**
      * No description
@@ -2540,6 +2817,39 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  configs = {
+    /**
+     * No description
+     *
+     * @tags Configs
+     * @name ConfigsControllerGetGlobalConfigs
+     * @request GET:/v1/configs
+     */
+    configsControllerGetGlobalConfigs: (params: RequestParams = {}) =>
+      this.request<GlobalConfigsResponse, any>({
+        path: `/v1/configs`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  incentives = {
+    /**
+     * @description Get maker incentives for a given maker
+     *
+     * @tags Incentives
+     * @name IncentivesControllerGetMakerIncentives
+     * @summary Get maker incentives
+     * @request GET:/v1/incentives/maker-incentives/{maker}
+     */
+    incentivesControllerGetMakerIncentives: (maker: string, params: RequestParams = {}) =>
+      this.request<MakerIncentiveActivitiesResponse, any>({
+        path: `/v1/incentives/maker-incentives/${maker}`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };

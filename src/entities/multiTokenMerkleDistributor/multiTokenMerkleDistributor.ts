@@ -6,9 +6,11 @@ import { multiTokenMerkleDistributorAbi } from "../../contracts/multiTokenMerkle
 
 export class MultiTokenMerkleDistributor {
     private distributorContract;
-    constructor() {
+    private contractAddress: Address;
+    constructor(contractAddress: Address) {
+        this.contractAddress = contractAddress;
         this.distributorContract = getContract({
-            address: MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS,
+            address: contractAddress,
             abi: multiTokenMerkleDistributorAbi,
             client: createPublicClient({
                 chain: arbitrum,
@@ -36,7 +38,7 @@ export class MultiTokenMerkleDistributor {
         
         return {
             from: receiver, 
-            to: MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS, 
+            to: this.contractAddress, 
             data, 
             gas
         }
