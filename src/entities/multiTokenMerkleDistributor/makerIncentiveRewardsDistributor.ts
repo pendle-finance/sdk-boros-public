@@ -1,28 +1,28 @@
-import { Address, toBytes } from "viem";
+import { Address } from "viem";
 import { BorosBackend } from "../../backend";
-import { MultiTokenMerkleDistributor } from "./multiTokenMerkleDistributor";
 import { MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS } from "./constants";
+import { RewardDistributor } from "./RewardDistributor";
 
 
-export class MakerIncentiveRewardsDistributor {
+export class MakerIncentiveRewardsDistributor extends RewardDistributor {
     private borosBackendSdk: BorosBackend.DefaultSdk;
-    private multiTokenMerkleDistributor: MultiTokenMerkleDistributor;
     constructor(){
+        super(MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS);
         this.borosBackendSdk = BorosBackend.getSdk();
-        this.multiTokenMerkleDistributor = new MultiTokenMerkleDistributor(MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS);
     }    
 
-    async claim(user: Address){
+    async getMerkleByUser(user: Address): Promise<{
+        tokens: Address[];
+        accruedAmounts: bigint[];
+        proofs: string[][];
+    }> {
         const resp = await this.borosBackendSdk.merkels.merklesControllerGetMerkleByUserAndCampaign('maker_incentive', user);
         const { tokens, accruedAmounts, proofs } = resp.data;
-        const claimData = await this.multiTokenMerkleDistributor.claim(
-            user, 
-            tokens.map(token => token as Address), 
-            accruedAmounts.map(amount => BigInt(amount)), 
+        return {
+            tokens: tokens.map(token => token as Address), 
+            accruedAmounts: accruedAmounts.map(amount => BigInt(amount)), 
             proofs
-        );
-
-        return claimData; 
+        };
     }
 }
 

@@ -4,7 +4,7 @@ import { arbitrum } from "viem/chains";
 import { RPC_URL } from "../../common";
 import { multiTokenMerkleDistributorAbi } from "../../contracts/multiTokenMerkleDistributorAbi";
 
-export class MultiTokenMerkleDistributor {
+export class MultiTokenMerkleDistributorContract {
     private distributorContract;
     private contractAddress: Address;
     constructor(contractAddress: Address) {
