@@ -425,29 +425,4 @@ export class Exchange {
     const { data: getAssetsCalldataResponse } = await this.borosBackendSdk.assets.assetsControllerGetAllAssets();
     return getAssetsCalldataResponse;
   }
-
-  async getActivePositions(params: GetActivePositionsParams) {
-    const { marketId } = params;
-    const { data: getActivePositionsCalldataResponse } =
-      await this.borosBackendSdk.pnL.pnlControllerGetActivePnlPositions({
-        userAddress: this.root,
-        accountId: this.accountId,
-        marketId,
-      });
-    return getActivePositionsCalldataResponse;
-  }
-
-  async getClosedPositions(params: GetClosedPositionsParams) {
-    const { marketId, skip, limit, orderBy } = params;
-    const { data: getClosedPositionsCalldataResponse } =
-      await this.borosBackendSdk.pnL.pnlControllerGetClosedPnlPositions({
-        userAddress: this.root,
-        accountId: this.accountId,
-        marketId,
-        skip,
-        limit,
-        orderBy,
-      });
-    return getClosedPositionsCalldataResponse;
-  }
 }
