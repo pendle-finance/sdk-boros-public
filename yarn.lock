@@ -1818,12 +1818,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pendle/boros-offchain-math@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@pendle/boros-offchain-math@npm:1.0.1"
+"@pendle/boros-offchain-math@npm:1.0.6":
+  version: 1.0.6
+  resolution: "@pendle/boros-offchain-math@npm:1.0.6"
   dependencies:
     tslib: "npm:^2.6.2"
-  checksum: 10/98198841ec294d085f31b927d605e2c28b1b3d051a69a9f694d6d1f2a0fddd3b05afdd577684d48f6a9bf8677771d380a731a2ed72759bd3a277d285d15f802c
+  checksum: 10/b1bdb89b1b7774ce0c708ab48e5234d608bcd353e809f177602f7c506c9915023fcdb4db24bfb6f05087943bc44edd4286ea3ff3d3de691b66caa5c1db3f8807
   languageName: node
   linkType: hard
 
@@ -1850,7 +1850,7 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:1.9.4"
     "@changesets/cli": "npm:^2.27.11"
-    "@pendle/boros-offchain-math": "npm:^1.0.1"
+    "@pendle/boros-offchain-math": "npm:1.0.6"
     "@pendle/core-v3": "npm:0.4.1"
     "@types/jest": "npm:^29.5.14"
     axios: "npm:^1.8.4"
