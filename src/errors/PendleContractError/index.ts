@@ -6,6 +6,7 @@ import { defaultPendleContractErrorMessageHandler } from './defaultHandler';
 import { PendleContractErrorParams, PendleContractErrorType } from './helperTypes';
 import { PendleContractErrorMessageHandler } from './type';
 
+export * from './customHandler';
 export * from './defaultHandler';
 export * from './helperTypes';
 export * from './type';

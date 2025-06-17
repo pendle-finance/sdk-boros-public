@@ -1,5 +1,4 @@
-import { PendleContractError } from './PendleContractError';
-import { customPendleContractErrorMessageHandler } from './PendleContractError/customHandler';
+import { PendleContractError, PendleContractErrorMessageHandler } from './PendleContractError';
 import { UnrecognizedContractError } from './UnrecognizedContractError';
 
 export class ViemErrorDecoder {
@@ -17,6 +16,10 @@ export class ViemErrorDecoder {
 
     return err;
   }
+}
+
+export function setPendleContractErrorMessageHandler(handler: PendleContractErrorMessageHandler): void {
+  PendleContractError.errorMessageHandler = handler;
 }
 
 ViemErrorDecoder.MAKE_ERROR_CALLBACKS.push(PendleContractError.factory, UnrecognizedContractError.factory);

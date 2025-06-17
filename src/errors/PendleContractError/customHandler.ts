@@ -1,5 +1,4 @@
-import { createPendlecontractErrorMessageHandler } from './defaultHandler';
-import { PendleContractErrorParams, PendleContractErrorType } from './helperTypes';
+import { createPendlecontractErrorMessageHandler, joinArgs } from './defaultHandler';
 import { PendleContractErrorMessageHandler } from './type';
 
 // Create a custom handler that extends the default one
@@ -7,7 +6,8 @@ export const customPendleContractErrorMessageHandler: PendleContractErrorMessage
   createPendlecontractErrorMessageHandler(
     {
       MMInsufficientIM: () => 'not enough margin',
+      MarketOrderRateOutOfBound: () => 'rate out of bound',
     },
     // Keep the default fallback for other errors
-    (errorName, ...args) => `${errorName}(${args.join(', ')})`
+    (errorName, ...args) => `${errorName}(${joinArgs(args)})`
   );

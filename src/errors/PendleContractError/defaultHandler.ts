@@ -27,7 +27,7 @@ export function createPendlecontractErrorMessageHandler(
   }) as PendleContractErrorMessageHandler;
 }
 
-function joinArgs<Args extends unknown[]>(args: Args) {
+export function joinArgs<Args extends unknown[]>(args: Args) {
   return args
     .map((arg) => {
       if (typeof arg === 'bigint') {
