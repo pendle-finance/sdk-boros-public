@@ -290,7 +290,9 @@ export class Exchange {
     const agentToUse = agent ?? (await Agent.create(this.walletClient)).agent;
     setInternalAgent(agentToUse);
 
-    const approveAgentData = await agentToUse.approveAgent(this.walletClient, 10_000_000_000);
+    // set expired time to the next 7 days
+    const expiredTime = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+    const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime);
 
     const { data: approveAgentResponse } = await this.borosBackendSdk.calldata.calldataControllerApproveAgent({
       approveAgentCalldata: approveAgentData,
