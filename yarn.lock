@@ -1802,19 +1802,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts-upgradeable@npm:5.2.0":
-  version: 5.2.0
-  resolution: "@openzeppelin/contracts-upgradeable@npm:5.2.0"
+"@openzeppelin/contracts-upgradeable@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@openzeppelin/contracts-upgradeable@npm:5.3.0"
   peerDependencies:
-    "@openzeppelin/contracts": 5.2.0
-  checksum: 10/202f8a0fe118d1b5b838867224b183b8fcef814e9e45c575deb99859a031ef89ca0e778f0e3cf14b18494d5b867bbe0c8ea9d064a4410c53afb20d7b470c7479
+    "@openzeppelin/contracts": 5.3.0
+  checksum: 10/048eb2862aa23dba6f548ba5332e1ec9282c1dd6e73125156c1d918f5e7f48b8a0e0f405d0f7e4e74794d2cea3dd9e7901a146ac315a325730dcd38f99c2a3d9
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:5.2.0":
-  version: 5.2.0
-  resolution: "@openzeppelin/contracts@npm:5.2.0"
-  checksum: 10/d77e1bdfca6fa1c40b5a32bb92220ec633ef86cc0bf43a011ad218c26c9e763c70ace3fc1e148a0462394a3aed8c5d7445935ebfeb146ba1454abec66625e420
+"@openzeppelin/contracts@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@openzeppelin/contracts@npm:5.3.0"
+  checksum: 10/d1b379a56eb443b6ba2caee51f38bd3e2d5be2d3b2c935a083ed3311c106aa3903d7cadd05457999b24175bb80cc405dd6c70297c9825b15471b38051021fd88
   languageName: node
   linkType: hard
 
@@ -1827,20 +1827,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pendle/core-v3@npm:0.4.1":
-  version: 0.4.1
-  resolution: "@pendle/core-v3@npm:0.4.1"
+"@pendle/core-v3@npm:0.5.4":
+  version: 0.5.4
+  resolution: "@pendle/core-v3@npm:0.5.4"
   dependencies:
-    "@openzeppelin/contracts": "npm:5.2.0"
-    "@openzeppelin/contracts-upgradeable": "npm:5.2.0"
+    "@openzeppelin/contracts": "npm:5.3.0"
+    "@openzeppelin/contracts-upgradeable": "npm:5.3.0"
     hardhat: "npm:^2.22.19"
     hardhat-contract-sizer: "npm:^2.10.0"
     prettier: "npm:^3.5.3"
     prettier-plugin-solidity: "npm:^1.4.2"
-    solhint: "npm:^5.0.5"
+    solhint: "npm:^5.1.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.8.2"
-  checksum: 10/2d83d5f91d063ff9756c8155e78a388a28fe1bed00f90be9607d90918c07e89054421fa6fdf0be32f7bfd24f935729a213e4e53949ad5027d1aba8eb63a57227
+  checksum: 10/e90d7233927168c5784ff67a0e49ebf468a914fb80d823df833b0aa7d121924890cbe3c57b9997762281fc7ae3d992b74025a5fbd6938f477b7b2a3c56ac8dc7
   languageName: node
   linkType: hard
 
@@ -1851,7 +1851,7 @@ __metadata:
     "@biomejs/biome": "npm:1.9.4"
     "@changesets/cli": "npm:^2.27.11"
     "@pendle/boros-offchain-math": "npm:1.0.6"
-    "@pendle/core-v3": "npm:0.4.1"
+    "@pendle/core-v3": "npm:0.5.4"
     "@types/jest": "npm:^29.5.14"
     axios: "npm:^1.8.4"
     husky: "npm:^8.0.0"
@@ -2102,6 +2102,13 @@ __metadata:
   version: 0.19.0
   resolution: "@solidity-parser/parser@npm:0.19.0"
   checksum: 10/2136708ecc988b534efcf836e95f4f02a1452ab0c026438014c35ce31b26dc011cc8c512d502fc7bcb968f850ab7e524838292bc36cad6a144fedb4c29685587
+  languageName: node
+  linkType: hard
+
+"@solidity-parser/parser@npm:^0.20.0":
+  version: 0.20.1
+  resolution: "@solidity-parser/parser@npm:0.20.1"
+  checksum: 10/6497d74c67386ad3c91c906fbea4cf46df1b0eb3f597c7c881c5bbf33a5c689b36d22211fedc36e023e59facf8a6d7cff315dc117d3215d38cc5be95ecc106db
   languageName: node
   linkType: hard
 
@@ -7294,11 +7301,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solhint@npm:^5.0.5":
-  version: 5.0.5
-  resolution: "solhint@npm:5.0.5"
+"solhint@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "solhint@npm:5.1.0"
   dependencies:
-    "@solidity-parser/parser": "npm:^0.19.0"
+    "@solidity-parser/parser": "npm:^0.20.0"
     ajv: "npm:^6.12.6"
     antlr4: "npm:^4.13.1-patch-1"
     ast-parents: "npm:^0.0.1"
@@ -7322,7 +7329,7 @@ __metadata:
       optional: true
   bin:
     solhint: solhint.js
-  checksum: 10/07cce3796e0123fda1e27bb0f81fb94290fb0d4bddc703a10236c81403a3a09fe1bfcbf37c583590778509546b92d43c0799456b4ae9dd183233fd8fe6e88554
+  checksum: 10/f2cae41687cbeb5589c72f35350949a560c68d6f851626fbb34bb0606c364dc52fd554125e7d1e071753e20341953a188edd94c23e8529be20bba9f00bfbc5c8
   languageName: node
   linkType: hard
 

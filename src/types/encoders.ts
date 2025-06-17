@@ -144,8 +144,7 @@ export interface FinalizeVaultWithdrawalReq {
 }
 
 export interface PayTreasuryReq {
-  accountId: number;
-  tokenId: TokenId;
+  cross: boolean;
   marketId: MarketId;
   amount: bigint;
 }
@@ -187,7 +186,7 @@ export const functionEncoder = {
     return encodeFunctionData({
       abi: iTradeModuleAbi,
       functionName: 'payTreasury',
-      args: [params.accountId, params.tokenId, params.marketId, params.amount],
+      args: [params],
     });
   },
 

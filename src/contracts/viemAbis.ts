@@ -1,4 +1,93 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IAMMFactory
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iAMMFactoryAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'amm', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'isPositive', type: 'bool' },
+      {
+        components: [
+          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+          { internalType: 'string', name: 'name', type: 'string' },
+          { internalType: 'string', name: 'symbol', type: 'string' },
+          { internalType: 'address', name: 'router', type: 'address' },
+          { internalType: 'address', name: 'market', type: 'address' },
+          { internalType: 'uint32', name: 'oracleImpliedRateWindow', type: 'uint32' },
+          { internalType: 'uint64', name: 'feeRate', type: 'uint64' },
+          { internalType: 'uint256', name: 'totalSupplyCap', type: 'uint256' },
+          { internalType: 'MarketAcc', name: 'seeder', type: 'bytes26' },
+          { internalType: 'address', name: 'permissionController', type: 'address' },
+        ],
+        indexed: false,
+        internalType: 'struct AMMCreateParams',
+        name: 'createParams',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'uint256', name: 'minAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'maxAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'cutOffTimestamp', type: 'uint256' },
+          { internalType: 'uint256', name: 'initialAbsRate', type: 'uint256' },
+          { internalType: 'int256', name: 'initialSize', type: 'int256' },
+          { internalType: 'uint256', name: 'flipLiquidity', type: 'uint256' },
+          { internalType: 'uint256', name: 'initialCash', type: 'uint256' },
+        ],
+        indexed: false,
+        internalType: 'struct AMMSeedParams',
+        name: 'seedParams',
+        type: 'tuple',
+      },
+    ],
+    name: 'AMMCreated',
+    type: 'event',
+  },
+  {
+    inputs: [
+      { internalType: 'bool', name: 'isPositive', type: 'bool' },
+      {
+        components: [
+          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+          { internalType: 'string', name: 'name', type: 'string' },
+          { internalType: 'string', name: 'symbol', type: 'string' },
+          { internalType: 'address', name: 'router', type: 'address' },
+          { internalType: 'address', name: 'market', type: 'address' },
+          { internalType: 'uint32', name: 'oracleImpliedRateWindow', type: 'uint32' },
+          { internalType: 'uint64', name: 'feeRate', type: 'uint64' },
+          { internalType: 'uint256', name: 'totalSupplyCap', type: 'uint256' },
+          { internalType: 'MarketAcc', name: 'seeder', type: 'bytes26' },
+          { internalType: 'address', name: 'permissionController', type: 'address' },
+        ],
+        internalType: 'struct AMMCreateParams',
+        name: 'createParams',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'uint256', name: 'minAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'maxAbsRate', type: 'uint256' },
+          { internalType: 'uint256', name: 'cutOffTimestamp', type: 'uint256' },
+          { internalType: 'uint256', name: 'initialAbsRate', type: 'uint256' },
+          { internalType: 'int256', name: 'initialSize', type: 'int256' },
+          { internalType: 'uint256', name: 'flipLiquidity', type: 'uint256' },
+          { internalType: 'uint256', name: 'initialCash', type: 'uint256' },
+        ],
+        internalType: 'struct AMMSeedParams',
+        name: 'seedParams',
+        type: 'tuple',
+      },
+    ],
+    name: 'create',
+    outputs: [{ internalType: 'address', name: 'newAMM', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IMarketHubEntryOnly
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2004,7 +2093,10 @@ export const iRouterAbi = [
       },
     ],
     name: 'batchSimulate',
-    outputs: [{ internalType: 'bytes[]', name: '', type: 'bytes[]' }],
+    outputs: [
+      { internalType: 'bytes[]', name: 'results', type: 'bytes[]' },
+      { internalType: 'uint256[]', name: 'gasUsed', type: 'uint256[]' },
+    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -2171,30 +2263,14 @@ export const iRouterAbi = [
     inputs: [
       {
         components: [
-          { internalType: 'address', name: 'root', type: 'address' },
-          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
-          { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+          { internalType: 'bool', name: 'cross', type: 'bool' },
           { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
           { internalType: 'uint256', name: 'amount', type: 'uint256' },
-          { internalType: 'uint64', name: 'nonce', type: 'uint64' },
         ],
-        internalType: 'struct IRouterEventsAndTypes.PayTreasuryMessage',
-        name: 'message',
+        internalType: 'struct IRouterEventsAndTypes.PayTreasuryReq',
+        name: 'req',
         type: 'tuple',
       },
-      { internalType: 'bytes', name: 'signature', type: 'bytes' },
-    ],
-    name: 'payTreasury',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint8', name: 'accountId', type: 'uint8' },
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
     ],
     name: 'payTreasury',
     outputs: [],
@@ -6965,10 +7041,16 @@ export const iTradeModuleAbi = [
   },
   {
     inputs: [
-      { internalType: 'uint8', name: 'accountId', type: 'uint8' },
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      {
+        components: [
+          { internalType: 'bool', name: 'cross', type: 'bool' },
+          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+          { internalType: 'uint256', name: 'amount', type: 'uint256' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.PayTreasuryReq',
+        name: 'req',
+        type: 'tuple',
+      },
     ],
     name: 'payTreasury',
     outputs: [],
@@ -7254,28 +7336,6 @@ export const iAuthModuleAbi = [
       { internalType: 'bytes', name: 'signature', type: 'bytes' },
     ],
     name: 'cancelVaultWithdrawal',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'address', name: 'root', type: 'address' },
-          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
-          { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-          { internalType: 'uint256', name: 'amount', type: 'uint256' },
-          { internalType: 'uint64', name: 'nonce', type: 'uint64' },
-        ],
-        internalType: 'struct IRouterEventsAndTypes.PayTreasuryMessage',
-        name: 'message',
-        type: 'tuple',
-      },
-      { internalType: 'bytes', name: 'signature', type: 'bytes' },
-    ],
-    name: 'payTreasury',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -7889,6 +7949,272 @@ export const iBOROS20Abi = [
     name: 'totalSupply',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IMultiTokenMerkleDistributor
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iMultiTokenMerkleDistributorAbi = [
+  { inputs: [], name: 'InvalidMerkleProof', type: 'error' },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'user', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'receiver', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Claimed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, internalType: 'bytes32', name: 'merkleRoot', type: 'bytes32' }],
+    name: 'SetMerkleRoot',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'user', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amountClaimable', type: 'uint256' },
+    ],
+    name: 'Verified',
+    type: 'event',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'receiver', type: 'address' },
+      { internalType: 'address[]', name: 'tokens', type: 'address[]' },
+      { internalType: 'uint256[]', name: 'totalAccrueds', type: 'uint256[]' },
+      { internalType: 'bytes32[][]', name: 'proofs', type: 'bytes32[][]' },
+    ],
+    name: 'claim',
+    outputs: [{ internalType: 'uint256[]', name: 'amountOuts', type: 'uint256[]' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'receiver', type: 'address' },
+      { internalType: 'address[]', name: 'tokens', type: 'address[]' },
+    ],
+    name: 'claimVerified',
+    outputs: [{ internalType: 'uint256[]', name: 'amountOuts', type: 'uint256[]' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'user', type: 'address' },
+    ],
+    name: 'claimed',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'merkleRoot',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'bytes32', name: 'newMerkleRoot', type: 'bytes32' }],
+    name: 'setMerkleRoot',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'token', type: 'address' },
+      { internalType: 'address', name: 'user', type: 'address' },
+    ],
+    name: 'verified',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'user', type: 'address' },
+      { internalType: 'address[]', name: 'tokens', type: 'address[]' },
+      { internalType: 'uint256[]', name: 'totalAccrueds', type: 'uint256[]' },
+      { internalType: 'bytes32[][]', name: 'proofs', type: 'bytes32[][]' },
+    ],
+    name: 'verify',
+    outputs: [{ internalType: 'uint256[]', name: 'amountClaimable', type: 'uint256[]' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ArbitrageExecutor
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const arbitrageExecutorAbi = [
+  {
+    inputs: [
+      { internalType: 'address', name: 'permissionController_', type: 'address' },
+      { internalType: 'address', name: 'router_', type: 'address' },
+      { internalType: 'address', name: 'marketHub_', type: 'address' },
+      { internalType: 'uint16', name: 'nTicksToTryAtOnce_', type: 'uint16' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  { inputs: [{ internalType: 'address', name: 'target', type: 'address' }], name: 'AddressEmptyCode', type: 'error' },
+  {
+    inputs: [{ internalType: 'address', name: 'implementation', type: 'address' }],
+    name: 'ERC1967InvalidImplementation',
+    type: 'error',
+  },
+  { inputs: [], name: 'ERC1967NonPayable', type: 'error' },
+  { inputs: [], name: 'FailedCall', type: 'error' },
+  { inputs: [], name: 'InsufficientProfit', type: 'error' },
+  { inputs: [], name: 'InvalidInitialization', type: 'error' },
+  { inputs: [], name: 'MarketMatured', type: 'error' },
+  { inputs: [], name: 'NotInitializing', type: 'error' },
+  { inputs: [], name: 'ProfitMismatch', type: 'error' },
+  {
+    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+    type: 'error',
+  },
+  { inputs: [], name: 'UUPSUnauthorizedCallContext', type: 'error' },
+  {
+    inputs: [{ internalType: 'bytes32', name: 'slot', type: 'bytes32' }],
+    name: 'UUPSUnsupportedProxiableUUID',
+    type: 'error',
+  },
+  { inputs: [], name: 'Unauthorized', type: 'error' },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint64', name: 'version', type: 'uint64' }],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, internalType: 'address', name: 'implementation', type: 'address' }],
+    name: 'Upgraded',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'UPGRADE_INTERFACE_VERSION',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'deposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'enum Side', name: 'bookSide', type: 'uint8' },
+          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+          { internalType: 'int256', name: 'minProfit', type: 'int256' },
+          { internalType: 'bool', name: 'maximizeProfit', type: 'bool' },
+        ],
+        internalType: 'struct ArbitrageExecutor.ArbitrageParams',
+        name: 'params',
+        type: 'tuple',
+      },
+    ],
+    name: 'executeArbitrage',
+    outputs: [
+      { internalType: 'uint256', name: 'arbSize', type: 'uint256' },
+      { internalType: 'int256', name: 'profit', type: 'int256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  { inputs: [], name: 'initialize', outputs: [], stateMutability: 'nonpayable', type: 'function' },
+  {
+    inputs: [],
+    name: 'marketHub',
+    outputs: [{ internalType: 'contract IMarketHub', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'nTicksToTryAtOnce',
+    outputs: [{ internalType: 'uint16', name: '', type: 'uint16' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bool', name: 'cross', type: 'bool' },
+      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+    ],
+    name: 'payMarketEntranceFee',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'proxiableUUID',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'requestWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'router',
+    outputs: [{ internalType: 'contract IRouter', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'newImplementation', type: 'address' },
+      { internalType: 'bytes', name: 'data', type: 'bytes' },
+    ],
+    name: 'upgradeToAndCall',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { internalType: 'address', name: 'receiver', type: 'address' },
+    ],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
 ] as const;

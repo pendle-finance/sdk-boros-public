@@ -1,4 +1,5 @@
 import { PendleContractError } from './PendleContractError';
+import { customPendleContractErrorMessageHandler } from './PendleContractError/customHandler';
 import { UnrecognizedContractError } from './UnrecognizedContractError';
 
 export class ViemErrorDecoder {

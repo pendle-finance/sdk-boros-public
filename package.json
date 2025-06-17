@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@pendle/boros-offchain-math": "1.0.6",
-    "@pendle/core-v3": "0.4.1",
+    "@pendle/core-v3": "0.5.5",
     "axios": "^1.8.4",
     "viem": "^2.22.5"
   },
