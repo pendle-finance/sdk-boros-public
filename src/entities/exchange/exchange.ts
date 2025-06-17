@@ -11,8 +11,6 @@ import {
   CashTransferParams,
   CloseActivePositionsParams,
   DepositParams,
-  GetActivePositionsParams,
-  GetClosedPositionsParams,
   GetMarketsParams,
   GetOrderBookParams,
   GetPnlLimitOrdersParams,
@@ -113,7 +111,7 @@ export class Exchange {
   async placeOrder(params: PlaceOrderParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetPlaceOrderCalldata({
+      await this.borosBackendSdk.calldata.calldataControllerGetPlaceOrderCalldataV2({
         marketAcc,
         marketId,
         side,
@@ -130,7 +128,6 @@ export class Exchange {
     const limitOrderPartiallyFilledEvent = placeOrderResponse.events.find(
       (event) => event?.eventName === 'LimitOrderPartiallyFilled'
     );
-    const limitOrderFilledEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderFilled');
 
     const filledSize =
       (swapEvent?.args.sizeOut ?? 0n) +
@@ -354,14 +351,16 @@ export class Exchange {
   }
 
   async closeActivePositions(params: CloseActivePositionsParams) {
-    const { marketAcc, marketId, type, size, rate } = params;
+    const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: closeActivePositionsCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetCloseActiveMarketPosition({
+      await this.borosBackendSdk.calldata.calldataControllerGetCloseActiveMarketPositionV2({
         marketAcc,
         marketId,
-        type,
+        side,
         size: size.toString(),
-        rate,
+        limitTick,
+        tif,
+        slippage,
       });
     const response = await this.signAndExecute(closeActivePositionsCalldataResponse as unknown as AgentExecuteParams);
     return response;

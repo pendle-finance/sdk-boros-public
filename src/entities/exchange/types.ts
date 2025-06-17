@@ -60,9 +60,11 @@ export type CashTransferParams = {
 export type CloseActivePositionsParams = {
   marketAcc: Hex;
   marketId: number;
-  type: 'market' | 'limit';
+  side: Side;
   size: bigint;
-  rate?: number;
+  limitTick: number;
+  slippage?: number;
+  tif: TimeInForce;
 };
 
 export type UpdateSettingsParams = {
@@ -90,16 +92,5 @@ export type GetPnlLimitOrdersParams = {
   limit?: number;
   isActive?: boolean;
   marketId?: number;
-  orderBy?: OrderBy;
-};
-
-export type GetActivePositionsParams = {
-  marketId?: number;
-};
-
-export type GetClosedPositionsParams = {
-  marketId?: number;
-  skip?: number;
-  limit?: number;
   orderBy?: OrderBy;
 };
