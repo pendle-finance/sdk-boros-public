@@ -9,7 +9,7 @@ export type PlaceOrderParams = {
   marketId: number;
   side: Side;
   size: bigint;
-  limitTick: number;
+  limitTick?: number;
   slippage?: number;
   tif: TimeInForce;
 };

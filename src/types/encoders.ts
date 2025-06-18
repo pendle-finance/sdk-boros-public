@@ -88,6 +88,7 @@ export interface AddLiquiditySingleCashToAmmReq {
   ammId: number;
   netCashIn: bigint;
   minLpOut: bigint;
+  enterMarket: boolean;
 }
 
 export interface RemoveLiquidityDualFromAmmReq {

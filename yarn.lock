@@ -1827,9 +1827,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pendle/core-v3@npm:0.5.4":
-  version: 0.5.4
-  resolution: "@pendle/core-v3@npm:0.5.4"
+"@pendle/core-v3@npm:0.5.6":
+  version: 0.5.6
+  resolution: "@pendle/core-v3@npm:0.5.6"
   dependencies:
     "@openzeppelin/contracts": "npm:5.3.0"
     "@openzeppelin/contracts-upgradeable": "npm:5.3.0"
@@ -1840,7 +1840,7 @@ __metadata:
     solhint: "npm:^5.1.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.8.2"
-  checksum: 10/e90d7233927168c5784ff67a0e49ebf468a914fb80d823df833b0aa7d121924890cbe3c57b9997762281fc7ae3d992b74025a5fbd6938f477b7b2a3c56ac8dc7
+  checksum: 10/7a85e946aec9145f1e696e987e63a553f2ade8a47f8127b68b81ea0ed1b5e25e4edcea30ab372bb7a414030cebf08c9ab88d5fb5db6a753a5bc9e5dbf0870bb9
   languageName: node
   linkType: hard
 
@@ -1851,7 +1851,7 @@ __metadata:
     "@biomejs/biome": "npm:1.9.4"
     "@changesets/cli": "npm:^2.27.11"
     "@pendle/boros-offchain-math": "npm:1.0.6"
-    "@pendle/core-v3": "npm:0.5.4"
+    "@pendle/core-v3": "npm:0.5.6"
     "@types/jest": "npm:^29.5.14"
     axios: "npm:^1.8.4"
     husky: "npm:^8.0.0"

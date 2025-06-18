@@ -1984,6 +1984,7 @@ export const iRouterAbi = [
         components: [
           { internalType: 'bool', name: 'cross', type: 'bool' },
           { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+          { internalType: 'bool', name: 'enterMarket', type: 'bool' },
           { internalType: 'int256', name: 'netCashIn', type: 'int256' },
           { internalType: 'uint256', name: 'minLpOut', type: 'uint256' },
         ],

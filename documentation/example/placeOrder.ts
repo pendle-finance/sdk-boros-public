@@ -48,14 +48,11 @@ async function main() {
         blockTimestamp,
     } = limitOrderResult.order!;
     
-    const MAX_TICK = 32767;
-
     const marketOrderParams: PlaceOrderParams = {
       marketAcc,
       marketId,
       side: Side.LONG,
       size: BigInt('1000000000000000000'),
-      limitTick: MAX_TICK,
       tif: TimeInForce.FILL_OR_KILL,
     };
 
