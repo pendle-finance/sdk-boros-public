@@ -502,6 +502,8 @@ export interface TxResponse {
   txHash: string;
   /** Logs index */
   index: number;
+  /** Error */
+  error?: string;
 }
 
 export interface BulkAgentExecuteDto {
@@ -1025,6 +1027,24 @@ export interface WeeklyIncentiveResponse {
 export interface MakerIncentiveActivitiesResponse {
   /** Weekly incentives for all markets in all epoches */
   weeklyIncentives: WeeklyIncentiveResponse[];
+  /**
+   * your Pendle reward token address
+   * @example "0x0000000000000000000000000000000000000000"
+   */
+  rewardTokenAddress: string;
+}
+
+export interface MakerIncentiveRewardsResponse {
+  /**
+   * your Pendle accrued reward amount
+   * @example 0.02
+   */
+  accruedAmount: number;
+  /**
+   * your Pendle unclaimed reward amount
+   * @example 0.01
+   */
+  unclaimedAmount: number;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -1261,7 +1281,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1749808161
+         * @default 1750303359
          */
         endTimestamp?: number;
       },
@@ -1381,7 +1401,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1749808161
+         * @default 1750303358
          */
         endTimestamp?: number;
       },
@@ -2128,45 +2148,14 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetModifyOrderCalldata
-     * @summary Get modify order contract params
-     * @request GET:/v1/calldata/modify-order
-     */
-    calldataControllerGetModifyOrderCalldata: (
-      query: {
-        marketAcc: string;
-        marketId: number;
-        orderId: string;
-        /** bigint string of size */
-        size: string;
-        /**
-         * @min -32768
-         * @max 32767
-         */
-        limitTick: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/modify-order`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldata
      * @summary Get add liquidity single cash to amm contract params
      * @request GET:/v1/calldata/add-liquidity-single-cash-to-amm
      */
     calldataControllerGetAddLiquiditySingleCashToAmmCalldata: (
       query: {
+        userAddress: string;
+        accountId: number;
         marketId: number;
         netCashIn: string;
         minLpOut: string;
@@ -2383,7 +2372,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1749808161
+         * @default 1750303359
          */
         endTimestamp?: number;
       },
@@ -2841,13 +2830,29 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @description Get maker incentives for a given maker
      *
      * @tags Incentives
-     * @name IncentivesControllerGetMakerIncentives
-     * @summary Get maker incentives
-     * @request GET:/v1/incentives/maker-incentives/{maker}
+     * @name IncentivesControllerGetMakerIncentiveActivities
+     * @summary Get maker incentives activities
+     * @request GET:/v1/incentives/maker-incentives/{maker}/activities
      */
-    incentivesControllerGetMakerIncentives: (maker: string, params: RequestParams = {}) =>
+    incentivesControllerGetMakerIncentiveActivities: (maker: string, params: RequestParams = {}) =>
       this.request<MakerIncentiveActivitiesResponse, any>({
-        path: `/v1/incentives/maker-incentives/${maker}`,
+        path: `/v1/incentives/maker-incentives/${maker}/activities`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get maker incentives rewards (accrued/unclaimed) amount for a given maker by marketId
+     *
+     * @tags Incentives
+     * @name IncentivesControllerGetMakerIncentiveRewards
+     * @summary Get maker incentives rewards
+     * @request GET:/v1/incentives/maker-incentives/{maker}/rewards
+     */
+    incentivesControllerGetMakerIncentiveRewards: (maker: string, params: RequestParams = {}) =>
+      this.request<MakerIncentiveRewardsResponse, any>({
+        path: `/v1/incentives/maker-incentives/${maker}/rewards`,
         method: "GET",
         format: "json",
         ...params,

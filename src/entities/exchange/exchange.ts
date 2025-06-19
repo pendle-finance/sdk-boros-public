@@ -88,6 +88,9 @@ export class Exchange {
         nonce: sign.message.nonce.toString(),
       },
     });
+    if (executeResponse.error) {
+      throw new Error(executeResponse.error);
+    }
     const receipt = await publicClient.waitForTransactionReceipt({ hash: executeResponse.txHash as Hex });
     const blockTimestamp = (await publicClient.getBlock({ blockNumber: receipt.blockNumber })).timestamp;
     const logIndex = executeResponse.index;
@@ -196,52 +199,52 @@ export class Exchange {
     };
   }
 
-  async modifyOrder(params: ModifyOrderParams) {
-    const { marketAcc, marketId, size, limitTick, tif, orderId } = params;
-    const { data: modifyOrderCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetModifyOrderCalldata({
-        marketAcc,
-        marketId,
-        size: size.toString(),
-        limitTick,
-        tif,
-        orderId,
-      });
-    const modifyOrderResponse = await this.signAndExecute(modifyOrderCalldataResponse as unknown as AgentExecuteParams);
-    const event = modifyOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-    let orderInfo;
-    if (event.eventName === 'LimitOrderPlaced') {
-      const { side } = OrderIdLib.unpack(event.args.orderIds[0]);
-      orderInfo = {
-        side,
-        placedSize: event.args.sizes[0],
-        orderId: event.args.orderIds[0],
-        root: this.root,
-        marketId,
-        accountId: this.accountId,
-        isCross: MarketAccLib.isCrossMarket(marketAcc),
-        blockTimestamp: modifyOrderResponse.blockTimestamp,
-        marketAcc,
-      };
-    }
-    const results = {
-      executeResponse: modifyOrderResponse.executeResponse,
-      result: {
-        order: orderInfo,
-        events: modifyOrderResponse.events,
-      },
-    };
-    return results;
-  }
+  // async modifyOrder(params: ModifyOrderParams) {
+  //   const { marketAcc, marketId, size, limitTick, tif, orderId } = params;
+  //   const { data: modifyOrderCalldataResponse } =
+  //     await this.borosBackendSdk.calldata.calldataControllerGetModifyOrderCalldata({
+  //       marketAcc,
+  //       marketId,
+  //       size: size.toString(),
+  //       limitTick,
+  //       tif,
+  //       orderId,
+  //     });
+  //   const modifyOrderResponse = await this.signAndExecute(modifyOrderCalldataResponse as unknown as AgentExecuteParams);
+  //   const event = modifyOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
+  //   let orderInfo;
+  //   if (event.eventName === 'LimitOrderPlaced') {
+  //     const { side } = OrderIdLib.unpack(event.args.orderIds[0]);
+  //     orderInfo = {
+  //       side,
+  //       placedSize: event.args.sizes[0],
+  //       orderId: event.args.orderIds[0],
+  //       root: this.root,
+  //       marketId,
+  //       accountId: this.accountId,
+  //       isCross: MarketAccLib.isCrossMarket(marketAcc),
+  //       blockTimestamp: modifyOrderResponse.blockTimestamp,
+  //       marketAcc,
+  //     };
+  //   }
+  //   const results = {
+  //     executeResponse: modifyOrderResponse.executeResponse,
+  //     result: {
+  //       order: orderInfo,
+  //       events: modifyOrderResponse.events,
+  //     },
+  //   };
+  //   return results;
+  // }
 
-  async bulkModifyOrder(orderRequests: ModifyOrderParams[]) {
-    const modifyOrderCalldataResponse = await Promise.all(
-      orderRequests.map(async (orderRequest) => {
-        return this.modifyOrder(orderRequest);
-      })
-    );
-    return modifyOrderCalldataResponse;
-  }
+  // async bulkModifyOrder(orderRequests: ModifyOrderParams[]) {
+  //   const modifyOrderCalldataResponse = await Promise.all(
+  //     orderRequests.map(async (orderRequest) => {
+  //       return this.modifyOrder(orderRequest);
+  //     })
+  //   );
+  //   return modifyOrderCalldataResponse;
+  // }
 
   async cancelOrders(params: CancelOrdersParams) {
     const { marketAcc, marketId, cancelAll, orderIds } = params;

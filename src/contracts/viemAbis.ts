@@ -1937,7 +1937,10 @@ export const iRouterAbi = [
   },
   {
     anonymous: false,
-    inputs: [{ indexed: false, internalType: 'uint256', name: 'index', type: 'uint256' }],
+    inputs: [
+      { indexed: false, internalType: 'uint256', name: 'index', type: 'uint256' },
+      { indexed: false, internalType: 'bytes4', name: 'errorSelector', type: 'bytes4' },
+    ],
     name: 'TryAggregateCallFailed',
     type: 'event',
   },
