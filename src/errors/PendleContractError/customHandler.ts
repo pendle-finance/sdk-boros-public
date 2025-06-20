@@ -5,11 +5,18 @@ import { PendleContractErrorMessageHandler } from './type';
 export const customPendleContractErrorMessageHandler: PendleContractErrorMessageHandler =
   createPendlecontractErrorMessageHandler(
     {
-      MarketSelfSwap: () => 'Self swapping error',
-      MarketOrderFOKNotFilled: () => 'Insufficient liquidity',
+      AMMCutOffReached: () => 'Deposits Closed (Market Maturing)',
+      AMMInsufficientCashOut: () => 'Slippage Too High',
+      AMMInsufficientLpOut: () => 'Slippage Too High',
+      AMMInsufficientSizeOut: () => 'Slippage Too High',
+      AMMTotalSupplyCapExceeded: () => 'Vault Cap Hit',
       MMInsufficientIM: () => 'Not enough margin',
-      MarketOICapExceeded: () => 'Exceeded OI Cap',
+      MarketLastTradedRateTooFar: () => 'Large Rate Deviation',
       MarketMaxOrdersExceeded: () => 'Exceeded max orders',
+      MarketOICapExceeded: () => 'Exceeded OI Cap',
+      MarketOrderFOKNotFilled: () => 'Insufficient liquidity',
+      MarketOrderRateOutOfBound: () => 'Rate Too Far Off',
+      MarketSelfSwap: () => 'Self swapping error',
       TradeUndesiredRate: () => 'Slippage too high',
     },
     // Keep the default fallback for other errors
