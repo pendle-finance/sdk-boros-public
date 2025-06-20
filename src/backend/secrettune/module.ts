@@ -5,7 +5,7 @@ import { Sdk } from './BorosBackendSDK';
 
 // in ./index.ts
 
-const BACKEND_URL = 'https://secrettune.io/core-v2';
+let backendUrl = 'https://secrettune.io/core-v2';
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface DefaultSdk extends Sdk<unknown> {}
 /* eslint-enable @typescript-eslint/no-empty-interface */
@@ -14,6 +14,10 @@ export interface DefaultSdk extends Sdk<unknown> {}
  * @internal
  */
 let cachedSdk: DefaultSdk;
+
+export function setBackendUrl(url: string) {
+  backendUrl = url;
+}
 
 export function createSdk(baseURL: string) {
   // const { SDK_API_KEY } = sdkEnv();
@@ -26,5 +30,5 @@ export function createSdk(baseURL: string) {
 
 export function getSdk(): DefaultSdk {
   const x = cachedSdk;
-  return x !== undefined ? x : (cachedSdk = createSdk(BACKEND_URL));
+  return x !== undefined ? x : (cachedSdk = createSdk(backendUrl));
 }
