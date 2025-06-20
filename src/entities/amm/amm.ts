@@ -135,7 +135,7 @@ export function combineMarketOrderBookAndAMM(
   };
 }
 
-function calSwapAMMFromToRate({
+export function calSwapAMMFromToRate({
   fromRate,
   toRate,
   isPositiveAMM,
