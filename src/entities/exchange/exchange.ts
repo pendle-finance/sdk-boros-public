@@ -2,7 +2,7 @@ import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
 import { Side } from '../../types';
-import { AgentExecuteParams, MarketAccLib, OrderIdLib, signWithAgent } from '../../utils';
+import { AgentExecuteParams, MarketAccLib, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
@@ -29,13 +29,15 @@ export class Exchange {
   private walletClient: WalletClient;
   private root: Address;
   private accountId: number;
-  private borosBackendSdk: BorosBackend.DefaultSdk;
+  private borosCoreSdk: BorosBackend.BorosCoreSdk;
+  private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
 
   constructor(walletClient: WalletClient, root: Address, accountId: number) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
-    this.borosBackendSdk = BorosBackend.getSdk();
+    this.borosCoreSdk = BorosBackend.getCoreSdk();
+    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
   }
 
   async bulkSignAndExecute(call: AgentExecuteParams) {
@@ -44,7 +46,7 @@ export class Exchange {
       accountId: this.accountId,
       call,
     });
-    const { data: executeResponse } = await this.borosBackendSdk.calldata.calldataControllerDirectCall({
+    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCall({
       ...sign,
       message: {
         ...sign.message,
@@ -81,7 +83,7 @@ export class Exchange {
       call,
     });
 
-    const { data: executeResponse } = await this.borosBackendSdk.calldata.calldataControllerDirectCall({
+    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCall({
       ...sign,
       message: {
         ...sign.message,
@@ -114,7 +116,7 @@ export class Exchange {
   async placeOrder(params: PlaceOrderParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetPlaceOrderCalldataV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetPlaceOrderCalldataV2({
         marketAcc,
         marketId,
         side,
@@ -161,7 +163,7 @@ export class Exchange {
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
     const desiredMatchRate = request.side === Side.LONG ? MAX_DESIRED_MATCH_RATE : MIN_DESIRED_MATCH_RATE;
     const { data: bulkPlaceOrderCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
         marketAcc: request.marketAcc,
         marketId: request.marketId,
         side: request.side,
@@ -199,58 +201,11 @@ export class Exchange {
     };
   }
 
-  // async modifyOrder(params: ModifyOrderParams) {
-  //   const { marketAcc, marketId, size, limitTick, tif, orderId } = params;
-  //   const { data: modifyOrderCalldataResponse } =
-  //     await this.borosBackendSdk.calldata.calldataControllerGetModifyOrderCalldata({
-  //       marketAcc,
-  //       marketId,
-  //       size: size.toString(),
-  //       limitTick,
-  //       tif,
-  //       orderId,
-  //     });
-  //   const modifyOrderResponse = await this.signAndExecute(modifyOrderCalldataResponse as unknown as AgentExecuteParams);
-  //   const event = modifyOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-  //   let orderInfo;
-  //   if (event.eventName === 'LimitOrderPlaced') {
-  //     const { side } = OrderIdLib.unpack(event.args.orderIds[0]);
-  //     orderInfo = {
-  //       side,
-  //       placedSize: event.args.sizes[0],
-  //       orderId: event.args.orderIds[0],
-  //       root: this.root,
-  //       marketId,
-  //       accountId: this.accountId,
-  //       isCross: MarketAccLib.isCrossMarket(marketAcc),
-  //       blockTimestamp: modifyOrderResponse.blockTimestamp,
-  //       marketAcc,
-  //     };
-  //   }
-  //   const results = {
-  //     executeResponse: modifyOrderResponse.executeResponse,
-  //     result: {
-  //       order: orderInfo,
-  //       events: modifyOrderResponse.events,
-  //     },
-  //   };
-  //   return results;
-  // }
-
-  // async bulkModifyOrder(orderRequests: ModifyOrderParams[]) {
-  //   const modifyOrderCalldataResponse = await Promise.all(
-  //     orderRequests.map(async (orderRequest) => {
-  //       return this.modifyOrder(orderRequest);
-  //     })
-  //   );
-  //   return modifyOrderCalldataResponse;
-  // }
-
   async cancelOrders(params: CancelOrdersParams) {
     const { marketAcc, marketId, cancelAll, orderIds } = params;
     const orderIdsStr = orderIds.join(',');
     const { data: cancelOrderCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetCancelOrderCalldata({
+      await this.borosCoreSdk.calldata.calldataControllerGetCancelOrderCalldata({
         marketAcc,
         marketId,
         cancelAll,
@@ -294,7 +249,7 @@ export class Exchange {
     const expiredTime = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
     const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime);
 
-    const { data: approveAgentResponse } = await this.borosBackendSdk.calldata.calldataControllerApproveAgent({
+    const { data: approveAgentResponse } = await this.borosSendTxsBotSdk.agent.agentControllerApproveAgent({
       approveAgentCalldata: approveAgentData,
     });
 
@@ -303,7 +258,7 @@ export class Exchange {
 
   async deposit(params: DepositParams) {
     const { userAddress, tokenId, amount } = params;
-    const { data: depositCalldataResponse } = await this.borosBackendSdk.calldata.calldataControllerGetDepositCalldata({
+    const { data: depositCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetDepositCalldata({
       userAddress,
       tokenId,
       amount: amount.toString(),
@@ -322,12 +277,11 @@ export class Exchange {
 
   async withdraw(params: WithdrawParams) {
     const { userAddress, tokenId, amount } = params;
-    const { data: withdrawCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetWithdrawCalldata({
-        userAddress,
-        tokenId,
-        amount: amount.toString(),
-      });
+    const { data: withdrawCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetWithdrawCalldata({
+      userAddress,
+      tokenId,
+      amount: amount.toString(),
+    });
 
     const hash = await this.walletClient.sendTransaction({
       to: withdrawCalldataResponse.to as Address,
@@ -344,7 +298,7 @@ export class Exchange {
   async cashTransfer(params: CashTransferParams) {
     const { marketId, isDeposit, amount } = params;
     const { data: cashTransferCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetPositionTransferCalldata({
+      await this.borosCoreSdk.calldata.calldataControllerGetPositionTransferCalldata({
         marketId,
         isDeposit,
         amount: amount.toString(),
@@ -356,7 +310,7 @@ export class Exchange {
   async closeActivePositions(params: CloseActivePositionsParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: closeActivePositionsCalldataResponse } =
-      await this.borosBackendSdk.calldata.calldataControllerGetCloseActiveMarketPositionV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetCloseActiveMarketPositionV2({
         marketAcc,
         marketId,
         side,
@@ -372,7 +326,7 @@ export class Exchange {
   async updateSettings(params: UpdateSettingsParams) {
     const { marketAcc, marketId, leverage, signature, agent, timestamp } = params;
     const { data: updateSettingsCalldataResponse } =
-      await this.borosBackendSdk.accounts.accountsControllerUpdateAccountSettings({
+      await this.borosCoreSdk.accounts.accountsControllerUpdateAccountSettings({
         marketAcc,
         marketId,
         leverage,
@@ -385,7 +339,7 @@ export class Exchange {
 
   async getMarkets(params?: GetMarketsParams) {
     const { skip, limit, isWhitelisted } = params ?? {};
-    const { data: getMarketsCalldataResponse } = await this.borosBackendSdk.markets.marketsControllerGetMarkets({
+    const { data: getMarketsCalldataResponse } = await this.borosCoreSdk.markets.marketsControllerGetMarkets({
       skip,
       limit,
       isWhitelisted,
@@ -396,7 +350,7 @@ export class Exchange {
   async getOrderBook(params: GetOrderBookParams) {
     const { marketId, tickSize } = params;
     const { data: getOrderBookCalldataResponse } =
-      await this.borosBackendSdk.orderBooks.orderBooksControllerGetOrderBooksByMarketId(marketId, {
+      await this.borosCoreSdk.orderBooks.orderBooksControllerGetOrderBooksByMarketId(marketId, {
         tickSize,
       });
     return getOrderBookCalldataResponse;
@@ -404,7 +358,7 @@ export class Exchange {
 
   async getPnlLimitOrders(params?: GetPnlLimitOrdersParams) {
     const { skip, limit, isActive, marketId, orderBy } = params ?? {};
-    const { data: getPnlLimitOrdersCalldataResponse } = await this.borosBackendSdk.pnL.pnlControllerGetLimitOrders({
+    const { data: getPnlLimitOrdersCalldataResponse } = await this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
       userAddress: this.root,
       accountId: this.accountId,
       marketId,
@@ -418,7 +372,7 @@ export class Exchange {
 
   async getCollaterals() {
     const { data: getCollateralsCalldataResponse } =
-      await this.borosBackendSdk.collaterals.collateralControllerGetAllCollateralSummary({
+      await this.borosCoreSdk.collaterals.collateralControllerGetAllCollateralSummary({
         userAddress: this.root,
         accountId: this.accountId,
       });
@@ -426,7 +380,7 @@ export class Exchange {
   }
 
   async getAssets() {
-    const { data: getAssetsCalldataResponse } = await this.borosBackendSdk.assets.assetsControllerGetAllAssets();
+    const { data: getAssetsCalldataResponse } = await this.borosCoreSdk.assets.assetsControllerGetAllAssets();
     return getAssetsCalldataResponse;
   }
 }

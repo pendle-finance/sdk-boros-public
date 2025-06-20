@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -482,44 +483,6 @@ export interface BulkPlaceOrderQueryDto {
   tif: 0 | 1 | 2 | 3;
 }
 
-export interface PendleSignTxDto {
-  account: string;
-  connectionId: string;
-  nonce: string;
-}
-
-export interface AgentExecuteDto {
-  agent: string;
-  message: PendleSignTxDto;
-  signature: string;
-  calldata: string;
-}
-
-export interface TxResponse {
-  /** Transaction status */
-  status: string;
-  /** Transaction hash */
-  txHash: string;
-  /** Logs index */
-  index: number;
-  /** Error */
-  error?: string;
-}
-
-export interface BulkAgentExecuteDto {
-  datas: AgentExecuteDto[];
-}
-
-export interface ApproveAgentQueryDto {
-  setAccountManagerCalldata?: string;
-  approveAgentCalldata: string;
-}
-
-export interface ApproveAgentResponse {
-  setAccountManagerResult?: TxResponse;
-  approveAgentResult: TxResponse;
-}
-
 export interface SettingsByMarketResponse {
   /** Market id */
   marketId: number;
@@ -556,7 +519,7 @@ export interface PnlTransactionResponse {
   /** Side { LONG : 0, SHORT : 1 } */
   side: 0 | 1;
   /** TxType { NORMAL : normal, LIQUIDATE : liquidate, FORCE_DELEVERAGE : force_deleverage } */
-  txType: "normal" | "liquidate" | "force_deleverage";
+  txType: 'normal' | 'liquidate' | 'force_deleverage';
   /** TradeDirection { INCREASE : 0, DECREASE : 1, CHANGE_DIRECTION : 2 } */
   tradeDirection: 0 | 1 | 2;
   /** bigint string of notional size */
@@ -643,7 +606,7 @@ export interface LimitOrdersResponse {
 
 export interface FundLocationResponse {
   /** FundType { Wallet : wallet, CrossAccount : cross_account, IsolatedAccount : isolated_account } */
-  fundType: "wallet" | "cross_account" | "isolated_account";
+  fundType: 'wallet' | 'cross_account' | 'isolated_account';
   /** The market id */
   marketId?: number;
 }
@@ -666,7 +629,7 @@ export interface TransferLogResponse {
   /** The to fund location */
   toFundLocation: FundLocationResponse;
   /** TransferLogStatus { Pending : pending, Success : success, Failed : failed } */
-  status: "pending" | "success" | "failed";
+  status: 'pending' | 'success' | 'failed';
 }
 
 export interface TransferLogsResponse {
@@ -1047,12 +1010,12 @@ export interface MakerIncentiveRewardsResponse {
   unclaimedAmount: number;
 }
 
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
-import axios from "axios";
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
+import axios from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
 
-export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+export interface FullRequestParams extends Omit<AxiosRequestConfig, 'data' | 'params' | 'url' | 'responseType'> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -1067,32 +1030,36 @@ export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "pa
   body?: unknown;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+export type RequestParams = Omit<FullRequestParams, 'body' | 'method' | 'query' | 'path'>;
 
-export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
   securityWorker?: (
-    securityData: SecurityDataType | null,
+    securityData: SecurityDataType | null
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
   secure?: boolean;
   format?: ResponseType;
 }
 
 export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-  Text = "text/plain",
+  Json = 'application/json',
+  JsonApi = 'application/vnd.api+json',
+  FormData = 'multipart/form-data',
+  UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
   public instance: AxiosInstance;
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
   private secure?: boolean;
   private format?: ResponseType;
 
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "https://secrettune.io/core-v2" });
+    this.instance = axios.create({
+      ...axiosConfig,
+      baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2',
+    });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -1118,7 +1085,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected stringifyFormItem(formItem: unknown) {
-    if (typeof formItem === "object" && formItem !== null) {
+    if (typeof formItem === 'object' && formItem !== null) {
       return JSON.stringify(formItem);
     } else {
       return `${formItem}`;
@@ -1152,18 +1119,18 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<AxiosResponse<T>> => {
     const secureParams =
-      ((typeof secure === "boolean" ? secure : this.secure) &&
+      ((typeof secure === 'boolean' ? secure : this.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
     const requestParams = this.mergeRequestParams(params, secureParams);
     const responseFormat = format || this.format || undefined;
 
-    if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
+    if (type === ContentType.FormData && body && body !== null && typeof body === 'object') {
       body = this.createFormData(body as Record<string, unknown>);
     }
 
-    if (type === ContentType.Text && body && body !== null && typeof body !== "string") {
+    if (type === ContentType.Text && body && body !== null && typeof body !== 'string') {
       body = JSON.stringify(body);
     }
 
@@ -1171,7 +1138,7 @@ export class HttpClient<SecurityDataType = unknown> {
       ...requestParams,
       headers: {
         ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
+        ...(type ? { 'Content-Type': type } : {}),
       },
       params: query,
       responseType: responseFormat,
@@ -1189,7 +1156,7 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * Pendle V3 API documentation
  */
-export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
   markets = {
     /**
      * No description
@@ -1217,13 +1184,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         isWhitelisted?: boolean;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<MarketsResponse, any>({
         path: `/v1/markets`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1250,13 +1217,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Market id */
         marketId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<MarketTradesResponse, any>({
         path: `/v1/markets/market-trades`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1273,7 +1240,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** Market id */
         marketId: number;
         /** ClosePositionType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
-        timeFrame: "5m" | "1h" | "1d" | "1w";
+        timeFrame: '5m' | '1h' | '1d' | '1w';
         /**
          * Start timestamp
          * @default 0
@@ -1281,17 +1248,17 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750303359
+         * @default 1750414235
          */
         endTimestamp?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ChartResponse, any>({
         path: `/v1/markets/chart`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1306,8 +1273,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     marketsControllerGetMarketInfo: (marketId: number, params: RequestParams = {}) =>
       this.request<MarketResponse, any>({
         path: `/v1/markets/${marketId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -1325,13 +1292,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         tickSize: 0.00001 | 0.0001 | 0.001 | 0.01 | 0.1;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<OrderBooksResponse, any>({
         path: `/v1/order-books/${marketId}`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -1348,13 +1315,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query?: {
         account?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetAllVaultResponse, any>({
         path: `/v1/amm/summary`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1371,13 +1338,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketId: number;
         account?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetSingleVaultResponse, any>({
         path: `/v1/amm/summary/single`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1393,7 +1360,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         marketId: number;
         /** TimeFrame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
-        timeFrame: "5m" | "1h" | "1d" | "1w";
+        timeFrame: '5m' | '1h' | '1d' | '1w';
         /**
          * Start timestamp
          * @default 0
@@ -1401,17 +1368,17 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750303358
+         * @default 1750414235
          */
         endTimestamp?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetVaultApyChartResponse, any>({
         path: `/v1/amm/chart`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1426,8 +1393,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ammControllerGetAmmStateByMarketId: (marketId: number, params: RequestParams = {}) =>
       this.request<GetAMMStateByMarketIdResponse, any>({
         path: `/v1/amm/${marketId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1442,8 +1409,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ammControllerGetAmmInfoByAmmId: (ammId: number, params: RequestParams = {}) =>
       this.request<GetAMMInfoByAmmIdResponse, any>({
         path: `/v2/amm/${ammId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -1462,13 +1429,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tokenId: number;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<DepositSimulationResponse, any>({
         path: `/v1/simulations/deposit`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1488,13 +1455,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         marketId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<DepositSimulationResponse, any>({
         path: `/v2/simulations/deposit`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1512,13 +1479,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tokenId: number;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<WithdrawSimulationResponse, any>({
         path: `/v1/simulations/withdraw`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1538,13 +1505,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         isDeposit: boolean;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<CashTransferSimulationResponse, any>({
         path: `/v1/simulations/cash-transfer`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1575,13 +1542,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @default 0.05 */
         slippage?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<PlaceOrderSimulationResponseV2, any>({
         path: `/v2/simulations/place-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1614,13 +1581,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @default true */
         isConnected?: boolean;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<PlaceOrderSimulationResponse, any>({
         path: `/v1/simulations/place-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1640,13 +1607,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** comma separated orderIds */
         orderIds?: string[];
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<CancelOrderSimulationResponse, any>({
         path: `/v1/simulations/cancel-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1676,13 +1643,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         slippage?: number;
         marketAcc: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<PlaceOrderSimulationResponseV2, any>({
         path: `/v2/simulations/close-active-position`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1700,7 +1667,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketAcc: string;
         marketId: number;
         /** ClosePositionType { LIMIT : limit, MARKET : market } */
-        type: "limit" | "market";
+        type: 'limit' | 'market';
         size: string;
         /** Required if type is limit */
         rate?: number;
@@ -1710,13 +1677,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         slippage?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<PlaceOrderSimulationResponse, any>({
         path: `/v1/simulations/close-active-position`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1735,13 +1702,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketId: number;
         netCashIn: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AddLiquiditySingleCashSimulationResponse, any>({
         path: `/v1/simulations/add-liquidity-single-cash`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1760,13 +1727,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketId: number;
         lpToRemove: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<RemoveLiquiditySingleCashSimulationResponse, any>({
         path: `/v1/simulations/remove-liquidity-single-cash`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -1782,8 +1749,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     assetsControllerGetAllAssets: (params: RequestParams = {}) =>
       this.request<AssetsResponse, any>({
         path: `/v1/assets/all`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -1802,13 +1769,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tokenId: number;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/deposit`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1828,13 +1795,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         marketId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v2/calldata/deposit`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1852,13 +1819,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tokenId: number;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1876,13 +1843,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         tokenId: number;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw/request`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1899,13 +1866,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         tokenId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw/cancel`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1922,13 +1889,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         tokenId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw/finalize`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1947,13 +1914,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         isDeposit: boolean;
         amount: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/cash-transfer`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1983,13 +1950,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         slippage?: number;
         marketAcc: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v2/calldata/place-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2020,13 +1987,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
         tif: 0 | 1 | 2 | 3;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/place-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2041,10 +2008,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     calldataControllerGetBulkPlaceOrderCalldata: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/place-orders`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2064,13 +2031,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** comma separated orderIds */
         orderIds?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/cancel-order`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2100,13 +2067,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         slippage?: number;
         marketAcc: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v2/calldata/close-active-position`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2124,7 +2091,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketAcc: string;
         marketId: number;
         /** ClosePositionType { LIMIT : limit, MARKET : market } */
-        type: "limit" | "market";
+        type: 'limit' | 'market';
         size: string;
         /** Required if type is limit */
         rate?: number;
@@ -2134,13 +2101,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         slippage?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/close-active-position`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2160,13 +2127,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         netCashIn: string;
         minLpOut: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/add-liquidity-single-cash-to-amm`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2184,13 +2151,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         lpToRemove: string;
         minCashOut: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/remove-liquidity-single-cash-from-amm`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2207,67 +2174,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         isCross?: boolean;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AgentExecuteParamsResponse, any>({
         path: `/v1/calldata/enter-all-markets`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerDirectCall
-     * @summary Agent direct call
-     * @request POST:/v1/calldata/agent-direct-call
-     */
-    calldataControllerDirectCall: (data: AgentExecuteDto, params: RequestParams = {}) =>
-      this.request<TxResponse, any>({
-        path: `/v1/calldata/agent-direct-call`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerBulkAgentDirectCall
-     * @summary Send multiple direct call to agent
-     * @request POST:/v1/calldata/bulk-agent-direct-call
-     */
-    calldataControllerBulkAgentDirectCall: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
-      this.request<TxResponse[], any>({
-        path: `/v1/calldata/bulk-agent-direct-call`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerApproveAgent
-     * @summary Approve agent
-     * @request POST:/v1/calldata/approve-agent
-     */
-    calldataControllerApproveAgent: (data: ApproveAgentQueryDto, params: RequestParams = {}) =>
-      this.request<ApproveAgentResponse, any>({
-        path: `/v1/calldata/approve-agent`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2285,13 +2198,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AccountSettingsResponse, any>({
         path: `/v1/accounts/settings`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2306,7 +2219,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     accountsControllerUpdateAccountSettings: (data: UpdateAccountSettingBodyDto, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/v1/accounts/settings`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -2337,13 +2250,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         skip?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<PnlTransactionsResponse, any>({
         path: `/v1/pnl/transactions`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2364,7 +2277,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * Time frame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w }
          * @default "1h"
          */
-        timeFrame?: "5m" | "1h" | "1d" | "1w";
+        timeFrame?: '5m' | '1h' | '1d' | '1w';
         /**
          * Start timestamp, default to 0
          * @default 0
@@ -2372,17 +2285,17 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1750303359
+         * @default 1750414235
          */
         endTimestamp?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<HistoricalPnlChartResponse[], any>({
         path: `/v1/pnl/historical-chart`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2420,13 +2333,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         orderBy?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<LimitOrdersResponse, any>({
         path: `/v1/pnl/limit-orders`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2464,13 +2377,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         orderBy?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<LimitOrdersResponse, any>({
         path: `/v1/pnl/limit-orders/filled`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2498,13 +2411,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         tokenId?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<TransferLogsResponse, any>({
         path: `/v1/pnl/transfer-logs`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2533,13 +2446,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         marketId?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<SettlementsResponse, any>({
         path: `/v1/settlement/settlements`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2557,13 +2470,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<AllCollateralSummaryResponse, any>({
         path: `/v1/collaterals/summary`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2581,13 +2494,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         tokenId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<CollateralSummaryResponse, any>({
         path: `/v1/collaterals/summary/single`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2605,17 +2518,17 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
         /** Balance chart time { SEVEN_DAYS : 7d, THIRTY_DAYS : 30d, SIXTY_DAYS : 60d, NINETY_DAYS : 90d, ALL_TIME : all } */
-        time: "7d" | "30d" | "60d" | "90d" | "all";
+        time: '7d' | '30d' | '60d' | '90d' | 'all';
         /** if not provided, will return balance of all collateral */
         tokenId: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BalanceChartResponse, any>({
         path: `/v1/portfolios/balance-chart`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2632,15 +2545,15 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         userAddress: string;
         accountId: number;
         /** Balance chart time { SEVEN_DAYS : 7d, THIRTY_DAYS : 30d, SIXTY_DAYS : 60d, NINETY_DAYS : 90d, ALL_TIME : all } */
-        time: "7d" | "30d" | "60d" | "90d" | "all";
+        time: '7d' | '30d' | '60d' | '90d' | 'all';
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<BalanceChartAllTokensResponse, any>({
         path: `/v1/portfolios/balance-chart/all`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2657,13 +2570,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         txHash: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<MarketOrderLogResponse, any>({
         path: `/v1/playground/market-order-logs`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2679,8 +2592,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerGetUserReferralInfo: (userAddress: string, params: RequestParams = {}) =>
       this.request<GetUserReferralInfoResponse, any>({
         path: `/v1/referrals/${userAddress}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2695,11 +2608,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerCreateReferralCode: (
       userAddress: string,
       data: CreateReferralBodyDto,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<void, any>({
         path: `/v1/referrals/${userAddress}`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
         ...params,
@@ -2716,10 +2629,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerCheckReferralExist: (data: CheckReferralExistBodyDto, params: RequestParams = {}) =>
       this.request<CheckReferralExistResponse, any>({
         path: `/v1/referrals/check-exist`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2734,10 +2647,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerJoinReferralCode: (userAddress: string, data: JoinReferralBodyDto, params: RequestParams = {}) =>
       this.request<JoinReferralResponse, any>({
         path: `/v1/referrals/${userAddress}/join`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2752,8 +2665,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerGetReferralActivities: (userAddress: string, params: RequestParams = {}) =>
       this.request<ReferralActivitiesResponse, any>({
         path: `/v1/referrals/${userAddress}/referral-activities`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2768,8 +2681,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerGetReferralRewards: (userAddress: string, params: RequestParams = {}) =>
       this.request<ReferralRewardResponse, any>({
         path: `/v1/referrals/${userAddress}/referral-rewards`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -2785,8 +2698,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
       this.request<UserMerkleResponse, any>({
         path: `/v1/merkels/${campaignId}/user/${user}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -2802,7 +2715,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     adminControllerTransferMockToken: (data: FaucetDto, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/v1/admin/faucet`,
-        method: "POST",
+        method: 'POST',
         body: data,
         secure: true,
         type: ContentType.Json,
@@ -2820,8 +2733,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     configsControllerGetGlobalConfigs: (params: RequestParams = {}) =>
       this.request<GlobalConfigsResponse, any>({
         path: `/v1/configs`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };
@@ -2837,8 +2750,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     incentivesControllerGetMakerIncentiveActivities: (maker: string, params: RequestParams = {}) =>
       this.request<MakerIncentiveActivitiesResponse, any>({
         path: `/v1/incentives/maker-incentives/${maker}/activities`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2853,8 +2766,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     incentivesControllerGetMakerIncentiveRewards: (maker: string, params: RequestParams = {}) =>
       this.request<MakerIncentiveRewardsResponse, any>({
         path: `/v1/incentives/maker-incentives/${maker}/rewards`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };

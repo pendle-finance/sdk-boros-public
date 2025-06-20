@@ -2,7 +2,7 @@
   "name": "@pendle/sdk-boros",
   "description": "Pendle SDK for Boros",
   "license": "MIT",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -28,7 +28,7 @@
     "husky": "^8.0.0",
     "jest": "^29.7.0",
     "lint-staged": "^15.2.9",
-    "swagger-typescript-api": "13.0.13",
+    "swagger-typescript-api": "13.2.3",
     "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.2",

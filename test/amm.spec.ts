@@ -1,10 +1,10 @@
-import { AMMStateResponse, OrderBooksV3Response } from '../src/backend/secrettune/BorosBackendSDK';
+import { AMMStateResponse, OrderBooksResponse } from '../src/backend/secrettune/BorosCoreSDK';
 import { combineMarketOrderBookAndAMM } from '../src/entities/amm/amm';
 
 describe('combineMarketOrderBookAndAmm', () => {
   it('should combine correctly when AMMImpliedRate is between best bid and best ask rate', () => {
     const tickSize = 0.001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [95, 90, 85, 80, 75, 70, 65, 60, 55, 50],
         sz: [
@@ -89,7 +89,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when AMMImpliedRate is bigger than best ask rate', () => {
     const tickSize = 0.001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [45, 43, 37, 32, 10, 9, 0],
         sz: [
@@ -160,7 +160,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when AMMImpliedRate is smaller than best bid rate', () => {
     const tickSize = 0.001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [120, 115, 110, 105, 100, 95, 90, 85, 80, 75],
         sz: [
@@ -245,7 +245,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when there is no long order book', () => {
     const tickSize = 0.0001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [378, 120, 109],
         sz: ['1640000000000000000', '2000000000000000000', '3000000000000000000'],
@@ -308,7 +308,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when there is no short order book', () => {
     const tickSize = 0.0001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [],
         sz: [],
@@ -371,7 +371,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when there is no short order book bigger than implied rate', () => {
     const tickSize = 0.00001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [5992, 4990, 2993, 1511, 1207],
         sz: [
@@ -440,7 +440,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when there is no long order book smaller than implied rate', () => {
     const tickSize = 0.00001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [11000, 10900, 10800, 10700, 10600],
         sz: [
@@ -509,7 +509,7 @@ describe('combineMarketOrderBookAndAmm', () => {
 
   it('should combine correctly when there is no order book', () => {
     const tickSize = 0.001;
-    const marketOrderBook: OrderBooksV3Response = {
+    const marketOrderBook: OrderBooksResponse = {
       long: {
         ia: [],
         sz: [],

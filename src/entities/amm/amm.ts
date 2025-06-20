@@ -1,5 +1,5 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
-import { AMMStateResponse, OrderBooksResponse, SideTickResponse } from '../../backend/secrettune/BorosBackendSDK';
+import { AMMStateResponse, OrderBooksResponse, SideTickResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { NegativeAMMMath } from './NegativeAMMMath';
 import { AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
 import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
