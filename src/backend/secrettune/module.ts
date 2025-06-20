@@ -1,6 +1,8 @@
 // Everything in this file will be aggregately-exported as one object
 
-export * from './BorosCoreSDK';
+export * as Core from './BorosCoreSDK';
+export * as SendTxsBot from './BorosSendTxsBotSDK';
+
 import { Sdk as CoreSdk } from './BorosCoreSDK';
 import { Sdk as SendTxsBotSdk } from './BorosSendTxsBotSDK';
 
