@@ -6,7 +6,7 @@ const lines = [];
 
 lines.push(`
 // This file is generated via \`yarn generateContractErrors\`
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 
 /**
  * This type is generated from the ABI of Pendle contract Errors.
@@ -24,7 +24,7 @@ function abiPrimitiveTypeToTypescript(t: string) {
         return 'bigint';
     }
     if (/^bytes\d*$/.test(t)) {
-        return 'BytesLike';
+        return 'Hex';
     }
     if (t === 'bool') {
         return 'boolean';

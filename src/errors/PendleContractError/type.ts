@@ -1,5 +1,5 @@
 // This file is generated via `yarn generateContractErrors`
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 
 /**
  * This type is generated from the ABI of Pendle contract Errors.
@@ -26,6 +26,7 @@ export type PendleContractErrorMessageHandler = {
   AuthInvalidConnectionId: () => string;
   AuthInvalidMessage: () => string;
   AuthInvalidNonce: () => string;
+  BOROS20NotEnoughBalance: (account: Hex, balance: bigint, value: bigint) => string;
   DivFailed: () => string;
   DivWadFailed: () => string;
   ERC20InsufficientAllowance: (spender: Address, allowance: bigint, needed: bigint) => string;
