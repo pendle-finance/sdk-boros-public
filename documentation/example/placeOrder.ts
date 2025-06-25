@@ -1,6 +1,7 @@
 import { Address } from 'viem';
 import { ExampleConfig, createMarketAcc, setupExchange } from './utils';
-import { BulkPlaceOrderParams, PlaceOrderParams, Side, TimeInForce, getTickAtInterest } from '../../src';
+import { BulkPlaceOrderParams, PlaceOrderParams, Side, TimeInForce } from '../../src';
+import { estimateTickForRate, FixedX18 } from '@pendle/boros-offchain-math';
 
 async function main() {
   const config: ExampleConfig = {
@@ -10,7 +11,7 @@ async function main() {
   };
 
   try {
-    const { exchange, walletClient, marketAddress, tokenId, marketId } = await setupExchange(config);
+    const { exchange, walletClient, marketAddress, tokenId, marketId, market } = await setupExchange(config);
     
     const marketAcc = await createMarketAcc(
       walletClient.account!.address,
@@ -25,7 +26,7 @@ async function main() {
       marketId,
       side: Side.LONG,
       size: BigInt('1000000000000000000'),
-      limitTick: Number(getTickAtInterest(interestRate, Side.LONG)),
+      limitTick: Number(estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true)),
       tif: TimeInForce.GOOD_TIL_CANCELLED,
     };
 
@@ -66,7 +67,8 @@ async function main() {
         marketId,
         side: Side.LONG,
         sizes: [BigInt('1000000000000000000'), BigInt('2000000000000000000')],
-        limitTicks: [Number(getTickAtInterest(interestRate, Side.LONG)), Number(getTickAtInterest(interestRate, Side.LONG))],
+        limitTicks: [Number(estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true)),
+           Number(estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true))],
         tif: TimeInForce.GOOD_TIL_CANCELLED,
       };
 

@@ -104,18 +104,18 @@ This example demonstrates the complete flow from initializing the Exchange class
 ### Get Tick at Interest
 
 ```typescript
-getTickAtInterest(rate: number, side: Side): bigint
+estimateTickForRate(rate: FixedX18, step: bigint, roundDown: boolean): bigint;
 ```
 
 Returns the tick price limit for a given interest rate and side.
 
 Parameters:
 - `rate`: The interest rate
-- `side`: The trade side (Side.LONG or Side.SHORT)
+- `step`: tickstep (in market.imData)
 
 Example:
 ```typescript
-const tick = getTickAtInterest(1.5, Side.LONG);
+const tick = estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true)
 console.log('Tick:', tick);
 ```
 

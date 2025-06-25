@@ -1,6 +1,7 @@
 import { createWalletClient, http, Address, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { Exchange, Agent, MarketAccLib, Side, TimeInForce } from '../../src';
+import { MarketResponse } from '../../src/backend/secrettune/BorosCoreSDK';
 export interface ExampleConfig {
   privateKey: `0x${string}`;
   rpcUrl: string;
@@ -22,6 +23,7 @@ export async function setupExchange(config: ExampleConfig): Promise<{
   marketAddress: Address;
   tokenId: number;
   marketId: number;
+  market: MarketResponse;
 }> {
   const walletClient = await setupWalletClient(config);
   const account = walletClient.account!;
@@ -40,8 +42,9 @@ export async function setupExchange(config: ExampleConfig): Promise<{
   const tokenId = markets[0].tokenId;
   const marketId = markets[0].marketId;
   const marketAddress = markets[0].address as Address;
+  const market = markets[0];
 
-  return { exchange, agent, walletClient, marketAddress, tokenId, marketId };
+  return { exchange, agent, walletClient, marketAddress, tokenId, marketId, market };
 }
 
 export async function createMarketAcc(
