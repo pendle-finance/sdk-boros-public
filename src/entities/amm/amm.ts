@@ -9,9 +9,9 @@ export function combineMarketOrderBookAndAMM(
   marketOrderBook: OrderBooksResponse,
   ammStateResponse: AMMStateResponse,
   isPositiveAMM: boolean,
-  ammFeeRateBigInt: string
+  ammShiftedRate: string
 ): OrderBooksResponse {
-  const ammFeeRate = FixedX18.fromRawValue(BigInt(ammFeeRateBigInt)).toNumber();
+  const ammFeeRate = FixedX18.fromRawValue(BigInt(ammShiftedRate)).toNumber();
   const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
   const { normFixedAmount, totalFloatAmount } = ammState;
   const AMMImpliedRate = isPositiveAMM
