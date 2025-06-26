@@ -17,6 +17,11 @@ export type AgentExecuteParams = {
   data: Hex;
 };
 
+export type BulkAgentExecuteParams = {
+  tag: string;
+  datas: Hex[];
+};
+
 export type SignedAgentExecution = {
   agent: Address;
   message: PendleSignTxStruct;

@@ -483,6 +483,25 @@ export interface BulkPlaceOrderQueryDto {
   tif: 0 | 1 | 2 | 3;
 }
 
+export interface BulkPlaceOrderQueryDtoV2 {
+  marketAcc: string;
+  marketId: number;
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
+  /** sizes */
+  sizes: string[];
+  /** limit ticks */
+  limitTicks: number[];
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+  tif: 0 | 1 | 2 | 3;
+}
+
+export interface BulkAgentExecuteParamsResponse {
+  tag: string;
+  /** calldatas */
+  datas: string[];
+}
+
 export interface SettingsByMarketResponse {
   /** Market id */
   marketId: number;
@@ -636,6 +655,16 @@ export interface TransferLogsResponse {
   /** Total number of transfer logs */
   total: number;
   results: TransferLogResponse[];
+}
+
+export interface RiskAllMarketsStatusesResponse {
+  /** The market status */
+  markets: string[];
+}
+
+export interface CalculateLNResponse {
+  /** Total Open Interest as a string */
+  totalOI: string;
 }
 
 export interface SettlementResponse {
@@ -1010,6 +1039,25 @@ export interface MakerIncentiveRewardsResponse {
   unclaimedAmount: number;
 }
 
+export interface LiquidityDashboardTierInfo {
+  optimalValue: number;
+  value: number;
+  size: string;
+}
+
+export interface LiquidityDashboardPerMarketResponse {
+  totalOI: string;
+  midApr: number;
+  spread: number;
+  ammLiquidityWithinSpreadRange: string;
+  skew: number;
+  tierInfos: LiquidityDashboardTierInfo[];
+}
+
+export interface LiquidityDashboardResponse {
+  liquidityMetrics: LiquidityDashboardPerMarketResponse[];
+}
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
 import axios from 'axios';
 
@@ -1156,7 +1204,7 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * Pendle V3 API documentation
  */
-export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
+export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   markets = {
     /**
      * No description
@@ -1248,7 +1296,7 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750414235
+         * @default 1750905334
          */
         endTimestamp?: number;
       },
@@ -1368,7 +1416,7 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750414235
+         * @default 1750905334
          */
         endTimestamp?: number;
       },
@@ -2019,6 +2067,24 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV2
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v2/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV2: (data: BulkPlaceOrderQueryDtoV2, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponse, any>({
+        path: `/v2/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetCancelOrderCalldata
      * @summary Get cancel order contract params
      * @request GET:/v1/calldata/cancel-order
@@ -2285,7 +2351,7 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1750414235
+         * @default 1750905334
          */
         endTimestamp?: number;
       },
@@ -2415,6 +2481,64 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
     ) =>
       this.request<TransferLogsResponse, any>({
         path: `/v1/pnl/transfer-logs`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  risk = {
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerGetRiskAllMarketsStatuses
+     * @summary Get all user statuses
+     * @request GET:/v1/risk/all-markets-statuses
+     */
+    riskControllerGetRiskAllMarketsStatuses: (
+      query?: {
+        marketId?: number;
+        /**
+         * Array of user addresses
+         * @example ["0x1234...","0x5678..."]
+         */
+        userAddresses?: string[];
+        accountId?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<RiskAllMarketsStatusesResponse[], any>({
+        path: `/v1/risk/all-markets-statuses`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerCalculateLn
+     * @summary Calculate position Open Interest for liquidation at given rate and side
+     * @request GET:/v1/risk/calculate-ln
+     */
+    riskControllerCalculateLn: (
+      query: {
+        /** Market ID */
+        marketId: number;
+        /** Rate as a number */
+        rateFrom?: number;
+        /** Rate as a number */
+        rateTo?: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<CalculateLNResponse, any>({
+        path: `/v1/risk/calculate-ln`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2766,6 +2890,23 @@ export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
     incentivesControllerGetMakerIncentiveRewards: (maker: string, params: RequestParams = {}) =>
       this.request<MakerIncentiveRewardsResponse, any>({
         path: `/v1/incentives/maker-incentives/${maker}/rewards`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
+  dashboard = {
+    /**
+     * No description
+     *
+     * @tags Dashboard
+     * @name DashboardControllerGetLiquidityMetrics
+     * @summary get liquidity metrics
+     * @request GET:/v1/dashboard/liquidity
+     */
+    dashboardControllerGetLiquidityMetrics: (params: RequestParams = {}) =>
+      this.request<LiquidityDashboardResponse, any>({
+        path: `/v1/dashboard/liquidity`,
         method: 'GET',
         format: 'json',
         ...params,

@@ -27,9 +27,9 @@ export interface TxResponse {
   /** Transaction status */
   status: string;
   /** Transaction hash */
-  txHash: string;
+  txHash?: string;
   /** Logs index */
-  index: number;
+  index?: number;
   /** Error */
   error?: string;
 }
@@ -194,7 +194,7 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * Pendle V3 API documentation
  */
-export class Sdk<SecurityDataType> extends HttpClient<SecurityDataType> {
+export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   agent = {
     /**
      * No description

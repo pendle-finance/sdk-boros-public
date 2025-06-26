@@ -20,6 +20,7 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog, parseEvents } from './utils';
+import { BulkAgentExecuteParams, bulkSignWithAgent } from '../../utils/signing/agent';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -40,39 +41,72 @@ export class Exchange {
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
   }
 
-  async bulkSignAndExecute(call: AgentExecuteParams) {
-    const sign = await signWithAgent({
+  async bulkSignAndExecute(bulkAgentExecuteParams: BulkAgentExecuteParams) {
+    const signs = await bulkSignWithAgent({
       root: this.root,
       accountId: this.accountId,
-      call,
+      calls: bulkAgentExecuteParams.datas.map((data) => ({
+        tag: bulkAgentExecuteParams.tag,
+        data,
+      })),
     });
-    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCall({
-      ...sign,
-      message: {
-        ...sign.message,
-        nonce: sign.message.nonce.toString(),
-      },
+    const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCall({
+      datas: signs.map((sign) => ({
+        ...sign,
+        message: {
+          ...sign.message,
+          nonce: sign.message.nonce.toString(),
+        },
+      })),
     });
-    const txHash = executeResponse.txHash;
-    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash as Hex });
-    const blockTimestamp = receipt.blockNumber;
-    const logGroups = [];
-    let events = [];
-    const decodedEvents = receipt.logs.map((log) => decodeLog(log));
-    for (const event of decodedEvents) {
-      if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
-        events.push(event);
-        logGroups.push([...events]);
-        events = [];
-      } else {
-        events.push(event);
-      }
-    }
 
-    return logGroups.map((log) => ({
-      executeResponse,
-      events: log,
-      blockTimestamp,
+
+    const txHash = executeResponses.find((txResponse) => !txResponse.error)?.txHash;
+    if(txHash) {
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash as Hex });
+      const blockTimestamp = receipt.blockNumber;
+      const logGroups = [];
+      let events = [];
+      const decodedEvents = receipt.logs.map((log) => decodeLog(log));
+      for (const event of decodedEvents) {
+        if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
+          events.push(event);
+          logGroups.push([...events]);
+          events = [];
+        } else {
+          events.push(event);
+        }
+      }
+
+      const successExecuteResponses = executeResponses.map((txResponse, index) => ({
+        txResponse,
+        id: index,
+      })).filter((txResponse) => !txResponse.txResponse.error);
+
+      const sentTxResponses = logGroups.map((events, index) => {
+        return {
+          result: {
+          executeResponse: successExecuteResponses[index].txResponse,
+          events,
+          blockTimestamp,
+        },
+        id: successExecuteResponses[index].id,
+      }
+      });
+
+      const res =  executeResponses.map((txResponse, index) => {
+        if(txResponse.error) {
+          return {
+            error: txResponse.error,
+          }
+        }
+        const executeResponse = sentTxResponses.filter((successTxResponse) => successTxResponse.id === index)[0];
+        return executeResponse.result;
+      });
+      return res;
+    }
+    return executeResponses.map((txResponse) => ({
+      error: txResponse.error,
     }));
   }
 
@@ -95,7 +129,7 @@ export class Exchange {
     }
     const receipt = await publicClient.waitForTransactionReceipt({ hash: executeResponse.txHash as Hex });
     const blockTimestamp = (await publicClient.getBlock({ blockNumber: receipt.blockNumber })).timestamp;
-    const logIndex = executeResponse.index;
+    const logIndex = executeResponse.index!;
     const decodedEvents = receipt.logs.map((log) => decodeLog(log));
     const logGroups = [];
     let events = [];
@@ -158,6 +192,58 @@ export class Exchange {
       },
     };
     return results;
+  }
+
+  async bulkPlaceOrdersV2(request: BulkPlaceOrderParams) {
+    const { data: bulkPlaceOrderCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV2({
+        marketAcc: request.marketAcc,
+        marketId: request.marketId,
+        side: request.side,
+        sizes: request.sizes.map((size) => size.toString()),
+        limitTicks: request.limitTicks,
+        tif: request.tif,
+      });
+    const placeOrdersResponse = await this.bulkSignAndExecute(
+      bulkPlaceOrderCalldataResponse as unknown as BulkAgentExecuteParams
+    );
+    return placeOrdersResponse.map(orderResponse => {
+      if('error' in orderResponse) {
+        return {
+          error: orderResponse.error,
+        }
+      }
+      const limitOrderPlacedEvent = orderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
+      const swapEvent = orderResponse.events.find((event) => event?.eventName === 'Swap');
+      const otcSwapEvent = orderResponse.events.find((event) => event?.eventName === 'OtcSwap');
+      const limitOrderPartiallyFilledEvent = orderResponse.events.find(
+        (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+      );
+
+      const filledSize =
+        (swapEvent?.args.sizeOut ?? 0n) +
+        (otcSwapEvent?.args.trade ?? 0n) +
+        (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
+      const orderInfo = {
+        side: request.side,
+        placedSize: limitOrderPlacedEvent?.args.sizes[0],
+        filledSize,
+        orderId: limitOrderPlacedEvent?.args.orderIds[0],
+        root: this.root,
+        marketId: request.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+        blockTimestamp: orderResponse.blockTimestamp,
+        marketAcc: request.marketAcc,
+      };
+      return {
+        executeResponse: orderResponse.executeResponse,
+        result: {
+          order: orderInfo,
+          events: orderResponse.events,
+        },
+      }
+    });
   }
 
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
