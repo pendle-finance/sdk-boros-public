@@ -173,7 +173,7 @@ export function calSwapAMMFromToRate({
   return toRateSize - fromRateSize;
 }
 
-function calcSwapAMMToRate({
+export function calcSwapAMMToRate({
   rate,
   isPositiveAMM,
   state,
