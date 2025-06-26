@@ -241,14 +241,13 @@ export interface AMMStateResponse {
   cutOffTimestamp: string;
 }
 
-export interface GetAMMStateByMarketIdResponse {
-  ammState: AMMStateResponse;
-}
+export type Function = object;
 
 export interface GetAMMInfoByAmmIdResponse {
   state: AMMStateResponse;
   isPositive: boolean;
   feeRate: string;
+  impliedRate: Function;
 }
 
 export interface DepositStateResponse {
@@ -1296,7 +1295,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750905334
+         * @default 1750926081
          */
         endTimestamp?: number;
       },
@@ -1416,7 +1415,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750905334
+         * @default 1750926081
          */
         endTimestamp?: number;
       },
@@ -1434,24 +1433,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags AMM
-     * @name AmmControllerGetAmmStateByMarketId
-     * @summary Get amm amm state by market id
-     * @request GET:/v1/amm/{marketId}
-     */
-    ammControllerGetAmmStateByMarketId: (marketId: number, params: RequestParams = {}) =>
-      this.request<GetAMMStateByMarketIdResponse, any>({
-        path: `/v1/amm/${marketId}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags AMM
      * @name AmmControllerGetAmmInfoByAmmId
-     * @summary Get amm info by amm address
+     * @summary Get amm info by amm id
      * @request GET:/v2/amm/{ammId}
      */
     ammControllerGetAmmInfoByAmmId: (ammId: number, params: RequestParams = {}) =>
@@ -2351,7 +2334,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1750905334
+         * @default 1750926082
          */
         endTimestamp?: number;
       },
