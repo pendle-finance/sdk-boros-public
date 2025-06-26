@@ -4,6 +4,14 @@ import { NegativeAMMMath } from './NegativeAMMMath';
 import { AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
 import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
 
+export function calcAMMImpliedRate(ammStateResponse: AMMStateResponse, isPositiveAMM: boolean): number {
+  const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
+  const { normFixedAmount, totalFloatAmount } = ammState;
+  return isPositiveAMM
+    ? FixedX18.fromRawValue(PositiveAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber()
+    : FixedX18.fromRawValue(NegativeAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber();
+}
+
 export function combineMarketOrderBookAndAMM(
   tickSize: number,
   marketOrderBook: OrderBooksResponse,
@@ -13,10 +21,7 @@ export function combineMarketOrderBookAndAMM(
 ): OrderBooksResponse {
   const ammFeeRate = FixedX18.fromRawValue(BigInt(ammShiftedRate)).toNumber();
   const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
-  const { normFixedAmount, totalFloatAmount } = ammState;
-  const AMMImpliedRate = isPositiveAMM
-    ? FixedX18.fromRawValue(PositiveAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber()
-    : FixedX18.fromRawValue(NegativeAMMMath.calcImpliedRate(totalFloatAmount, normFixedAmount)).toNumber();
+  const AMMImpliedRate = calcAMMImpliedRate(ammStateResponse, isPositiveAMM);
 
   let longOrderBookIndex = 0,
     shortOrderBookIndex = 0;
