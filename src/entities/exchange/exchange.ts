@@ -7,6 +7,7 @@ import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
   BulkPlaceOrderParams,
+  BulkPlaceOrderV2Params,
   CancelOrdersParams,
   CashTransferParams,
   CloseActivePositionsParams,
@@ -194,20 +195,22 @@ export class Exchange {
     return results;
   }
 
-  async bulkPlaceOrdersV2(request: BulkPlaceOrderParams) {
+  async bulkPlaceOrdersV2(request: BulkPlaceOrderV2Params) {
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV2({
         marketAcc: request.marketAcc,
         marketId: request.marketId,
-        side: request.side,
+        sides: request.sides,
         sizes: request.sizes.map((size) => size.toString()),
         limitTicks: request.limitTicks,
         tif: request.tif,
+        ammId: request.ammId,
+        slippage: request.slippage,
       });
     const placeOrdersResponse = await this.bulkSignAndExecute(
       bulkPlaceOrderCalldataResponse as unknown as BulkAgentExecuteParams
     );
-    return placeOrdersResponse.map(orderResponse => {
+    return placeOrdersResponse.map((orderResponse, index) => {
       if('error' in orderResponse) {
         return {
           error: orderResponse.error,
@@ -225,7 +228,7 @@ export class Exchange {
         (otcSwapEvent?.args.trade ?? 0n) +
         (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
       const orderInfo = {
-        side: request.side,
+        side: request.sides[index],
         placedSize: limitOrderPlacedEvent?.args.sizes[0],
         filledSize,
         orderId: limitOrderPlacedEvent?.args.orderIds[0],

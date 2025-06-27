@@ -23,6 +23,17 @@ export type BulkPlaceOrderParams = {
   tif: TimeInForce;
 };
 
+export type BulkPlaceOrderV2Params = {
+  marketAcc: Hex;
+  marketId: number;
+  sides: Side[];
+  sizes: bigint[];
+  limitTicks: number[];
+  tif: TimeInForce;
+  ammId?: number;
+  slippage?: number;
+};
+
 export type ModifyOrderParams = {
   orderId: string;
   marketAcc: Hex;

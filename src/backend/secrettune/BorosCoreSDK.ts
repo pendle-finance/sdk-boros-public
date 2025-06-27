@@ -485,14 +485,18 @@ export interface BulkPlaceOrderQueryDto {
 export interface BulkPlaceOrderQueryDtoV2 {
   marketAcc: string;
   marketId: number;
-  /** Side { LONG : 0, SHORT : 1 } */
-  side: 0 | 1;
+  /** Side[] { LONG : 0, SHORT : 1 } */
+  sides: (0 | 1)[];
   /** sizes */
   sizes: string[];
   /** limit ticks */
   limitTicks: number[];
   /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
   tif: 0 | 1 | 2 | 3;
+  /** ammId */
+  ammId?: number;
+  /** slippage */
+  slippage?: number;
 }
 
 export interface BulkAgentExecuteParamsResponse {
@@ -664,6 +668,13 @@ export interface RiskAllMarketsStatusesResponse {
 export interface CalculateLNResponse {
   /** Total Open Interest as a string */
   totalOI: string;
+}
+
+export interface RiskGetAmmImpliedRateResponse {
+  /** The AMM address */
+  address: string;
+  /** The AMM implied rate */
+  impliedRate: number;
 }
 
 export interface SettlementResponse {
@@ -1045,6 +1056,7 @@ export interface LiquidityDashboardTierInfo {
 }
 
 export interface LiquidityDashboardPerMarketResponse {
+  marketId: number;
   totalOI: string;
   midApr: number;
   spread: number;
@@ -1295,7 +1307,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750926081
+         * @default 1751011783
          */
         endTimestamp?: number;
       },
@@ -1415,7 +1427,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1750926081
+         * @default 1751011783
          */
         endTimestamp?: number;
       },
@@ -2334,7 +2346,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1750926082
+         * @default 1751011783
          */
         endTimestamp?: number;
       },
@@ -2487,6 +2499,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @example ["0x1234...","0x5678..."]
          */
         userAddresses?: string[];
+        /** Side { LONG : 0, SHORT : 1 } */
+        side?: 0 | 1;
         accountId?: number;
       },
       params: RequestParams = {}
@@ -2522,6 +2536,29 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<CalculateLNResponse, any>({
         path: `/v1/risk/calculate-ln`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerGetAmmImpliedRate
+     * @summary Get AMM implied rate
+     * @request GET:/v1/risk/amm-implied-rate
+     */
+    riskControllerGetAmmImpliedRate: (
+      query: {
+        /** Market ID */
+        marketId: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<RiskGetAmmImpliedRateResponse, any>({
+        path: `/v1/risk/amm-implied-rate`,
         method: 'GET',
         query: query,
         format: 'json',
