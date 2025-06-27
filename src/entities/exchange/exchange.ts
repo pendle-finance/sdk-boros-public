@@ -469,4 +469,9 @@ export class Exchange {
     const { data: getAssetsCalldataResponse } = await this.borosCoreSdk.assets.assetsControllerGetAllAssets();
     return getAssetsCalldataResponse;
   }
+
+  async getAmmInfoByAmmId(ammId: number) {
+    const { data: getAmmInfoCalldataResponse } = await this.borosCoreSdk.amm.ammControllerGetAmmInfoByAmmId(ammId);
+    return getAmmInfoCalldataResponse;
+  }
 }
