@@ -1,12 +1,12 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
-import { Side } from '../../types';
+import { CROSS_MARKET_ID } from '../../constants';
 import { AgentExecuteParams, MarketAccLib, signWithAgent } from '../../utils';
+import { BulkAgentExecuteParams, bulkSignWithAgent } from '../../utils/signing/agent';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
-  BulkPlaceOrderParams,
   BulkPlaceOrderV2Params,
   CancelOrdersParams,
   CashTransferParams,
@@ -15,13 +15,12 @@ import {
   GetMarketsParams,
   GetOrderBookParams,
   GetPnlLimitOrdersParams,
-  ModifyOrderParams,
+  PayTreasuryParams,
   PlaceOrderParams,
   UpdateSettingsParams,
   WithdrawParams,
 } from './types';
-import { decodeLog, parseEvents } from './utils';
-import { BulkAgentExecuteParams, bulkSignWithAgent } from '../../utils/signing/agent';
+import { decodeLog } from './utils';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -51,7 +50,7 @@ export class Exchange {
         data,
       })),
     });
-    const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCall({
+    const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCallV2({
       datas: signs.map((sign) => ({
         ...sign,
         message: {
@@ -61,16 +60,18 @@ export class Exchange {
       })),
     });
 
-
     const txHash = executeResponses.find((txResponse) => !txResponse.error)?.txHash;
-    if(txHash) {
+    if (txHash) {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash as Hex });
       const blockTimestamp = receipt.blockNumber;
       const logGroups = [];
       let events = [];
       const decodedEvents = receipt.logs.map((log) => decodeLog(log));
       for (const event of decodedEvents) {
-        if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
+        if (
+          event &&
+          (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')
+        ) {
           events.push(event);
           logGroups.push([...events]);
           events = [];
@@ -79,27 +80,29 @@ export class Exchange {
         }
       }
 
-      const successExecuteResponses = executeResponses.map((txResponse, index) => ({
-        txResponse,
-        id: index,
-      })).filter((txResponse) => !txResponse.txResponse.error);
+      const successExecuteResponses = executeResponses
+        .map((txResponse, index) => ({
+          txResponse,
+          id: index,
+        }))
+        .filter((txResponse) => !txResponse.txResponse.error);
 
       const sentTxResponses = logGroups.map((events, index) => {
         return {
           result: {
-          executeResponse: successExecuteResponses[index].txResponse,
-          events,
-          blockTimestamp,
-        },
-        id: successExecuteResponses[index].id,
-      }
+            executeResponse: successExecuteResponses[index].txResponse,
+            events,
+            blockTimestamp,
+          },
+          id: successExecuteResponses[index].id,
+        };
       });
 
-      const res =  executeResponses.map((txResponse, index) => {
-        if(txResponse.error) {
+      const res = executeResponses.map((txResponse, index) => {
+        if (txResponse.error) {
           return {
             error: txResponse.error,
-          }
+          };
         }
         const executeResponse = sentTxResponses.filter((successTxResponse) => successTxResponse.id === index)[0];
         return executeResponse.result;
@@ -118,7 +121,7 @@ export class Exchange {
       call,
     });
 
-    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCall({
+    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
       ...sign,
       message: {
         ...sign.message,
@@ -151,7 +154,7 @@ export class Exchange {
   async placeOrder(params: PlaceOrderParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetPlaceOrderCalldataV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetPlaceOrderCalldataV3({
         marketAcc,
         marketId,
         side,
@@ -161,7 +164,16 @@ export class Exchange {
         slippage,
       });
 
-    const placeOrderResponse = await this.signAndExecute(placeOrderCalldataResponse as unknown as AgentExecuteParams);
+    const placeOrderResponses = await this.bulkSignAndExecute(
+      placeOrderCalldataResponse as unknown as BulkAgentExecuteParams
+    );
+
+    const placeOrderResponse = placeOrderResponses[placeOrderResponses.length - 1];
+
+    if ('error' in placeOrderResponse) {
+      throw new Error(placeOrderResponse.error);
+    }
+
     const limitOrderPlacedEvent = placeOrderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
     const swapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'Swap');
     const otcSwapEvent = placeOrderResponse.events.find((event) => event?.eventName === 'OtcSwap');
@@ -211,10 +223,10 @@ export class Exchange {
       bulkPlaceOrderCalldataResponse as unknown as BulkAgentExecuteParams
     );
     return placeOrdersResponse.map((orderResponse, index) => {
-      if('error' in orderResponse) {
+      if ('error' in orderResponse) {
         return {
           error: orderResponse.error,
-        }
+        };
       }
       const limitOrderPlacedEvent = orderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
       const swapEvent = orderResponse.events.find((event) => event?.eventName === 'Swap');
@@ -245,64 +257,30 @@ export class Exchange {
           order: orderInfo,
           events: orderResponse.events,
         },
-      }
+      };
     });
-  }
-
-  async bulkPlaceOrders(request: BulkPlaceOrderParams) {
-    const desiredMatchRate = request.side === Side.LONG ? MAX_DESIRED_MATCH_RATE : MIN_DESIRED_MATCH_RATE;
-    const { data: bulkPlaceOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldata({
-        marketAcc: request.marketAcc,
-        marketId: request.marketId,
-        side: request.side,
-        sizes: request.sizes.map((size) => size.toString()),
-        limitTicks: request.limitTicks,
-        tif: request.tif,
-        desiredMatchRate: desiredMatchRate.toNumber(),
-      });
-    const placeOrdersResponse = await this.signAndExecute(
-      bulkPlaceOrderCalldataResponse as unknown as AgentExecuteParams
-    );
-    // const results = placeOrdersResponse.map((response, index) => {
-    const event = placeOrdersResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced')[0];
-    let orderInfos;
-    if (event?.eventName === 'LimitOrderPlaced') {
-      orderInfos = event.args.orderIds.map((orderId, index) => ({
-        side: request.side,
-        placedSize: event.args.sizes[index],
-        orderId: orderId,
-        root: this.root,
-        marketId: request.marketId,
-        accountId: this.accountId,
-        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
-        blockTimestamp: placeOrdersResponse.blockTimestamp,
-        marketAcc: request.marketAcc,
-      }));
-    }
-
-    return {
-      executeResponse: placeOrdersResponse.executeResponse,
-      result: {
-        orders: orderInfos,
-        events: placeOrdersResponse.events,
-      },
-    };
   }
 
   async cancelOrders(params: CancelOrdersParams) {
     const { marketAcc, marketId, cancelAll, orderIds } = params;
     const orderIdsStr = orderIds.join(',');
     const { data: cancelOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetCancelOrderCalldata({
+      await this.borosCoreSdk.calldata.calldataControllerGetCancelOrderCalldataV2({
         marketAcc,
         marketId,
         cancelAll,
         orderIds: orderIdsStr,
       });
 
-    const cancelOrderResponse = await this.signAndExecute(cancelOrderCalldataResponse as unknown as AgentExecuteParams);
+    const cancelOrderResponses = await this.bulkSignAndExecute(
+      cancelOrderCalldataResponse as unknown as BulkAgentExecuteParams
+    );
 
+    const cancelOrderResponse = cancelOrderResponses[cancelOrderResponses.length - 1];
+
+    if ('error' in cancelOrderResponse) {
+      throw new Error(cancelOrderResponse.error);
+    }
     const event = cancelOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderCancelled')[0];
     let cancelledOrderInfo;
     if (event?.eventName === 'LimitOrderCancelled') {
@@ -326,6 +304,25 @@ export class Exchange {
     return cancelOrderCalldataResponse;
   }
 
+  async getGasBalance(): Promise<number> {
+    const { data: getGasBalanceCalldataResponse } =
+      await this.borosCoreSdk.accounts.accountsControllerGetAccountGasBalance({
+        userAddress: this.root,
+        accountId: this.accountId,
+      });
+    return getGasBalanceCalldataResponse.balanceInUSD;
+  }
+
+  async payTreasury(params: PayTreasuryParams) {
+    const { data: payTreasuryCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetPayTreasuryCalldata(params);
+
+    const payTreasuryResponse = await this.bulkSignAndExecute(
+      payTreasuryCalldataResponse as unknown as BulkAgentExecuteParams
+    );
+    return payTreasuryResponse;
+  }
+
   async scheduleCancel(time?: number) {
     throw new Error('Not implemented');
   }
@@ -346,11 +343,13 @@ export class Exchange {
   }
 
   async deposit(params: DepositParams) {
-    const { userAddress, tokenId, amount } = params;
-    const { data: depositCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetDepositCalldata({
+    const { userAddress, tokenId, amount, accountId, marketId } = params;
+    const { data: depositCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetDepositCalldataV2({
       userAddress,
       tokenId,
       amount: amount.toString(),
+      accountId: accountId ?? 0,
+      marketId: marketId ?? CROSS_MARKET_ID,
     });
     const hash = await this.walletClient.sendTransaction({
       to: depositCalldataResponse.to as Address,
@@ -366,11 +365,12 @@ export class Exchange {
 
   async withdraw(params: WithdrawParams) {
     const { userAddress, tokenId, amount } = params;
-    const { data: withdrawCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetWithdrawCalldata({
-      userAddress,
-      tokenId,
-      amount: amount.toString(),
-    });
+    const { data: withdrawCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetWithdrawRequestCalldata({
+        userAddress,
+        tokenId,
+        amount: amount.toString(),
+      });
 
     const hash = await this.walletClient.sendTransaction({
       to: withdrawCalldataResponse.to as Address,
@@ -387,19 +387,19 @@ export class Exchange {
   async cashTransfer(params: CashTransferParams) {
     const { marketId, isDeposit, amount } = params;
     const { data: cashTransferCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetPositionTransferCalldata({
+      await this.borosCoreSdk.calldata.calldataControllerGetPositionTransferCalldataV2({
         marketId,
         isDeposit,
         amount: amount.toString(),
       });
-    const response = await this.signAndExecute(cashTransferCalldataResponse as unknown as AgentExecuteParams);
+    const response = await this.bulkSignAndExecute(cashTransferCalldataResponse as unknown as BulkAgentExecuteParams);
     return response;
   }
 
   async closeActivePositions(params: CloseActivePositionsParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: closeActivePositionsCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetCloseActiveMarketPositionV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetCloseActiveMarketPositionV3({
         marketAcc,
         marketId,
         side,
@@ -408,7 +408,9 @@ export class Exchange {
         tif,
         slippage,
       });
-    const response = await this.signAndExecute(closeActivePositionsCalldataResponse as unknown as AgentExecuteParams);
+    const response = await this.bulkSignAndExecute(
+      closeActivePositionsCalldataResponse as unknown as BulkAgentExecuteParams
+    );
     return response;
   }
 

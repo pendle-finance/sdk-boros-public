@@ -14,15 +14,6 @@ export type PlaceOrderParams = {
   tif: TimeInForce;
 };
 
-export type BulkPlaceOrderParams = {
-  marketAcc: Hex;
-  marketId: number;
-  side: Side;
-  sizes: bigint[];
-  limitTicks: number[];
-  tif: TimeInForce;
-};
-
 export type BulkPlaceOrderV2Params = {
   marketAcc: Hex;
   marketId: number;
@@ -34,15 +25,6 @@ export type BulkPlaceOrderV2Params = {
   slippage?: number;
 };
 
-export type ModifyOrderParams = {
-  orderId: string;
-  marketAcc: Hex;
-  marketId: number;
-  size: bigint;
-  limitTick: number;
-  tif: TimeInForce;
-};
-
 export type CancelOrdersParams = {
   marketAcc: Hex;
   marketId: number;
@@ -50,10 +32,18 @@ export type CancelOrdersParams = {
   orderIds: string[];
 };
 
+export type PayTreasuryParams = {
+  isCross: boolean;
+  marketId: number;
+  usdAmount: number;
+};
+
 export type DepositParams = {
   userAddress: Address;
   tokenId: number;
   amount: bigint;
+  accountId?: number;
+  marketId?: number;
 };
 
 export type WithdrawParams = {

@@ -6,6 +6,7 @@ BOROS_SEND_TXS_BOT_URL=https://secrettune.io/send-txs-bot/docs-json
 OUTPUT_DIR="./src/backend/secrettune/"
 
 if [[ "FROM_LOCAL" -eq "1" ]]; then
+    echo "Generating BorosBackendSDK from local"
     BOROS_CORE_URL=http://localhost:8000/docs-json
     BOROS_SEND_TXS_BOT_URL=http://localhost:9006/docs-json
 fi

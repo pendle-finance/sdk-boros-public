@@ -96,7 +96,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://secrettune.io/send-txs-bot',
+      baseURL: axiosConfig.baseURL || 'http://localhost:9006',
     });
     this.secure = secure;
     this.format = format;
@@ -189,7 +189,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/send-txs-bot
+ * @baseUrl http://localhost:9006
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -203,6 +203,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name AgentControllerDirectCall
      * @summary Agent direct call
      * @request POST:/v1/agent/direct-call
+     * @deprecated
      */
     agentControllerDirectCall: (data: AgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse, any>({
@@ -218,13 +219,50 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Agent
+     * @name AgentControllerDirectCallV2
+     * @summary Agent direct call
+     * @request POST:/v2/agent/direct-call
+     */
+    agentControllerDirectCallV2: (data: AgentExecuteDto, params: RequestParams = {}) =>
+      this.request<TxResponse, any>({
+        path: `/v2/agent/direct-call`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
      * @name AgentControllerBulkAgentDirectCall
      * @summary Send multiple direct call to agent
      * @request POST:/v1/agent/bulk-direct-call
+     * @deprecated
      */
     agentControllerBulkAgentDirectCall: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse[], any>({
         path: `/v1/agent/bulk-direct-call`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
+     * @name AgentControllerBulkAgentDirectCallV2
+     * @summary Send multiple direct call to agent
+     * @request POST:/v2/agent/bulk-direct-call
+     */
+    agentControllerBulkAgentDirectCallV2: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
+      this.request<TxResponse[], any>({
+        path: `/v2/agent/bulk-direct-call`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

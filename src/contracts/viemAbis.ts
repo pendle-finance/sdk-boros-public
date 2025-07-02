@@ -2560,6 +2560,7 @@ export const iRouterAbi = [
         name: 'returnData',
         type: 'tuple[]',
       },
+      { internalType: 'uint256[]', name: 'gasUsed', type: 'uint256[]' },
     ],
     stateMutability: 'nonpayable',
     type: 'function',
