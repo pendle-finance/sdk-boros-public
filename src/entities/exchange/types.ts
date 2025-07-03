@@ -1,6 +1,7 @@
 import { Hex } from 'viem';
 import { Address } from 'viem';
-import { Side, TimeInForce } from '../../types/common';
+import { OrderId, Side, TimeInForce } from '../../types/common';
+import { CancelData, LongShort } from '../../types';
 
 export type OrderBy = 'timeClosed' | 'positionSize' | 'avgFixedApr' | 'avgUnderlyingApr' | 'pnl';
 
@@ -13,6 +14,15 @@ export type PlaceOrderParams = {
   slippage?: number;
   tif: TimeInForce;
 };
+
+
+export type BulkPlaceOrderParams = {
+  marketAcc: Hex;
+  marketId: number;
+  cancels: CancelData;
+  longOrders: Omit<LongShort, 'side'>;
+  shortOrders: Omit<LongShort, 'side'>;
+}
 
 export type BulkPlaceOrderV2Params = {
   marketAcc: Hex;

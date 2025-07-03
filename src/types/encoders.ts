@@ -39,15 +39,26 @@ export interface OrderReq {
   tick: number;
 }
 
+export interface CancelData {
+  ids: OrderId[];
+  isAll: boolean;
+  isStrict: boolean;
+}
+
+export interface LongShort {
+  tif: TimeInForce;
+  side: Side;
+  sizes: bigint[];
+  limitTicks: number[];
+}
 export interface BulkOrdersReq {
   cross: boolean;
   marketId: MarketId;
-  side: Side;
-  tif: TimeInForce;
-  sizes: bigint[];
-  limitTicks: number[];
-  idsToStrictCancel: OrderId[];
-  desiredMatchRate: bigint;
+  cancels: CancelData;
+  orders1: LongShort;
+  orders2: LongShort;
+  desiredMatchRate1: bigint;
+  desiredMatchRate2: bigint;
 }
 
 export interface BulkCancelsReq {

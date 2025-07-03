@@ -7,6 +7,7 @@ import { MarketAccLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
+  BulkPlaceOrderParams,
   BulkPlaceOrderV2Params,
   CancelOrdersParams,
   CashTransferParams,
@@ -21,6 +22,7 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog } from './utils';
+import { Side } from '../../types';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -202,6 +204,70 @@ export class Exchange {
       },
     };
     return results;
+  }
+
+  async bulkPlaceOrders(request: BulkPlaceOrderParams) {
+    const { data: bulkPlaceOrderCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV4({
+        marketAcc: request.marketAcc,
+        marketId: request.marketId,
+        cancels: {
+          ids: request.cancels.ids.map((id) => id.toString()),
+          isAll: request.cancels.isAll,
+          isStrict: request.cancels.isStrict,
+        },
+        longOrders: {
+          tif: request.longOrders.tif,
+          sizes: request.longOrders.sizes.map((size) => size.toString()),
+          limitTicks: request.longOrders.limitTicks,
+        },
+        shortOrders: {
+          tif: request.shortOrders.tif,
+          sizes: request.shortOrders.sizes.map((size) => size.toString()),
+          limitTicks: request.shortOrders.limitTicks,
+        },
+      });
+      const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as unknown as Hex);
+      const limitOrderPlacedEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+      const longLimitOrderPlacedEvent = limitOrderPlacedEvents[0];
+      const shortLimitOrderPlacedEvent = limitOrderPlacedEvents[1];
+      const limitOrderCancelledEvent = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled')[0];
+      // const swapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'Swap');
+      // const otcSwapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'OtcSwap');
+      // const limitOrderPartiallyFilledEvents = bulkOrderResponses.events.filter(
+      //   (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+      // );
+
+      const ordersInfo = {
+        sides: longLimitOrderPlacedEvent?.args?.orderIds.map((_) => Side.LONG)
+        .concat(shortLimitOrderPlacedEvent?.args?.orderIds.map((_) => Side.SHORT) ?? []),
+        placedSizes: longLimitOrderPlacedEvent?.args?.sizes.map(BigInt),
+        orderIds: longLimitOrderPlacedEvent?.args?.orderIds.map((orderId) => orderId.toString()),
+        root: this.root,
+        marketId: request.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+        blockTimestamp: bulkOrderResponses.blockTimestamp,
+        marketAcc: request.marketAcc,
+      }
+      
+      const cancelledOrderIds = limitOrderCancelledEvent?.args?.orderIds.map((orderId) => orderId.toString());
+
+      const cancelledOrdersInfo = cancelledOrderIds ? {
+        orderIds: cancelledOrderIds,
+        root: this.root,
+        marketId: request.marketId,
+        accountId: this.accountId,
+      } : undefined;
+
+      return {
+        executeResponse: bulkOrderResponses.executeResponse,
+        result: {
+          orders: ordersInfo,
+          cancelledOrders: cancelledOrdersInfo,
+          events: bulkOrderResponses.events,
+        },
+      };
   }
 
   async bulkPlaceOrdersV2(request: BulkPlaceOrderV2Params) {

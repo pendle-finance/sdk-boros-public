@@ -456,6 +456,32 @@ export interface BulkAgentExecuteParamsResponseV2 {
   calldatas: string[];
 }
 
+export interface CancelData {
+  /** ids to cancel */
+  ids: string[];
+  /** is all */
+  isAll: boolean;
+  /** is strict */
+  isStrict: boolean;
+}
+
+export interface LongShortData {
+  /** sizes */
+  sizes: string[];
+  /** limit ticks */
+  limitTicks: number[];
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+  tif: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface BulkPlaceOrderQueryDto {
+  marketAcc: string;
+  marketId: number;
+  cancels: CancelData;
+  longOrders: LongShortData;
+  shortOrders: LongShortData;
+}
+
 export interface BulkPlaceOrderQueryDtoV2 {
   /** bigint string of amount to pay treasury */
   payTreasuryAmount?: string;
@@ -994,7 +1020,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:8000',
+      baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2',
     });
     this.secure = secure;
     this.format = format;
@@ -1087,7 +1113,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl http://localhost:8000
+ * @baseUrl https://secrettune.io/core-v2
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1184,7 +1210,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751516736
+         * @default 1751522856
          */
         endTimestamp?: number;
       },
@@ -1304,7 +1330,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751516736
+         * @default 1751522856
          */
         endTimestamp?: number;
       },
@@ -1904,10 +1930,27 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV4
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v4/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV4: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v4/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetBulkPlaceOrderCalldataV2
      * @summary Get place multiple limit orders contract params
      * @request POST:/v2/calldata/place-orders
-     * @deprecated
      */
     calldataControllerGetBulkPlaceOrderCalldataV2: (data: BulkPlaceOrderQueryDtoV2, params: RequestParams = {}) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
@@ -2478,7 +2521,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1751516737
+         * @default 1751522856
          */
         endTimestamp?: number;
       },
