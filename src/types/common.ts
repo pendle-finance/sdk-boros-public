@@ -12,7 +12,8 @@ export enum TimeInForce {
   GOOD_TIL_CANCELLED = 0,
   IMMEDIATE_OR_CANCEL = 1,
   FILL_OR_KILL = 2,
-  POST_ONLY = 3,
+  ADD_LIQUIDITY_ONLY = 3,
+  SOFT_ADD_LIQUIDITY_ONLY = 4,
 }
 
 export enum Side {

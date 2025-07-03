@@ -467,8 +467,8 @@ export interface BulkPlaceOrderQueryDtoV2 {
   sizes: string[];
   /** limit ticks */
   limitTicks: number[];
-  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-  tif: 0 | 1 | 2 | 3;
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+  tif: 0 | 1 | 2 | 3 | 4;
   /** ammId */
   ammId?: number;
   /** slippage */
@@ -923,141 +923,6 @@ export interface BalanceChartAllTokensResponse {
   balanceCharts: BalanceChartResponse[];
 }
 
-export interface MarketOrderLog {
-  root: string;
-  isCross: boolean;
-  size: number;
-  rate: number;
-  fees: number;
-}
-
-export interface OtcSwapLog {
-  root: string;
-  isCross: boolean;
-  size: number;
-  rate: number;
-  fees: number;
-}
-
-export interface MarketOrderLogResponse {
-  marketOrderLog: MarketOrderLog[];
-  otcSwapLogs: OtcSwapLog[];
-}
-
-export interface GetUserReferralInfoResponse {
-  /** The referral code of the user */
-  code?: string;
-  /** The address of the user who referred the user */
-  referrer?: string;
-  /** The referral code of the user who referred the user */
-  referrerCode?: string;
-  /**
-   * The referral join date for user
-   * @format date-time
-   */
-  referralJoinDate?: string;
-  /** The total trade in USD for user */
-  totalTradeInUsd: number;
-}
-
-export interface CheckReferralExistBodyDto {
-  /** referral code to check existence */
-  code: string;
-}
-
-export interface CheckReferralExistResponse {
-  /** Indicate if the referral code exists */
-  exist: boolean;
-}
-
-export interface CreateReferralBodyDto {
-  /** EIP-712 signature */
-  signature: string;
-  /** Agent address */
-  agent: string;
-  /** Timestamp */
-  timestamp: number;
-  /** referral code by user address */
-  code: string;
-}
-
-export interface JoinReferralBodyDto {
-  /** EIP-712 signature */
-  signature: string;
-  /** Agent address */
-  agent: string;
-  /** Timestamp */
-  timestamp: number;
-  /** the address of the user who join by referral code */
-  referee: string;
-  /** the referral code */
-  code: string;
-}
-
-export interface JoinReferralResponse {
-  /** Indicate if the referral is successfully joined */
-  success: boolean;
-}
-
-export interface ReferralActivityResponse {
-  /** The address of the user */
-  user: string;
-  /**
-   * The date of the user join the referral
-   * @format date-time
-   */
-  referralJoinDate: string;
-  /**
-   * The asset pro symbols of the user
-   * @example ["ETH","USDC"]
-   */
-  assetProSymbols: string[];
-  /**
-   * The total trading volumes of the user
-   * @example [1000,2000]
-   */
-  totalTradingVolumes: number[];
-  /**
-   * The total settlement volumes of the user
-   * @example [800,1500]
-   */
-  totalSettledVolumes: number[];
-  /**
-   * The total paid fees of the user
-   * @example [5,10]
-   */
-  totalFeesPaids: number[];
-  /**
-   * The total share fee earnings of the user
-   * @example [10,20]
-   */
-  totalFeesEarneds: number[];
-}
-
-export interface ReferralActivitiesResponse {
-  /** The activity of all users used referral code */
-  referralActivities: ReferralActivityResponse[];
-}
-
-export interface Reward {
-  /**
-   * The asset symbol
-   * @example "ETH"
-   */
-  symbol: string;
-  /** The total referral rewards in asset */
-  amountInAsset: number;
-  /** The total referral rewards in usd */
-  amountInUsd: number;
-}
-
-export interface ReferralRewardResponse {
-  /** The referral rewards in assets (10% fee rebate if eligible + 20% fee from referees) */
-  totalReferralRewards: Reward[];
-  /** The unclaimed referral rewards in assets */
-  unclaimedReferralRewards: Reward[];
-}
-
 export interface UserMerkleResponse {
   /**
    * The array of token addresses that user is eligible for
@@ -1076,106 +941,9 @@ export interface UserMerkleResponse {
   proofs: string[][];
 }
 
-export interface FaucetDto {
-  /**
-   * The addresses to send the tokens to
-   * @example ["0x1234567890123456789012345678901234567890"]
-   */
-  addresses: string[];
-  /**
-   * The amount of ETH to send to each address
-   * @example 1
-   */
-  ethAmount: number;
-  /**
-   * The amount of BTC to send to each address
-   * @example 0.1
-   */
-  btcAmount: number;
-}
-
 export interface GlobalConfigsResponse {
   /** The global cool down in seconds */
   coolDown: number;
-}
-
-export interface MarketWeeklyIncentiveResponse {
-  /**
-   * market id
-   * @example 1
-   */
-  marketId: number;
-  /**
-   * total maker volume for market with id = marketId in the epoch
-   * @example 1
-   */
-  totalMakerVolume: number;
-  /**
-   * your maker volume for market with id = marketId in the epoch
-   * @example 0.01
-   */
-  makerVolume: number;
-  /**
-   * your reward amount in Pendle distribute by the market with id = marketId in the epoch
-   * @example 0.01
-   */
-  rewardAmount: number;
-}
-
-export interface WeeklyIncentiveResponse {
-  /**
-   * timestamp of the epoch. It should be a Thursday date
-   * @example "2025-11-20T00:00:00.000Z"
-   */
-  timestamp: string;
-  /** Weekly incentives for all markets within epoch start with timestamp */
-  marketWeeklyIncentives: MarketWeeklyIncentiveResponse[];
-}
-
-export interface MakerIncentiveActivitiesResponse {
-  /** Weekly incentives for all markets in all epoches */
-  weeklyIncentives: WeeklyIncentiveResponse[];
-  /**
-   * your Pendle reward token address
-   * @example "0x0000000000000000000000000000000000000000"
-   */
-  rewardTokenAddress: string;
-}
-
-export interface MakerIncentiveRewardsResponse {
-  /**
-   * your Pendle accrued reward amount
-   * @example 0.02
-   */
-  accruedAmount: number;
-  /**
-   * your Pendle unclaimed reward amount
-   * @example 0.01
-   */
-  unclaimedAmount: number;
-}
-
-export interface LiquidityDashboardTierInfo {
-  optimalValue: number;
-  value: number;
-  size: string;
-}
-
-export interface LiquidityDashboardPerMarketResponse {
-  marketId: number;
-  totalOI: string;
-  midApr: number;
-  spread: number;
-  longSize: string;
-  shortSize: string;
-  ammLiquidityWithinSpreadRange: string;
-  ammTvl: string;
-  skew: number;
-  tierInfos: LiquidityDashboardTierInfo[];
-}
-
-export interface LiquidityDashboardResponse {
-  liquidityMetrics: LiquidityDashboardPerMarketResponse[];
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -1416,7 +1184,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751511519
+         * @default 1751516736
          */
         endTimestamp?: number;
       },
@@ -1536,7 +1304,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751511519
+         * @default 1751516736
          */
         endTimestamp?: number;
       },
@@ -1663,8 +1431,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         /** if not provided, it will be simulated as anonymous order */
@@ -1726,8 +1494,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2037,8 +1805,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2076,8 +1844,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2114,8 +1882,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2276,8 +2044,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2315,8 +2083,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2353,8 +2121,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @max 32767
          */
         limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-        tif: 0 | 1 | 2 | 3;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+        tif: 0 | 1 | 2 | 3 | 4;
         /** @default 0.05 */
         slippage?: number;
         marketAcc: string;
@@ -2710,7 +2478,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1751511519
+         * @default 1751516737
          */
         endTimestamp?: number;
       },
@@ -3205,135 +2973,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  playground = {
-    /**
-     * No description
-     *
-     * @tags Playground
-     * @name PlaygroundControllerGetMarketOrderLogs
-     * @summary Get market order logs
-     * @request GET:/v1/playground/market-order-logs
-     */
-    playgroundControllerGetMarketOrderLogs: (
-      query: {
-        txHash: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<MarketOrderLogResponse, any>({
-        path: `/v1/playground/market-order-logs`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-  };
-  referral = {
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerGetUserReferralInfo
-     * @summary Get user referral details by user address
-     * @request GET:/v1/referrals/{userAddress}
-     */
-    referralControllerGetUserReferralInfo: (userAddress: string, params: RequestParams = {}) =>
-      this.request<GetUserReferralInfoResponse, any>({
-        path: `/v1/referrals/${userAddress}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerCreateReferralCode
-     * @summary create referral code for user address
-     * @request POST:/v1/referrals/{userAddress}
-     */
-    referralControllerCreateReferralCode: (
-      userAddress: string,
-      data: CreateReferralBodyDto,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/v1/referrals/${userAddress}`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerCheckReferralExist
-     * @summary check if referral code exists
-     * @request POST:/v1/referrals/check-exist
-     */
-    referralControllerCheckReferralExist: (data: CheckReferralExistBodyDto, params: RequestParams = {}) =>
-      this.request<CheckReferralExistResponse, any>({
-        path: `/v1/referrals/check-exist`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerJoinReferralCode
-     * @summary join by referral code
-     * @request POST:/v1/referrals/{userAddress}/join
-     */
-    referralControllerJoinReferralCode: (userAddress: string, data: JoinReferralBodyDto, params: RequestParams = {}) =>
-      this.request<JoinReferralResponse, any>({
-        path: `/v1/referrals/${userAddress}/join`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerGetReferralActivities
-     * @summary get all referree activities by user address
-     * @request GET:/v1/referrals/{userAddress}/referral-activities
-     */
-    referralControllerGetReferralActivities: (userAddress: string, params: RequestParams = {}) =>
-      this.request<ReferralActivitiesResponse, any>({
-        path: `/v1/referrals/${userAddress}/referral-activities`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
-     * @name ReferralControllerGetReferralRewards
-     * @summary get referral rewards by user address
-     * @request GET:/v1/referrals/{userAddress}/referral-rewards
-     */
-    referralControllerGetReferralRewards: (userAddress: string, params: RequestParams = {}) =>
-      this.request<ReferralRewardResponse, any>({
-        path: `/v1/referrals/${userAddress}/referral-rewards`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
   merkels = {
     /**
      * No description
@@ -3351,25 +2990,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  admin = {
-    /**
-     * No description
-     *
-     * @tags Admin
-     * @name AdminControllerTransferMockToken
-     * @request POST:/v1/admin/faucet
-     * @secure
-     */
-    adminControllerTransferMockToken: (data: FaucetDto, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/v1/admin/faucet`,
-        method: 'POST',
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
   configs = {
     /**
      * No description
@@ -3381,72 +3001,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     configsControllerGetGlobalConfigs: (params: RequestParams = {}) =>
       this.request<GlobalConfigsResponse, any>({
         path: `/v1/configs`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
-  incentives = {
-    /**
-     * @description Get maker incentives for a given maker
-     *
-     * @tags Incentives
-     * @name IncentivesControllerGetMakerIncentiveActivities
-     * @summary Get maker incentives activities
-     * @request GET:/v1/incentives/maker-incentives/{maker}/activities
-     */
-    incentivesControllerGetMakerIncentiveActivities: (maker: string, params: RequestParams = {}) =>
-      this.request<MakerIncentiveActivitiesResponse, any>({
-        path: `/v1/incentives/maker-incentives/${maker}/activities`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Get maker incentives rewards (accrued/unclaimed) amount for a given maker by marketId
-     *
-     * @tags Incentives
-     * @name IncentivesControllerGetMakerIncentiveRewards
-     * @summary Get maker incentives rewards
-     * @request GET:/v1/incentives/maker-incentives/{maker}/rewards
-     */
-    incentivesControllerGetMakerIncentiveRewards: (maker: string, params: RequestParams = {}) =>
-      this.request<MakerIncentiveRewardsResponse, any>({
-        path: `/v1/incentives/maker-incentives/${maker}/rewards`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
-  dashboard = {
-    /**
-     * No description
-     *
-     * @tags Dashboard
-     * @name DashboardControllerGetLiquidityMetrics
-     * @summary get liquidity metrics
-     * @request GET:/v1/dashboard/liquidity
-     */
-    dashboardControllerGetLiquidityMetrics: (params: RequestParams = {}) =>
-      this.request<LiquidityDashboardResponse, any>({
-        path: `/v1/dashboard/liquidity`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Dashboard
-     * @name DashboardControllerGetLiquidityMetricsPerMarket
-     * @summary get liquidity metrics per market
-     * @request GET:/v1/dashboard/liquidity/{marketId}
-     */
-    dashboardControllerGetLiquidityMetricsPerMarket: (marketId: number, params: RequestParams = {}) =>
-      this.request<LiquidityDashboardPerMarketResponse, any>({
-        path: `/v1/dashboard/liquidity/${marketId}`,
         method: 'GET',
         format: 'json',
         ...params,
