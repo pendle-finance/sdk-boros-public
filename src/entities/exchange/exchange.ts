@@ -1,9 +1,9 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
+import { BulkAgentExecuteParamsResponseV2 } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
-import { AgentExecuteParams, MarketAccLib, signWithAgent } from '../../utils';
-import { BulkAgentExecuteParams, bulkSignWithAgent } from '../../utils/signing/agent';
+import { MarketAccLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
@@ -41,14 +41,11 @@ export class Exchange {
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
   }
 
-  async bulkSignAndExecute(bulkAgentExecuteParams: BulkAgentExecuteParams) {
+  async bulkSignAndExecute(calldatas: Hex[]) {
     const signs = await bulkSignWithAgent({
       root: this.root,
       accountId: this.accountId,
-      calls: bulkAgentExecuteParams.datas.map((data) => ({
-        tag: bulkAgentExecuteParams.tag,
-        data,
-      })),
+      calldatas,
     });
     const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCallV2({
       datas: signs.map((sign) => ({
@@ -114,11 +111,11 @@ export class Exchange {
     }));
   }
 
-  async signAndExecute(call: AgentExecuteParams) {
+  async signAndExecute(calldata: Hex) {
     const sign = await signWithAgent({
       root: this.root,
       accountId: this.accountId,
-      call,
+      calldata,
     });
 
     const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
@@ -154,7 +151,7 @@ export class Exchange {
   async placeOrder(params: PlaceOrderParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetPlaceOrderCalldataV3({
+      await this.borosCoreSdk.calldata.calldataControllerGetPlaceOrderCalldataV4({
         marketAcc,
         marketId,
         side,
@@ -165,7 +162,7 @@ export class Exchange {
       });
 
     const placeOrderResponses = await this.bulkSignAndExecute(
-      placeOrderCalldataResponse as unknown as BulkAgentExecuteParams
+      (placeOrderCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
     );
 
     const placeOrderResponse = placeOrderResponses[placeOrderResponses.length - 1];
@@ -209,7 +206,7 @@ export class Exchange {
 
   async bulkPlaceOrdersV2(request: BulkPlaceOrderV2Params) {
     const { data: bulkPlaceOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV3({
         marketAcc: request.marketAcc,
         marketId: request.marketId,
         sides: request.sides,
@@ -220,7 +217,7 @@ export class Exchange {
         slippage: request.slippage,
       });
     const placeOrdersResponse = await this.bulkSignAndExecute(
-      bulkPlaceOrderCalldataResponse as unknown as BulkAgentExecuteParams
+      (bulkPlaceOrderCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
     );
     return placeOrdersResponse.map((orderResponse, index) => {
       if ('error' in orderResponse) {
@@ -265,7 +262,7 @@ export class Exchange {
     const { marketAcc, marketId, cancelAll, orderIds } = params;
     const orderIdsStr = orderIds.join(',');
     const { data: cancelOrderCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetCancelOrderCalldataV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetCancelOrderCalldataV3({
         marketAcc,
         marketId,
         cancelAll,
@@ -273,7 +270,7 @@ export class Exchange {
       });
 
     const cancelOrderResponses = await this.bulkSignAndExecute(
-      cancelOrderCalldataResponse as unknown as BulkAgentExecuteParams
+      (cancelOrderCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
     );
 
     const cancelOrderResponse = cancelOrderResponses[cancelOrderResponses.length - 1];
@@ -315,10 +312,10 @@ export class Exchange {
 
   async payTreasury(params: PayTreasuryParams) {
     const { data: payTreasuryCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetPayTreasuryCalldata(params);
+      await this.borosCoreSdk.calldata.calldataControllerGetPayTreasuryCalldataV2(params);
 
     const payTreasuryResponse = await this.bulkSignAndExecute(
-      payTreasuryCalldataResponse as unknown as BulkAgentExecuteParams
+      (payTreasuryCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
     );
     return payTreasuryResponse;
   }
@@ -387,19 +384,21 @@ export class Exchange {
   async cashTransfer(params: CashTransferParams) {
     const { marketId, isDeposit, amount } = params;
     const { data: cashTransferCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetPositionTransferCalldataV2({
+      await this.borosCoreSdk.calldata.calldataControllerGetPositionTransferCalldataV3({
         marketId,
         isDeposit,
         amount: amount.toString(),
       });
-    const response = await this.bulkSignAndExecute(cashTransferCalldataResponse as unknown as BulkAgentExecuteParams);
+    const response = await this.bulkSignAndExecute(
+      (cashTransferCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
+    );
     return response;
   }
 
   async closeActivePositions(params: CloseActivePositionsParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: closeActivePositionsCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetCloseActiveMarketPositionV3({
+      await this.borosCoreSdk.calldata.calldataControllerGetCloseActiveMarketPositionV4({
         marketAcc,
         marketId,
         side,
@@ -409,7 +408,7 @@ export class Exchange {
         slippage,
       });
     const response = await this.bulkSignAndExecute(
-      closeActivePositionsCalldataResponse as unknown as BulkAgentExecuteParams
+      (closeActivePositionsCalldataResponse as BulkAgentExecuteParamsResponseV2).calldatas as Hex[]
     );
     return response;
   }

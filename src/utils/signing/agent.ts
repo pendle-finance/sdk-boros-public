@@ -7,21 +7,6 @@ import { AGENT_MESSAGE_TYPES, EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, U
 
 export type AgentExecution = keyof typeof functionEncoder;
 
-// export type AgentExecuteParams<T extends AgentExecution> = {
-//   tag: T;
-//   data: Parameters<(typeof functionEncoder)[T]>[0];
-// };
-
-export type AgentExecuteParams = {
-  tag: string;
-  data: Hex;
-};
-
-export type BulkAgentExecuteParams = {
-  tag: string;
-  datas: Hex[];
-};
-
 export type SignedAgentExecution = {
   agent: Address;
   message: PendleSignTxStruct;
@@ -32,10 +17,9 @@ export type SignedAgentExecution = {
 export async function bulkSignWithAgent(params: {
   root: Address;
   accountId: number;
-  calls: AgentExecuteParams[];
+  calldatas: Hex[];
 }) {
-  const { root, accountId, calls } = params;
-  const calldatas = calls.map((call) => call.data);
+  const { root, accountId, calldatas } = params;
   const messages: PendleSignTxStruct[] = [];
   for (let i = 0; i < calldatas.length; i++) {
     const nonce = BigInt(Date.now());
@@ -85,16 +69,11 @@ export async function bulkSignWithAgent(params: {
 export async function signWithAgent(params: {
   root: Address;
   accountId: number;
-  call: AgentExecuteParams;
+  calldata: Hex;
   agent?: Agent;
 }): Promise<SignedAgentExecution> {
-  const {
-    root,
-    accountId,
-    call: { tag, data },
-  } = params;
+  const { root, accountId, calldata } = params;
 
-  const calldata = data;
   const message: PendleSignTxStruct = {
     account: AccountLib.pack(root, accountId),
     connectionId: keccak256(calldata),
@@ -123,7 +102,7 @@ export async function signWithAgent(params: {
     agent: await agent.getAddress(),
     message,
     signature,
-    calldata: data,
+    calldata,
   };
 }
 

@@ -294,17 +294,17 @@ export interface CashTransferPrePostSimulationResponse {
 
 export interface FeeBreakdownResponse {
   /** bigint string of market entrance fee */
-  marketEntranceFee: string;
+  marketEntranceFee?: string;
   /** bigint string of taker otc fee */
-  takerOtcFee: string;
+  takerOtcFee?: string;
   /** bigint string of ops fee */
-  opsFee: string;
+  opsFee?: string;
   /** market entrance fee in USD */
-  marketEntranceFeeInUSD: number;
+  marketEntranceFeeInUSD?: number;
   /** taker otc fee in USD */
-  takerOtcFeeInUSD: number;
+  takerOtcFeeInUSD?: number;
   /** ops fee in USD */
-  opsFeeInUSD: number;
+  opsFeeInUSD?: number;
 }
 
 export interface CashTransferSimulationResponse {
@@ -451,20 +451,9 @@ export interface BulkAgentExecuteParamsResponse {
   datas: string[];
 }
 
-export interface BulkPlaceOrderQueryDto {
-  marketAcc: string;
-  marketId: number;
-  /** Side { LONG : 0, SHORT : 1 } */
-  side: 0 | 1;
-  /** sizes */
-  sizes: string[];
-  /** limit ticks */
-  limitTicks: number[];
-  /** ids to strict cancel */
-  idsToStrictCancel?: string[];
-  desiredMatchRate: number;
-  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
-  tif: 0 | 1 | 2 | 3;
+export interface BulkAgentExecuteParamsResponseV2 {
+  /** calldatas */
+  calldatas: string[];
 }
 
 export interface BulkPlaceOrderQueryDtoV2 {
@@ -1427,7 +1416,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751424448
+         * @default 1751511519
          */
         endTimestamp?: number;
       },
@@ -1547,7 +1536,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751424448
+         * @default 1751511519
          */
         endTimestamp?: number;
       },
@@ -1828,6 +1817,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetDepositCalldata
      * @summary Get deposit from wallet to root margin account calldata
      * @request GET:/v1/calldata/deposit
+     * @deprecated
      */
     calldataControllerGetDepositCalldata: (
       query: {
@@ -1978,6 +1968,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetPositionTransferCalldataV2
      * @summary Get cash transfer contract params
      * @request GET:/v2/calldata/cash-transfer
+     * @deprecated
      */
     calldataControllerGetPositionTransferCalldataV2: (
       query: {
@@ -1990,8 +1981,35 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<AgentExecuteParamsResponse, any>({
+      this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v2/calldata/cash-transfer`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetPositionTransferCalldataV3
+     * @summary Get cash transfer contract params
+     * @request GET:/v3/calldata/cash-transfer
+     */
+    calldataControllerGetPositionTransferCalldataV3: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        marketId: number;
+        /** true if you want to transfer cash from cross to isolated account, false vice versa */
+        isDeposit: boolean;
+        amount: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v3/calldata/cash-transfer`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2044,6 +2062,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetPlaceOrderCalldataV3
      * @summary Get place limit order contract params
      * @request GET:/v3/calldata/place-order
+     * @deprecated
      */
     calldataControllerGetPlaceOrderCalldataV3: (
       query: {
@@ -2079,17 +2098,36 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetBulkPlaceOrderCalldata
-     * @summary Get place multiple limit orders contract params
-     * @request POST:/v1/calldata/place-orders
-     * @deprecated
+     * @name CalldataControllerGetPlaceOrderCalldataV4
+     * @summary Get place limit order contract params
+     * @request GET:/v4/calldata/place-order
      */
-    calldataControllerGetBulkPlaceOrderCalldata: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/place-orders`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
+    calldataControllerGetPlaceOrderCalldataV4: (
+      query: {
+        marketId: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+        /** bigint string of size */
+        size: string;
+        /**
+         * @min -32768
+         * @max 32767
+         */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+        tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+        marketAcc: string;
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v4/calldata/place-order`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -2101,10 +2139,29 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetBulkPlaceOrderCalldataV2
      * @summary Get place multiple limit orders contract params
      * @request POST:/v2/calldata/place-orders
+     * @deprecated
      */
     calldataControllerGetBulkPlaceOrderCalldataV2: (data: BulkPlaceOrderQueryDtoV2, params: RequestParams = {}) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v2/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV3
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v3/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV3: (data: BulkPlaceOrderQueryDtoV2, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v3/calldata/place-orders`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2148,6 +2205,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetCancelOrderCalldataV2
      * @summary Get cancel order contract params
      * @request GET:/v2/calldata/cancel-order
+     * @deprecated
      */
     calldataControllerGetCancelOrderCalldataV2: (
       query: {
@@ -2163,6 +2221,34 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v2/calldata/cancel-order`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetCancelOrderCalldataV3
+     * @summary Get cancel order contract params
+     * @request GET:/v3/calldata/cancel-order
+     */
+    calldataControllerGetCancelOrderCalldataV3: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        marketAcc: string;
+        marketId: number;
+        cancelAll: boolean;
+        /** comma separated orderIds */
+        orderIds?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v3/calldata/cancel-order`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2215,6 +2301,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetCloseActiveMarketPositionV3
      * @summary Get close active position contract params
      * @request GET:/v3/calldata/close-active-position
+     * @deprecated
      */
     calldataControllerGetCloseActiveMarketPositionV3: (
       query: {
@@ -2240,6 +2327,44 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v3/calldata/close-active-position`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetCloseActiveMarketPositionV4
+     * @summary Get close active position contract params
+     * @request GET:/v4/calldata/close-active-position
+     */
+    calldataControllerGetCloseActiveMarketPositionV4: (
+      query: {
+        marketId: number;
+        /** Side { LONG : 0, SHORT : 1 } */
+        side: 0 | 1;
+        /** bigint string of size */
+        size: string;
+        /**
+         * @min -32768
+         * @max 32767
+         */
+        limitTick?: number;
+        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, POST_ONLY : 3 } */
+        tif: 0 | 1 | 2 | 3;
+        /** @default 0.05 */
+        slippage?: number;
+        marketAcc: string;
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v4/calldata/close-active-position`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2282,6 +2407,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldataV2
      * @summary Get add liquidity single cash to amm contract params
      * @request GET:/v2/calldata/add-liquidity-single-cash-to-amm
+     * @deprecated
      */
     calldataControllerGetAddLiquiditySingleCashToAmmCalldataV2: (
       query: {
@@ -2297,6 +2423,34 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v2/calldata/add-liquidity-single-cash-to-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldataV3
+     * @summary Get add liquidity single cash to amm contract params
+     * @request GET:/v3/calldata/add-liquidity-single-cash-to-amm
+     */
+    calldataControllerGetAddLiquiditySingleCashToAmmCalldataV3: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        netCashIn: string;
+        minLpOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v3/calldata/add-liquidity-single-cash-to-amm`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2337,6 +2491,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV2
      * @summary Get remove liquidity single cash from amm contract params
      * @request GET:/v2/calldata/remove-liquidity-single-cash-from-amm
+     * @deprecated
      */
     calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV2: (
       query: {
@@ -2360,9 +2515,36 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV3
+     * @summary Get remove liquidity single cash from amm contract params
+     * @request GET:/v3/calldata/remove-liquidity-single-cash-from-amm
+     */
+    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV3: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        marketId: number;
+        lpToRemove: string;
+        minCashOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v3/calldata/remove-liquidity-single-cash-from-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetPayTreasuryCalldata
      * @summary Pay treasury
      * @request GET:/v1/calldata/pay-treasury
+     * @deprecated
      */
     calldataControllerGetPayTreasuryCalldata: (
       query: {
@@ -2374,6 +2556,30 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponse, any>({
         path: `/v1/calldata/pay-treasury`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetPayTreasuryCalldataV2
+     * @summary Pay treasury
+     * @request GET:/v2/calldata/pay-treasury
+     */
+    calldataControllerGetPayTreasuryCalldataV2: (
+      query: {
+        isCross: boolean;
+        marketId: number;
+        usdAmount: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v2/calldata/pay-treasury`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2504,7 +2710,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1751424448
+         * @default 1751511519
          */
         endTimestamp?: number;
       },
