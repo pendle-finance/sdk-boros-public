@@ -3,7 +3,7 @@ import { Address, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2 } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
-import { MarketAccLib, bulkSignWithAgent, signWithAgent } from '../../utils';
+import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
@@ -212,6 +212,7 @@ export class Exchange {
     const longLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.LONG);
     const shortSizes = orders.sizes.filter((_, index) => orders.sides[index] === Side.SHORT);
     const shortLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.SHORT);
+    const originalOrderIds = orders.limitTicks.map((tick, index) => `${tick}-${orders.sides[index]}-${orders.sizes[index]}`);
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV4({
         marketAcc: request.marketAcc,
@@ -242,19 +243,56 @@ export class Exchange {
       // const limitOrderPartiallyFilledEvents = bulkOrderResponses.events.filter(
       //   (event) => event?.eventName === 'LimitOrderPartiallyFilled'
       // );
+      const longOrdersPlaced = longLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => { 
+        const { side, tickIndex } = OrderIdLib.unpack(orderId);
+        const size = longLimitOrderPlacedEvent?.args?.sizes[index];
+        return {
+          originalOrderId: `${tickIndex}-${side}-${size}`,
+          orderId: orderId.toString(),
+          side,
+          size,
+          limitTick: tickIndex,
+        }
+      });
+      const shortOrdersPlaced = shortLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => { 
+        const { side, tickIndex } = OrderIdLib.unpack(orderId);
+        const size = shortLimitOrderPlacedEvent?.args?.sizes[index];
+        return {
+          originalOrderId: `${tickIndex}-${side}-${size}`,
+          orderId: orderId.toString(), 
+          side,
+          size,
+          limitTick: tickIndex,
+        }
+      });
 
-      const ordersInfo = {
-        sides: longLimitOrderPlacedEvent?.args?.orderIds.map((_) => Side.LONG)
-        .concat(shortLimitOrderPlacedEvent?.args?.orderIds.map((_) => Side.SHORT) ?? []),
-        placedSizes: longLimitOrderPlacedEvent?.args?.sizes.map(BigInt),
-        orderIds: longLimitOrderPlacedEvent?.args?.orderIds.map((orderId) => orderId.toString()),
-        root: this.root,
-        marketId: request.marketId,
-        accountId: this.accountId,
-        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
-        blockTimestamp: bulkOrderResponses.blockTimestamp,
-        marketAcc: request.marketAcc,
-      }
+      const orderPlacedMap = new Map<string, {
+        originalOrderId: string;
+        orderId: string;
+        side: Side;
+        size: bigint;
+        limitTick: number;
+      }>();
+
+      longOrdersPlaced.concat(shortOrdersPlaced).forEach((order) => {
+        orderPlacedMap.set(order.originalOrderId, order);
+      });
+
+      const orderResults= originalOrderIds.map((originalOrderId) => {
+        const order = orderPlacedMap.get(originalOrderId);
+        if(!order) {
+          return {
+            error: `Order ${originalOrderId} not found`,
+          }
+        }
+        return {
+          originalOrderId,
+          orderId: order?.orderId,
+          side: order?.side,
+          size: order?.size,
+          limitTick: order?.limitTick,
+        }
+      });
       
       const cancelledOrderIds = limitOrderCancelledEvent?.args?.orderIds.map((orderId) => orderId.toString());
 
@@ -268,9 +306,15 @@ export class Exchange {
       return {
         executeResponse: bulkOrderResponses.executeResponse,
         result: {
-          orders: ordersInfo,
+          orders: orderResults,
           cancelledOrders: cancelledOrdersInfo,
           events: bulkOrderResponses.events,
+          root: this.root,
+          marketId: request.marketId,
+          accountId: this.accountId,
+          isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+          blockTimestamp: bulkOrderResponses.blockTimestamp,
+          marketAcc: request.marketAcc,
         },
       };
   }
