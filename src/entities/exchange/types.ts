@@ -15,13 +15,18 @@ export type PlaceOrderParams = {
   tif: TimeInForce;
 };
 
+export type Orders = {
+  tif: TimeInForce;
+  sides: Side[];
+  sizes: bigint[];
+  limitTicks: number[];
+}
 
 export type BulkPlaceOrderParams = {
   marketAcc: Hex;
   marketId: number;
   cancels: CancelData;
-  longOrders: Omit<LongShort, 'side'>;
-  shortOrders: Omit<LongShort, 'side'>;
+  orders: Orders;
 }
 
 export type BulkPlaceOrderV2Params = {

@@ -207,6 +207,11 @@ export class Exchange {
   }
 
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
+    const { orders } = request;
+    const longSizes = orders.sizes.filter((_, index) => orders.sides[index] === Side.LONG);
+    const longLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.LONG);
+    const shortSizes = orders.sizes.filter((_, index) => orders.sides[index] === Side.SHORT);
+    const shortLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.SHORT);
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV4({
         marketAcc: request.marketAcc,
@@ -217,14 +222,14 @@ export class Exchange {
           isStrict: request.cancels.isStrict,
         },
         longOrders: {
-          tif: request.longOrders.tif,
-          sizes: request.longOrders.sizes.map((size) => size.toString()),
-          limitTicks: request.longOrders.limitTicks,
+          tif: orders.tif,
+          sizes: longSizes.map((size) => size.toString()),
+          limitTicks: longLimitTicks,
         },
         shortOrders: {
-          tif: request.shortOrders.tif,
-          sizes: request.shortOrders.sizes.map((size) => size.toString()),
-          limitTicks: request.shortOrders.limitTicks,
+          tif: orders.tif,
+          sizes: shortSizes.map((size) => size.toString()),
+          limitTicks: shortLimitTicks,
         },
       });
       const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as unknown as Hex);
