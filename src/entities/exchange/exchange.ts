@@ -253,7 +253,7 @@ export class Exchange {
           size,
           limitTick: tickIndex,
         }
-      });
+      }) ?? [];
       const shortOrdersPlaced = shortLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => { 
         const { side, tickIndex } = OrderIdLib.unpack(orderId);
         const size = shortLimitOrderPlacedEvent?.args?.sizes[index];
@@ -264,7 +264,7 @@ export class Exchange {
           size,
           limitTick: tickIndex,
         }
-      });
+      }) ?? [];
 
       const orderPlacedMap = new Map<string, {
         originalOrderId: string;
