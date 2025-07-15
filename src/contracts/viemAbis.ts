@@ -141,6 +141,54 @@ export const iMarketHubEntryOnlyAbi = [
   },
   {
     inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      {
+        components: [
+          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+          {
+            components: [
+              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
+              { internalType: 'enum Side', name: 'side', type: 'uint8' },
+              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
+              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
+            ],
+            internalType: 'struct LongShort',
+            name: 'orders',
+            type: 'tuple',
+          },
+          {
+            components: [
+              { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
+              { internalType: 'bool', name: 'isAll', type: 'bool' },
+              { internalType: 'bool', name: 'isStrict', type: 'bool' },
+            ],
+            internalType: 'struct CancelData',
+            name: 'cancelData',
+            type: 'tuple',
+          },
+        ],
+        internalType: 'struct BulkOrder[]',
+        name: 'bulks',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'bulkOrders',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Trade', name: 'matched', type: 'uint256' },
+          { internalType: 'uint256', name: 'takerFee', type: 'uint256' },
+        ],
+        internalType: 'struct BulkOrderResult[]',
+        name: 'results',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
       { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       {
@@ -249,6 +297,16 @@ export const iMarketHubEntryOnlyAbi = [
 export const iMarketHubRiskManagementAbi = [
   {
     inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      { internalType: 'int256', name: 'delta', type: 'int256' },
+    ],
+    name: 'adjustAccCash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
       { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       {
@@ -296,6 +354,19 @@ export const iMarketHubRiskManagementAbi = [
       { internalType: 'uint256', name: 'maxNTicksPurgeOneSide', type: 'uint256' },
     ],
     name: 'forcePurgeOobOrders',
+    outputs: [
+      { internalType: 'uint256', name: 'totalTicksPurgedLong', type: 'uint256' },
+      { internalType: 'uint256', name: 'totalTicksPurgedShort', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      { internalType: 'int256', name: 'desiredCash', type: 'int256' },
+    ],
+    name: 'setAccCash',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -511,6 +582,16 @@ export const iMarketHubAbi = [
   },
   {
     inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      { internalType: 'int256', name: 'delta', type: 'int256' },
+    ],
+    name: 'adjustAccCash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
       { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       {
@@ -552,6 +633,54 @@ export const iMarketHubAbi = [
       { internalType: 'Trade', name: 'matched2', type: 'uint256' },
       { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
       { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      {
+        components: [
+          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+          {
+            components: [
+              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
+              { internalType: 'enum Side', name: 'side', type: 'uint8' },
+              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
+              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
+            ],
+            internalType: 'struct LongShort',
+            name: 'orders',
+            type: 'tuple',
+          },
+          {
+            components: [
+              { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
+              { internalType: 'bool', name: 'isAll', type: 'bool' },
+              { internalType: 'bool', name: 'isStrict', type: 'bool' },
+            ],
+            internalType: 'struct CancelData',
+            name: 'cancelData',
+            type: 'tuple',
+          },
+        ],
+        internalType: 'struct BulkOrder[]',
+        name: 'bulks',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'bulkOrders',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Trade', name: 'matched', type: 'uint256' },
+          { internalType: 'uint256', name: 'takerFee', type: 'uint256' },
+        ],
+        internalType: 'struct BulkOrderResult[]',
+        name: 'results',
+        type: 'tuple[]',
+      },
     ],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -707,7 +836,10 @@ export const iMarketHubAbi = [
       { internalType: 'uint256', name: 'maxNTicksPurgeOneSide', type: 'uint256' },
     ],
     name: 'forcePurgeOobOrders',
-    outputs: [],
+    outputs: [
+      { internalType: 'uint256', name: 'totalTicksPurgedLong', type: 'uint256' },
+      { internalType: 'uint256', name: 'totalTicksPurgedShort', type: 'uint256' },
+    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -911,6 +1043,16 @@ export const iMarketHubAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      { internalType: 'int256', name: 'desiredCash', type: 'int256' },
+    ],
+    name: 'setAccCash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [{ internalType: 'int128', name: 'newCritHR', type: 'int128' }],
     name: 'setCritHR',
     outputs: [],
@@ -1017,6 +1159,17 @@ export const iMarketHubAbi = [
       { internalType: 'uint256', name: 'unscaledAmount', type: 'uint256' },
     ],
     name: 'vaultDeposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'root', type: 'address' },
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'unscaled', type: 'uint256' },
+    ],
+    name: 'vaultPayTreasury',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1133,6 +1286,17 @@ export const iMarginManagerOnlyAbi = [
       { internalType: 'uint256', name: 'unscaledAmount', type: 'uint256' },
     ],
     name: 'vaultDeposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'root', type: 'address' },
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'unscaled', type: 'uint256' },
+    ],
+    name: 'vaultPayTreasury',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2164,6 +2328,23 @@ export const iRouterAbi = [
       {
         components: [
           { internalType: 'Account', name: 'account', type: 'bytes21' },
+          { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        internalType: 'struct IMiscModule.ManipulateData[]',
+        name: 'calls',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'batchManipulate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'Account', name: 'account', type: 'bytes21' },
           { internalType: 'address', name: 'target', type: 'address' },
           { internalType: 'bytes', name: 'data', type: 'bytes' },
         ],
@@ -2269,6 +2450,62 @@ export const iRouterAbi = [
       { internalType: 'Trade', name: 'matched2', type: 'uint256' },
       { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
       { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'bool', name: 'cross', type: 'bool' },
+          {
+            components: [
+              { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+              {
+                components: [
+                  { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
+                  { internalType: 'enum Side', name: 'side', type: 'uint8' },
+                  { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
+                  { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
+                ],
+                internalType: 'struct LongShort',
+                name: 'orders',
+                type: 'tuple',
+              },
+              {
+                components: [
+                  { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
+                  { internalType: 'bool', name: 'isAll', type: 'bool' },
+                  { internalType: 'bool', name: 'isStrict', type: 'bool' },
+                ],
+                internalType: 'struct CancelData',
+                name: 'cancelData',
+                type: 'tuple',
+              },
+            ],
+            internalType: 'struct BulkOrder[]',
+            name: 'bulks',
+            type: 'tuple[]',
+          },
+          { internalType: 'int128[]', name: 'desiredMatchRates', type: 'int128[]' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.BulkOrdersReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'bulkOrders',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Trade', name: 'matched', type: 'uint256' },
+          { internalType: 'uint256', name: 'takerFee', type: 'uint256' },
+        ],
+        internalType: 'struct BulkOrderResult[]',
+        name: 'results',
+        type: 'tuple[]',
+      },
     ],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2587,13 +2824,6 @@ export const iRouterAbi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
-    name: 'settlePaymentAndOrders',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [{ internalType: 'address', name: 'signer', type: 'address' }],
     name: 'signerNonce',
     outputs: [{ internalType: 'uint64', name: '', type: 'uint64' }],
@@ -2719,6 +2949,36 @@ export const iRouterAbi = [
       { internalType: 'bytes', name: 'signature', type: 'bytes' },
     ],
     name: 'vaultDeposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+          { internalType: 'uint256', name: 'amount', type: 'uint256' },
+          { internalType: 'uint64', name: 'nonce', type: 'uint64' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.VaultPayTreasuryMessage',
+        name: 'message',
+        type: 'tuple',
+      },
+      { internalType: 'bytes', name: 'signature', type: 'bytes' },
+    ],
+    name: 'vaultPayTreasury',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'vaultPayTreasury',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -3505,6 +3765,13 @@ export const iMarketAbi = [
         type: 'tuple[]',
       },
     ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
+    name: 'resetDelevLiqNonce',
+    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -4387,6 +4654,13 @@ export const iMarketOffAbi = [
         type: 'tuple[]',
       },
     ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
+    name: 'resetDelevLiqNonce',
+    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -5946,6 +6220,13 @@ export const iMarketEntryAbi = [
     type: 'function',
   },
   {
+    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
+    name: 'resetDelevLiqNonce',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       { internalType: 'enum GetRequest', name: 'getType', type: 'uint8' },
@@ -7132,6 +7413,62 @@ export const iTradeModuleAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        components: [
+          { internalType: 'bool', name: 'cross', type: 'bool' },
+          {
+            components: [
+              { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+              {
+                components: [
+                  { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
+                  { internalType: 'enum Side', name: 'side', type: 'uint8' },
+                  { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
+                  { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
+                ],
+                internalType: 'struct LongShort',
+                name: 'orders',
+                type: 'tuple',
+              },
+              {
+                components: [
+                  { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
+                  { internalType: 'bool', name: 'isAll', type: 'bool' },
+                  { internalType: 'bool', name: 'isStrict', type: 'bool' },
+                ],
+                internalType: 'struct CancelData',
+                name: 'cancelData',
+                type: 'tuple',
+              },
+            ],
+            internalType: 'struct BulkOrder[]',
+            name: 'bulks',
+            type: 'tuple[]',
+          },
+          { internalType: 'int128[]', name: 'desiredMatchRates', type: 'int128[]' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.BulkOrdersReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'bulkOrders',
+    outputs: [
+      {
+        components: [
+          { internalType: 'Trade', name: 'matched', type: 'uint256' },
+          { internalType: 'uint256', name: 'takerFee', type: 'uint256' },
+        ],
+        internalType: 'struct BulkOrderResult[]',
+        name: 'results',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [{ internalType: 'TokenId', name: 'tokenId', type: 'uint16' }],
     name: 'cancelVaultWithdrawal',
     outputs: [],
@@ -7266,13 +7603,6 @@ export const iTradeModuleAbi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
-    name: 'settlePaymentAndOrders',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       { internalType: 'uint8', name: 'accountId', type: 'uint8' },
       { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
@@ -7293,6 +7623,16 @@ export const iTradeModuleAbi = [
       { internalType: 'uint256', name: 'amount', type: 'uint256' },
     ],
     name: 'vaultDeposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'vaultPayTreasury',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -7621,6 +7961,26 @@ export const iAuthModuleAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+          { internalType: 'uint256', name: 'amount', type: 'uint256' },
+          { internalType: 'uint64', name: 'nonce', type: 'uint64' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.VaultPayTreasuryMessage',
+        name: 'message',
+        type: 'tuple',
+      },
+      { internalType: 'bytes', name: 'signature', type: 'bytes' },
+    ],
+    name: 'vaultPayTreasury',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7634,7 +7994,7 @@ export const iFIndexOracleAbi = [
       { indexed: false, internalType: 'uint64', name: 'newSettleFeeRate', type: 'uint64' },
       { indexed: false, internalType: 'uint32', name: 'newUpdatePeriod', type: 'uint32' },
       { indexed: false, internalType: 'uint32', name: 'newMaxUpdateDelay', type: 'uint32' },
-      { indexed: false, internalType: 'uint128', name: 'newMaxFRateDeviation', type: 'uint128' },
+      { indexed: false, internalType: 'uint128', name: 'newMaxFRateDeviationFactor', type: 'uint128' },
     ],
     name: 'ConfigUpdated',
     type: 'event',
@@ -7652,7 +8012,7 @@ export const iFIndexOracleAbi = [
       { internalType: 'uint64', name: 'settleFeeRate', type: 'uint64' },
       { internalType: 'uint32', name: 'updatePeriod', type: 'uint32' },
       { internalType: 'uint32', name: 'maxUpdateDelay', type: 'uint32' },
-      { internalType: 'uint128', name: 'maxFRateDeviation', type: 'uint128' },
+      { internalType: 'uint128', name: 'maxFRateDeviationFactor', type: 'uint128' },
     ],
     stateMutability: 'view',
     type: 'function',
@@ -7704,7 +8064,7 @@ export const iFIndexOracleAbi = [
       { internalType: 'uint64', name: 'settleFeeRate', type: 'uint64' },
       { internalType: 'uint32', name: 'updatePeriod', type: 'uint32' },
       { internalType: 'uint32', name: 'maxFUpdateDelay', type: 'uint32' },
-      { internalType: 'uint128', name: 'maxFRateDeviation', type: 'uint128' },
+      { internalType: 'uint128', name: 'maxFRateDeviationFactor', type: 'uint128' },
     ],
     name: 'setConfig',
     outputs: [],
@@ -7720,10 +8080,10 @@ export const iFIndexOracleAbi = [
   },
   {
     inputs: [
-      { internalType: 'int112', name: 'floatingRate', type: 'int112' },
+      { internalType: 'int112', name: 'floatingIndexDelta', type: 'int112' },
       { internalType: 'uint32', name: 'desiredTimestamp', type: 'uint32' },
     ],
-    name: 'updateFloatingRate',
+    name: 'updateFloatingIndex',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -7813,6 +8173,13 @@ export const iAMMAbi = [
     inputs: [{ indexed: false, internalType: 'uint256', name: 'newTotalSupplyCap', type: 'uint256' }],
     name: 'TotalSupplyCapUpdated',
     type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'ACCOUNT_ONE',
+    outputs: [{ internalType: 'MarketAcc', name: '', type: 'bytes26' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
@@ -8210,169 +8577,6 @@ export const iMultiTokenMerkleDistributorAbi = [
     ],
     name: 'verify',
     outputs: [{ internalType: 'uint256[]', name: 'amountClaimable', type: 'uint256[]' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ArbitrageExecutor
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const arbitrageExecutorAbi = [
-  {
-    inputs: [
-      { internalType: 'address', name: 'permissionController_', type: 'address' },
-      { internalType: 'address', name: 'router_', type: 'address' },
-      { internalType: 'address', name: 'marketHub_', type: 'address' },
-      { internalType: 'uint16', name: 'nTicksToTryAtOnce_', type: 'uint16' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
-  { inputs: [{ internalType: 'address', name: 'target', type: 'address' }], name: 'AddressEmptyCode', type: 'error' },
-  {
-    inputs: [{ internalType: 'address', name: 'implementation', type: 'address' }],
-    name: 'ERC1967InvalidImplementation',
-    type: 'error',
-  },
-  { inputs: [], name: 'ERC1967NonPayable', type: 'error' },
-  { inputs: [], name: 'FailedCall', type: 'error' },
-  { inputs: [], name: 'InsufficientProfit', type: 'error' },
-  { inputs: [], name: 'InvalidInitialization', type: 'error' },
-  { inputs: [], name: 'MarketMatured', type: 'error' },
-  { inputs: [], name: 'NotInitializing', type: 'error' },
-  { inputs: [], name: 'ProfitMismatch', type: 'error' },
-  {
-    inputs: [{ internalType: 'address', name: 'token', type: 'address' }],
-    name: 'SafeERC20FailedOperation',
-    type: 'error',
-  },
-  { inputs: [], name: 'UUPSUnauthorizedCallContext', type: 'error' },
-  {
-    inputs: [{ internalType: 'bytes32', name: 'slot', type: 'bytes32' }],
-    name: 'UUPSUnsupportedProxiableUUID',
-    type: 'error',
-  },
-  { inputs: [], name: 'Unauthorized', type: 'error' },
-  {
-    anonymous: false,
-    inputs: [{ indexed: false, internalType: 'uint64', name: 'version', type: 'uint64' }],
-    name: 'Initialized',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [{ indexed: true, internalType: 'address', name: 'implementation', type: 'address' }],
-    name: 'Upgraded',
-    type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'UPGRADE_INTERFACE_VERSION',
-    outputs: [{ internalType: 'string', name: '', type: 'string' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'deposit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'enum Side', name: 'bookSide', type: 'uint8' },
-          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
-          { internalType: 'int256', name: 'minProfit', type: 'int256' },
-          { internalType: 'bool', name: 'maximizeProfit', type: 'bool' },
-        ],
-        internalType: 'struct ArbitrageExecutor.ArbitrageParams',
-        name: 'params',
-        type: 'tuple',
-      },
-    ],
-    name: 'executeArbitrage',
-    outputs: [
-      { internalType: 'uint256', name: 'arbSize', type: 'uint256' },
-      { internalType: 'int256', name: 'profit', type: 'int256' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  { inputs: [], name: 'initialize', outputs: [], stateMutability: 'nonpayable', type: 'function' },
-  {
-    inputs: [],
-    name: 'marketHub',
-    outputs: [{ internalType: 'contract IMarketHub', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'nTicksToTryAtOnce',
-    outputs: [{ internalType: 'uint16', name: '', type: 'uint16' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'bool', name: 'cross', type: 'bool' },
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-    ],
-    name: 'payMarketEntranceFee',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'proxiableUUID',
-    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'requestWithdrawal',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'router',
-    outputs: [{ internalType: 'contract IRouter', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'address', name: 'newImplementation', type: 'address' },
-      { internalType: 'bytes', name: 'data', type: 'bytes' },
-    ],
-    name: 'upgradeToAndCall',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { internalType: 'address', name: 'receiver', type: 'address' },
-    ],
-    name: 'withdraw',
-    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },

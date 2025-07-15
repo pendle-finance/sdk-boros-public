@@ -61,6 +61,17 @@ export interface BulkOrdersReq {
   desiredMatchRate2: bigint;
 }
 
+export interface BulkOrder {
+  marketId: MarketId,
+  orders: LongShort,
+  cancelData: CancelData,
+}
+export interface BulkOrdersReqV2 {
+  cross: boolean;
+  bulks: BulkOrder[];
+  desiredMatchRates: bigint[];
+}
+
 export interface BulkCancelsReq {
   cross: boolean;
   marketId: MarketId;
@@ -226,6 +237,14 @@ export const functionEncoder = {
     });
   },
 
+  bulkOrdersV2(req: BulkOrdersReqV2) {
+    return encodeFunctionData({
+      abi: iRouterAbi,
+      functionName: 'bulkOrders',
+      args: [req],
+    });
+  },
+
   bulkOrders(req: BulkOrdersReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
@@ -255,14 +274,6 @@ export const functionEncoder = {
       abi: iRouterAbi,
       functionName: 'liquidate',
       args: [params.cross, params.marketId, params.violator, params.sizeToLiquidator],
-    });
-  },
-
-  settlePaymentAndOrders(params: SettlePaymentAndOrdersReq) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'settlePaymentAndOrders',
-      args: [params.user],
     });
   },
 
