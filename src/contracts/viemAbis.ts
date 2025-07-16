@@ -1,4 +1,104 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IArbitrageExecutor
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iArbitrageExecutorAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+      { indexed: false, internalType: 'int256', name: 'profit', type: 'int256' },
+    ],
+    name: 'ArbitrageExecuted',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'MARKET_HUB',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ROUTER',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'deposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'enum Side', name: 'bookSide', type: 'uint8' },
+          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+          { internalType: 'int256', name: 'minProfit', type: 'int256' },
+          { internalType: 'bool', name: 'maximizeProfit', type: 'bool' },
+        ],
+        internalType: 'struct IArbitrageExecutor.ArbitrageParams',
+        name: 'params',
+        type: 'tuple',
+      },
+    ],
+    name: 'executeArbitrage',
+    outputs: [
+      { internalType: 'uint256', name: 'arbSize', type: 'uint256' },
+      { internalType: 'int256', name: 'profit', type: 'int256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'nTicksToTryAtOnce',
+    outputs: [{ internalType: 'uint16', name: '', type: 'uint16' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'bool', name: 'cross', type: 'bool' },
+      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+    ],
+    name: 'payMarketEntranceFee',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'requestWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { internalType: 'address', name: 'receiver', type: 'address' },
+    ],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IAMMFactory
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,53 +192,6 @@ export const iAMMFactoryAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const iMarketHubEntryOnlyAbi = [
-  {
-    inputs: [
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      {
-        components: [
-          { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
-          { internalType: 'bool', name: 'isAll', type: 'bool' },
-          { internalType: 'bool', name: 'isStrict', type: 'bool' },
-        ],
-        internalType: 'struct CancelData',
-        name: 'cancelData',
-        type: 'tuple',
-      },
-      {
-        components: [
-          { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-          { internalType: 'enum Side', name: 'side', type: 'uint8' },
-          { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-          { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-        ],
-        internalType: 'struct LongShort',
-        name: 'orders1',
-        type: 'tuple',
-      },
-      {
-        components: [
-          { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-          { internalType: 'enum Side', name: 'side', type: 'uint8' },
-          { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-          { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-        ],
-        internalType: 'struct LongShort',
-        name: 'orders2',
-        type: 'tuple',
-      },
-    ],
-    name: 'bulkOrders',
-    outputs: [
-      { internalType: 'Trade', name: 'matched1', type: 'uint256' },
-      { internalType: 'Trade', name: 'matched2', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
   {
     inputs: [
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
@@ -520,6 +573,7 @@ export const iMarketHubAbi = [
     inputs: [
       { indexed: false, internalType: 'address', name: 'root', type: 'address' },
       { indexed: false, internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { indexed: false, internalType: 'uint256', name: 'totalUnscaledAmount', type: 'uint256' },
     ],
     name: 'VaultWithdrawalCanceled',
     type: 'event',
@@ -587,53 +641,6 @@ export const iMarketHubAbi = [
     ],
     name: 'adjustAccCash',
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      {
-        components: [
-          { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
-          { internalType: 'bool', name: 'isAll', type: 'bool' },
-          { internalType: 'bool', name: 'isStrict', type: 'bool' },
-        ],
-        internalType: 'struct CancelData',
-        name: 'cancelData',
-        type: 'tuple',
-      },
-      {
-        components: [
-          { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-          { internalType: 'enum Side', name: 'side', type: 'uint8' },
-          { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-          { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-        ],
-        internalType: 'struct LongShort',
-        name: 'orders1',
-        type: 'tuple',
-      },
-      {
-        components: [
-          { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-          { internalType: 'enum Side', name: 'side', type: 'uint8' },
-          { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-          { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-        ],
-        internalType: 'struct LongShort',
-        name: 'orders2',
-        type: 'tuple',
-      },
-    ],
-    name: 'bulkOrders',
-    outputs: [
-      { internalType: 'Trade', name: 'matched1', type: 'uint256' },
-      { internalType: 'Trade', name: 'matched2', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
-    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -1450,6 +1457,7 @@ export const iMarketHubAllEventsAndTypesAbi = [
     inputs: [
       { indexed: false, internalType: 'address', name: 'root', type: 'address' },
       { indexed: false, internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { indexed: false, internalType: 'uint256', name: 'totalUnscaledAmount', type: 'uint256' },
     ],
     name: 'VaultWithdrawalCanceled',
     type: 'event',
@@ -1624,6 +1632,7 @@ export const iMarketHubStorageOnlyAbi = [
     inputs: [
       { indexed: false, internalType: 'address', name: 'root', type: 'address' },
       { indexed: false, internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { indexed: false, internalType: 'uint256', name: 'totalUnscaledAmount', type: 'uint256' },
     ],
     name: 'VaultWithdrawalCanceled',
     type: 'event',
@@ -2403,62 +2412,6 @@ export const iRouterAbi = [
       {
         components: [
           { internalType: 'bool', name: 'cross', type: 'bool' },
-          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-          {
-            components: [
-              { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
-              { internalType: 'bool', name: 'isAll', type: 'bool' },
-              { internalType: 'bool', name: 'isStrict', type: 'bool' },
-            ],
-            internalType: 'struct CancelData',
-            name: 'cancels',
-            type: 'tuple',
-          },
-          {
-            components: [
-              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-              { internalType: 'enum Side', name: 'side', type: 'uint8' },
-              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-            ],
-            internalType: 'struct LongShort',
-            name: 'orders1',
-            type: 'tuple',
-          },
-          {
-            components: [
-              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-              { internalType: 'enum Side', name: 'side', type: 'uint8' },
-              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-            ],
-            internalType: 'struct LongShort',
-            name: 'orders2',
-            type: 'tuple',
-          },
-          { internalType: 'int128', name: 'desiredMatchRate1', type: 'int128' },
-          { internalType: 'int128', name: 'desiredMatchRate2', type: 'int128' },
-        ],
-        internalType: 'struct IRouterEventsAndTypes.BulkOrders',
-        name: 'req',
-        type: 'tuple',
-      },
-    ],
-    name: 'bulkOrders',
-    outputs: [
-      { internalType: 'Trade', name: 'matched1', type: 'uint256' },
-      { internalType: 'Trade', name: 'matched2', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'bool', name: 'cross', type: 'bool' },
           {
             components: [
               { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
@@ -2589,21 +2542,6 @@ export const iRouterAbi = [
     ],
     name: 'initialize',
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'bool', name: 'cross', type: 'bool' },
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'MarketAcc', name: 'violator', type: 'bytes26' },
-      { internalType: 'int256', name: 'sizeToLiquidator', type: 'int256' },
-    ],
-    name: 'liquidate',
-    outputs: [
-      { internalType: 'Trade', name: 'liqTrade', type: 'uint256' },
-      { internalType: 'uint256', name: 'liqFee', type: 'uint256' },
-    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -7361,62 +7299,6 @@ export const iTradeModuleAbi = [
       {
         components: [
           { internalType: 'bool', name: 'cross', type: 'bool' },
-          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-          {
-            components: [
-              { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
-              { internalType: 'bool', name: 'isAll', type: 'bool' },
-              { internalType: 'bool', name: 'isStrict', type: 'bool' },
-            ],
-            internalType: 'struct CancelData',
-            name: 'cancels',
-            type: 'tuple',
-          },
-          {
-            components: [
-              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-              { internalType: 'enum Side', name: 'side', type: 'uint8' },
-              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-            ],
-            internalType: 'struct LongShort',
-            name: 'orders1',
-            type: 'tuple',
-          },
-          {
-            components: [
-              { internalType: 'enum TimeInForce', name: 'tif', type: 'uint8' },
-              { internalType: 'enum Side', name: 'side', type: 'uint8' },
-              { internalType: 'uint256[]', name: 'sizes', type: 'uint256[]' },
-              { internalType: 'int16[]', name: 'limitTicks', type: 'int16[]' },
-            ],
-            internalType: 'struct LongShort',
-            name: 'orders2',
-            type: 'tuple',
-          },
-          { internalType: 'int128', name: 'desiredMatchRate1', type: 'int128' },
-          { internalType: 'int128', name: 'desiredMatchRate2', type: 'int128' },
-        ],
-        internalType: 'struct IRouterEventsAndTypes.BulkOrders',
-        name: 'req',
-        type: 'tuple',
-      },
-    ],
-    name: 'bulkOrders',
-    outputs: [
-      { internalType: 'Trade', name: 'matched1', type: 'uint256' },
-      { internalType: 'Trade', name: 'matched2', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee1', type: 'uint256' },
-      { internalType: 'uint256', name: 'takerFee2', type: 'uint256' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'bool', name: 'cross', type: 'bool' },
           {
             components: [
               { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
@@ -7517,21 +7399,6 @@ export const iTradeModuleAbi = [
     ],
     name: 'finalizeVaultWithdrawal',
     outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'bool', name: 'cross', type: 'bool' },
-      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-      { internalType: 'MarketAcc', name: 'violator', type: 'bytes26' },
-      { internalType: 'int256', name: 'sizeToLiquidator', type: 'int256' },
-    ],
-    name: 'liquidate',
-    outputs: [
-      { internalType: 'Trade', name: 'liqTrade', type: 'uint256' },
-      { internalType: 'uint256', name: 'liqFee', type: 'uint256' },
-    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -7994,7 +7861,6 @@ export const iFIndexOracleAbi = [
       { indexed: false, internalType: 'uint64', name: 'newSettleFeeRate', type: 'uint64' },
       { indexed: false, internalType: 'uint32', name: 'newUpdatePeriod', type: 'uint32' },
       { indexed: false, internalType: 'uint32', name: 'newMaxUpdateDelay', type: 'uint32' },
-      { indexed: false, internalType: 'uint128', name: 'newMaxFRateDeviationFactor', type: 'uint128' },
     ],
     name: 'ConfigUpdated',
     type: 'event',
@@ -8012,7 +7878,6 @@ export const iFIndexOracleAbi = [
       { internalType: 'uint64', name: 'settleFeeRate', type: 'uint64' },
       { internalType: 'uint32', name: 'updatePeriod', type: 'uint32' },
       { internalType: 'uint32', name: 'maxUpdateDelay', type: 'uint32' },
-      { internalType: 'uint128', name: 'maxFRateDeviationFactor', type: 'uint128' },
     ],
     stateMutability: 'view',
     type: 'function',
@@ -8064,7 +7929,6 @@ export const iFIndexOracleAbi = [
       { internalType: 'uint64', name: 'settleFeeRate', type: 'uint64' },
       { internalType: 'uint32', name: 'updatePeriod', type: 'uint32' },
       { internalType: 'uint32', name: 'maxFUpdateDelay', type: 'uint32' },
-      { internalType: 'uint128', name: 'maxFRateDeviationFactor', type: 'uint128' },
     ],
     name: 'setConfig',
     outputs: [],
@@ -8083,7 +7947,7 @@ export const iFIndexOracleAbi = [
       { internalType: 'int112', name: 'floatingIndexDelta', type: 'int112' },
       { internalType: 'uint32', name: 'desiredTimestamp', type: 'uint32' },
     ],
-    name: 'updateFloatingIndex',
+    name: 'updateFloatingRate',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
