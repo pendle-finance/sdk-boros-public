@@ -67,8 +67,8 @@ export type DepositParams = {
   userAddress: Address;
   tokenId: number;
   amount: bigint;
-  accountId?: number;
-  marketId?: number;
+  accountId: number;
+  marketId: number;
 };
 
 export type WithdrawParams = {

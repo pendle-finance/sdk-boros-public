@@ -581,15 +581,16 @@ export class Exchange {
       userAddress,
       tokenId,
       amount: amount.toString(),
-      accountId: accountId ?? 0,
-      marketId: marketId ?? CROSS_MARKET_ID,
+      accountId,
+      marketId,
     });
     const hash = await this.walletClient.sendTransaction({
       to: depositCalldataResponse.to as Address,
       data: depositCalldataResponse.data as Hex,
-      account: this.root,
+      account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
+      type: 'eip1559'
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
@@ -608,9 +609,10 @@ export class Exchange {
     const hash = await this.walletClient.sendTransaction({
       to: withdrawCalldataResponse.to as Address,
       data: withdrawCalldataResponse.data as Hex,
-      account: this.root,
+      account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
+      type: 'eip1559'
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
