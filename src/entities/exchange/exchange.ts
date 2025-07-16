@@ -1,5 +1,5 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
-import { Address, Hex, WalletClient } from 'viem';
+import { Address, erc20Abi, getContract, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2 } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
@@ -577,16 +577,33 @@ export class Exchange {
 
   async deposit(params: DepositParams) {
     const { userAddress, tokenId, amount, accountId, marketId } = params;
-    const { data: depositCalldataResponse } = await this.borosCoreSdk.calldata.calldataControllerGetDepositCalldataV2({
+    const [depositCalldataResponse, allAssetsResponse] = await Promise.all([
+      this.borosCoreSdk.calldata.calldataControllerGetDepositCalldataV2({
       userAddress,
       tokenId,
       amount: amount.toString(),
       accountId,
       marketId,
+      }),
+       this.borosCoreSdk.assets.assetsControllerGetAllAssets()
+    ]);
+    const tokenAddress = allAssetsResponse.data.assets.find((asset) => asset.tokenId === tokenId)?.address!;
+    const tokenContract = getContract({
+      abi: erc20Abi,
+      address: tokenAddress as Address,
+      client: this.walletClient,
+    })
+
+    const approvalhash = await tokenContract.write.approve([depositCalldataResponse.data.to as Address, amount], {
+      account: this.walletClient.account!,
+      chain: this.walletClient.chain,
+      gas: 1_000_000n,
+      type: 'eip1559'
     });
+    await publicClient.waitForTransactionReceipt({ hash: approvalhash, confirmations: 1 });
     const hash = await this.walletClient.sendTransaction({
-      to: depositCalldataResponse.to as Address,
-      data: depositCalldataResponse.data as Hex,
+      to: depositCalldataResponse.data.to as Address,
+      data: depositCalldataResponse.data.data as Hex,
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
