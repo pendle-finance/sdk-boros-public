@@ -577,7 +577,7 @@ export class Exchange {
 
   async deposit(params: DepositParams) {
     const { userAddress, tokenId, amount, accountId, marketId } = params;
-    const [depositCalldataResponse, allAssetsResponse] = await Promise.all([
+    const [depositCalldataResponse, tokenAddress] = await Promise.all([
       this.borosCoreSdk.calldata.calldataControllerGetDepositCalldataV2({
       userAddress,
       tokenId,
@@ -585,9 +585,11 @@ export class Exchange {
       accountId,
       marketId,
       }),
-       this.borosCoreSdk.assets.assetsControllerGetAllAssets()
+      params.tokenAddress ? params.tokenAddress : this.borosCoreSdk.assets.assetsControllerGetAllAssets().then(res => {
+        const tokenAddress = res.data.assets.find((asset) => asset.tokenId === tokenId)?.address!;
+        return tokenAddress;
+       })
     ]);
-    const tokenAddress = allAssetsResponse.data.assets.find((asset) => asset.tokenId === tokenId)?.address!;
     const tokenContract = getContract({
       abi: erc20Abi,
       address: tokenAddress as Address,
@@ -702,10 +704,10 @@ export class Exchange {
   }
 
   async getPnlLimitOrders(params?: GetPnlLimitOrdersParams) {
-    const { skip, limit, isActive, marketId, orderBy } = params ?? {};
+    const { skip, limit, isActive, marketId, orderBy, userAddress, accountId } = params ?? {};
     const { data: getPnlLimitOrdersCalldataResponse } = await this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
-      userAddress: this.root,
-      accountId: this.accountId,
+      userAddress: userAddress ?? this.root,
+      accountId: accountId ?? this.accountId,
       marketId,
       skip,
       limit,
@@ -715,11 +717,17 @@ export class Exchange {
     return getPnlLimitOrdersCalldataResponse;
   }
 
-  async getCollaterals() {
+  async getCollaterals({
+    userAddress,  
+    accountId,
+  }: {
+    userAddress?: Address;
+    accountId?: number;
+  }) {
     const { data: getCollateralsCalldataResponse } =
       await this.borosCoreSdk.collaterals.collateralControllerGetAllCollateralSummary({
-        userAddress: this.root,
-        accountId: this.accountId,
+        userAddress: userAddress ?? this.root,
+        accountId: accountId ?? this.accountId,
       });
     return getCollateralsCalldataResponse;
   }

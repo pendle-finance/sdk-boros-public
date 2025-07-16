@@ -66,6 +66,7 @@ export type PayTreasuryParams = {
 export type DepositParams = {
   userAddress: Address;
   tokenId: number;
+  tokenAddress?: Address;
   amount: bigint;
   accountId: number;
   marketId: number;
@@ -114,6 +115,8 @@ export type GetOrderBookParams = {
 };
 
 export type GetPnlLimitOrdersParams = {
+  userAddress?: Address;
+  accountId?: number;
   skip?: number;
   limit?: number;
   isActive?: boolean;
