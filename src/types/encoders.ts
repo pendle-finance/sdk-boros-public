@@ -51,22 +51,13 @@ export interface LongShort {
   sizes: bigint[];
   limitTicks: number[];
 }
-export interface BulkOrdersReq {
-  cross: boolean;
-  marketId: MarketId;
-  cancels: CancelData;
-  orders1: LongShort;
-  orders2: LongShort;
-  desiredMatchRate1: bigint;
-  desiredMatchRate2: bigint;
-}
 
 export interface BulkOrder {
   marketId: MarketId,
   orders: LongShort,
   cancelData: CancelData,
 }
-export interface BulkOrdersReqV2 {
+export interface BulkOrdersReq{
   cross: boolean;
   bulks: BulkOrder[];
   desiredMatchRates: bigint[];
@@ -237,14 +228,6 @@ export const functionEncoder = {
     });
   },
 
-  bulkOrdersV2(req: BulkOrdersReqV2) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'bulkOrders',
-      args: [req],
-    });
-  },
-
   bulkOrders(req: BulkOrdersReq) {
     return encodeFunctionData({
       abi: iRouterAbi,
@@ -266,14 +249,6 @@ export const functionEncoder = {
       abi: iRouterAbi,
       functionName: 'enterExitMarkets',
       args: [req],
-    });
-  },
-
-  liquidate(params: LiquidateReq) {
-    return encodeFunctionData({
-      abi: iRouterAbi,
-      functionName: 'liquidate',
-      args: [params.cross, params.marketId, params.violator, params.sizeToLiquidator],
     });
   },
 
