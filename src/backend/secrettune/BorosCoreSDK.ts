@@ -50,14 +50,25 @@ export interface MarketConfigResponse {
   loLowerSlopeBase1e4: number;
   status: number;
   useImpliedAsMarkRate: boolean;
+  /** Soft OI cap of the market */
+  softOICap?: number;
 }
 
 export interface MarketExtendedConfigResponse {
-  /** Amm address */
+  /**
+   * Amm address
+   * @deprecated
+   */
   ammAddress?: string;
-  /** Amm id */
+  /**
+   * Amm id
+   * @deprecated
+   */
   ammId?: number;
-  /** Is positive amm */
+  /**
+   * Is positive amm
+   * @deprecated
+   */
   isPositiveAMM?: boolean;
   /** Settle fee rate */
   settleFeeRate: string;
@@ -85,6 +96,14 @@ export interface MarketMetadataResponse {
   fundingRateSymbol: string;
   /** Link to realtime funding rate */
   realtimeFundingRateLink: string;
+  /** Is dev test */
+  isDevTest: boolean;
+  /** Amm address */
+  ammAddress?: string;
+  /** Amm id */
+  ammId?: number;
+  /** Is positive amm */
+  isPositiveAMM?: boolean;
 }
 
 export interface MarketDataResponse {
@@ -114,6 +133,8 @@ export interface MarketResponse {
   extConfig: MarketExtendedConfigResponse;
   metadata?: MarketMetadataResponse;
   data?: MarketDataResponse;
+  /** State of the market */
+  state: 'Paused' | 'Capped' | 'Normal' | 'Halted';
 }
 
 export interface MarketsResponse {
@@ -154,6 +175,8 @@ export interface CandleResponse {
   v: number;
   /** Underlying APR */
   u: number;
+  /** Mark Rate */
+  mr: number;
   /** Is Oracle Funding Rate */
   iofr: boolean;
 }
@@ -179,6 +202,8 @@ export interface UserVaultInfo {
   depositValue: string;
   /** user unclaimed rewards */
   unclaimedRewards: string;
+  /** user all time rewards */
+  allTimeRewards: number;
   /** bigint string of total lp */
   totalLp: string;
 }
@@ -250,6 +275,24 @@ export interface GetAMMInfoByAmmIdResponse {
   impliedRate: Function;
 }
 
+export interface UserMerkleResponse {
+  /**
+   * The array of token addresses that user is eligible for
+   * @example ["0x1234567890123456789012345678901234567890","0x1234567890123456789012345678901234567891"]
+   */
+  tokens: string[];
+  /**
+   * The amount of tokens that user is eligible for
+   * @example 100
+   */
+  accruedAmounts: string[];
+  /**
+   * The proof of the user's eligibility
+   * @example [["0x1234567890123456789012345678901234567890"],["0x1234567890123456789012345678901234567891"]]
+   */
+  proofs: string[][];
+}
+
 export interface DepositStateResponse {
   /** bigint string of collateral balance */
   collateralBalance: string;
@@ -297,12 +340,20 @@ export interface FeeBreakdownResponse {
   marketEntranceFee?: string;
   /** bigint string of taker otc fee */
   takerOtcFee?: string;
+  /** bigint string of vault deposit fee */
+  vaultDepositFee?: string;
+  /** bigint string of vault withdrawal fee */
+  vaultWithdrawalFee?: string;
   /** bigint string of ops fee */
   opsFee?: string;
   /** market entrance fee in USD */
   marketEntranceFeeInUSD?: number;
   /** taker otc fee in USD */
   takerOtcFeeInUSD?: number;
+  /** vault deposit fee in USD */
+  vaultDepositFeeInUSD?: number;
+  /** vault withdrawal fee in USD */
+  vaultWithdrawalFeeInUSD?: number;
   /** ops fee in USD */
   opsFeeInUSD?: number;
 }
@@ -472,6 +523,21 @@ export interface LongShortData {
   limitTicks: number[];
   /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
   tif: 0 | 1 | 2 | 3 | 4;
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
+}
+
+export interface BulkOrder {
+  marketId: number;
+  cancelData: CancelData;
+  orders: LongShortData;
+}
+
+export interface BulkPlaceOrderQueryDtoV3 {
+  cross: boolean;
+  bulks: BulkOrder[];
+  /** slippage */
+  slippage?: number;
 }
 
 export interface BulkPlaceOrderQueryDto {
@@ -530,6 +596,24 @@ export interface UpdateAccountSettingBodyDto {
 export interface AccountGasBalanceResponse {
   /** Account gas balance in USD */
   balanceInUSD: number;
+}
+
+export interface GasConsumptionResponse {
+  /** Action type */
+  actionType: string;
+  /** Account */
+  account: string;
+  /** Gas fee */
+  gasFee: number;
+  /** Transaction hash */
+  txHash: string;
+  /** The block timestamp of the gas consumption, in seconds */
+  blockTimestamp: number;
+}
+
+export interface AccountGasConsumptionHistoryResponse {
+  results: GasConsumptionResponse[];
+  total: number;
 }
 
 export interface PnlTransactionResponse {
@@ -809,6 +893,68 @@ export interface LiquidityDepthResponse {
   data: LiquidityDepthItem[];
 }
 
+export interface LongShortLiquidityDepthItem {
+  /** Long liquidity depth value */
+  long: number;
+  /** Short liquidity depth value */
+  short: number;
+}
+
+export interface LiquidityDepthItemV2 {
+  /**
+   * Timestamp of the liquidity depth
+   * @format date-time
+   */
+  time: string;
+  /** Liquidity depth value */
+  value: LongShortLiquidityDepthItem;
+}
+
+export interface LiquidityDepthResponseV2 {
+  /**
+   * Start time
+   * @format date-time
+   */
+  startTime: string;
+  /**
+   * End time
+   * @format date-time
+   */
+  endTime: string;
+  /** Liquidity depth */
+  data: LiquidityDepthItemV2[];
+}
+
+export interface MarketSnapshotItem {
+  /**
+   * Timestamp of the market snapshot
+   * @format date-time
+   */
+  time: string;
+  /** Mark rate */
+  markApr: number;
+}
+
+export interface MarketSnapshotResponse {
+  /**
+   * Start time
+   * @format date-time
+   */
+  startTime: string;
+  /**
+   * End time
+   * @format date-time
+   */
+  endTime: string;
+  /** Market snapshots */
+  data: MarketSnapshotItem[];
+}
+
+export interface GetAllMarketAccsResponse {
+  /** List of all market accounts */
+  allMarketAccs: string[];
+}
+
 export interface SettlementResponse {
   /** The id of the settlement */
   id: string;
@@ -949,27 +1095,72 @@ export interface BalanceChartAllTokensResponse {
   balanceCharts: BalanceChartResponse[];
 }
 
-export interface UserMerkleResponse {
-  /**
-   * The array of token addresses that user is eligible for
-   * @example ["0x1234567890123456789012345678901234567890","0x1234567890123456789012345678901234567891"]
-   */
-  tokens: string[];
-  /**
-   * The amount of tokens that user is eligible for
-   * @example 100
-   */
-  accruedAmounts: string[];
-  /**
-   * The proof of the user's eligibility
-   * @example [["0x1234567890123456789012345678901234567890"],["0x1234567890123456789012345678901234567891"]]
-   */
-  proofs: string[][];
+export interface PersonalConfigResponse {
+  /** The personal cool down in seconds */
+  coolDown: number;
 }
 
 export interface GlobalConfigsResponse {
   /** The global cool down in seconds */
   coolDown: number;
+  /** The personal cool down in seconds */
+  personalCoolDown?: PersonalConfigResponse;
+}
+
+export interface MarketWeeklyIncentiveResponse {
+  /**
+   * market id
+   * @example 1
+   */
+  marketId: number;
+  /**
+   * total maker volume for market with id = marketId in the epoch
+   * @example 1
+   */
+  totalMakerVolume: number;
+  /**
+   * your maker volume for market with id = marketId in the epoch
+   * @example 0.01
+   */
+  makerVolume: number;
+  /**
+   * your reward amount in Pendle distribute by the market with id = marketId in the epoch
+   * @example 0.01
+   */
+  rewardAmount: number;
+}
+
+export interface WeeklyIncentiveResponse {
+  /**
+   * timestamp of the epoch. It should be a Thursday date
+   * @example "2025-11-20T00:00:00.000Z"
+   */
+  timestamp: string;
+  /** Weekly incentives for all markets within epoch start with timestamp */
+  marketWeeklyIncentives: MarketWeeklyIncentiveResponse[];
+}
+
+export interface MakerIncentiveActivitiesResponse {
+  /** Weekly incentives for all markets in all epoches */
+  weeklyIncentives: WeeklyIncentiveResponse[];
+  /**
+   * your Pendle reward token address
+   * @example "0x0000000000000000000000000000000000000000"
+   */
+  rewardTokenAddress: string;
+}
+
+export interface MakerIncentiveRewardsResponse {
+  /**
+   * your Pendle accrued reward amount
+   * @example 0.02
+   */
+  accruedAmount: number;
+  /**
+   * your Pendle unclaimed reward amount
+   * @example 0.01
+   */
+  unclaimedAmount: number;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -1201,8 +1392,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         /** Market id */
         marketId: number;
-        /** ClosePositionType { ONE_MINUTE : 1m, FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
-        timeFrame: '1m' | '5m' | '1h' | '1d' | '1w';
+        /** ClosePositionType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
         /**
          * Start timestamp
          * @default 0
@@ -1210,7 +1401,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751522856
+         * @default 1752644080
          */
         endTimestamp?: number;
       },
@@ -1330,7 +1521,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1751522856
+         * @default 1752644080
          */
         endTimestamp?: number;
       },
@@ -1355,6 +1546,23 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ammControllerGetAmmInfoByAmmId: (ammId: number, params: RequestParams = {}) =>
       this.request<GetAMMInfoByAmmIdResponse, any>({
         path: `/v2/amm/${ammId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
+  merkels = {
+    /**
+     * No description
+     *
+     * @tags Merkels
+     * @name MerklesControllerGetMerkleByUserAndCampaign
+     * @summary Get merkle by user and campaign
+     * @request GET:/v1/merkels/{campaignId}/user/{user}
+     */
+    merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
+      this.request<UserMerkleResponse, any>({
+        path: `/v1/merkels/${campaignId}/user/${user}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -1930,6 +2138,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV5
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v5/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV5: (data: BulkPlaceOrderQueryDtoV3, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v5/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetBulkPlaceOrderCalldataV4
      * @summary Get place multiple limit orders contract params
      * @request POST:/v4/calldata/place-orders
@@ -2460,6 +2686,30 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Accounts
+     * @name AccountsControllerGetGasConsumptionHistory
+     * @summary Get gas consumption history
+     * @request GET:/v1/accounts/gas-consumption-history
+     */
+    accountsControllerGetGasConsumptionHistory: (
+      query: {
+        account: string;
+        limit: number;
+        skip: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<AccountGasConsumptionHistoryResponse, any>({
+        path: `/v1/accounts/gas-consumption-history`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
   };
   pnL = {
     /**
@@ -2521,7 +2771,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1751522856
+         * @default 1752644080
          */
         endTimestamp?: number;
       },
@@ -2859,6 +3109,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name RiskControllerGetLiquidityDepth
      * @summary Get liquidity depth
      * @request GET:/v1/risk/liquidity-depth
+     * @deprecated
      */
     riskControllerGetLiquidityDepth: (
       query: {
@@ -2876,6 +3127,76 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1/risk/liquidity-depth`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerGetLiquidityDepthV2
+     * @summary Get liquidity depth
+     * @request GET:/v2/risk/liquidity-depth
+     */
+    riskControllerGetLiquidityDepthV2: (
+      query: {
+        /** Time series frequency in minutes */
+        frequency: number;
+        marketId: number;
+        /** Maximum number of data points to return, default is 10 */
+        limit?: number;
+        /** the price deviation to observe */
+        deltaRate: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LiquidityDepthResponseV2, any>({
+        path: `/v2/risk/liquidity-depth`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerGetMarketSnapshots
+     * @summary Get market snapshots
+     * @request GET:/v1/risk/market-snapshots
+     */
+    riskControllerGetMarketSnapshots: (
+      query: {
+        /** Time series frequency in minutes */
+        frequency: number;
+        marketId: number;
+        /** Maximum number of data points to return, default is 10 */
+        limit?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MarketSnapshotResponse, any>({
+        path: `/v1/risk/market-snapshots`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerGetAllMarketAccs
+     * @summary Get all market accounts
+     * @request GET:/v1/risk/all-market-accs
+     */
+    riskControllerGetAllMarketAccs: (params: RequestParams = {}) =>
+      this.request<GetAllMarketAccsResponse, any>({
+        path: `/v1/risk/all-market-accs`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),
@@ -3016,23 +3337,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
-  merkels = {
-    /**
-     * No description
-     *
-     * @tags Merkels
-     * @name MerklesControllerGetMerkleByUserAndCampaign
-     * @summary Get merkle by user and campaign
-     * @request GET:/v1/merkels/{campaignId}/user/{user}
-     */
-    merklesControllerGetMerkleByUserAndCampaign: (campaignId: string, user: string, params: RequestParams = {}) =>
-      this.request<UserMerkleResponse, any>({
-        path: `/v1/merkels/${campaignId}/user/${user}`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-  };
   configs = {
     /**
      * No description
@@ -3041,9 +3345,49 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name ConfigsControllerGetGlobalConfigs
      * @request GET:/v1/configs
      */
-    configsControllerGetGlobalConfigs: (params: RequestParams = {}) =>
+    configsControllerGetGlobalConfigs: (
+      query?: {
+        /** The address of the user */
+        root?: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<GlobalConfigsResponse, any>({
         path: `/v1/configs`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  incentives = {
+    /**
+     * @description Get maker incentives for a given maker
+     *
+     * @tags Incentives
+     * @name IncentivesControllerGetMakerIncentiveActivities
+     * @summary Get maker incentives activities
+     * @request GET:/v1/incentives/maker-incentives/{maker}/activities
+     */
+    incentivesControllerGetMakerIncentiveActivities: (maker: string, params: RequestParams = {}) =>
+      this.request<MakerIncentiveActivitiesResponse, any>({
+        path: `/v1/incentives/maker-incentives/${maker}/activities`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get maker incentives rewards (accrued/unclaimed) amount for a given maker by marketId
+     *
+     * @tags Incentives
+     * @name IncentivesControllerGetMakerIncentiveRewards
+     * @summary Get maker incentives rewards
+     * @request GET:/v1/incentives/maker-incentives/{maker}/rewards
+     */
+    incentivesControllerGetMakerIncentiveRewards: (maker: string, params: RequestParams = {}) =>
+      this.request<MakerIncentiveRewardsResponse, any>({
+        path: `/v1/incentives/maker-incentives/${maker}/rewards`,
         method: 'GET',
         format: 'json',
         ...params,

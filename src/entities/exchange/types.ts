@@ -22,6 +22,16 @@ export type Orders = {
   limitTicks: number[];
 }
 
+export type BulkPlaceOrderV3Params = {
+  cross: boolean;
+  bulks: {
+    marketId: number;
+    orders: Orders;
+    cancelData: CancelData;
+  }[];
+  slippage?: number;
+}
+
 export type BulkPlaceOrderParams = {
   marketAcc: Hex;
   marketId: number;

@@ -9,6 +9,7 @@ import { publicClient } from './../publicClient';
 import {
   BulkPlaceOrderParams,
   BulkPlaceOrderV2Params,
+  BulkPlaceOrderV3Params,
   CancelOrdersParams,
   CashTransferParams,
   CloseActivePositionsParams,
@@ -206,6 +207,124 @@ export class Exchange {
     return results;
   }
 
+  async bulkPlaceOrdersV3(request: BulkPlaceOrderV3Params) {
+    const { cross, bulks, slippage } = request;
+    const originalOrderIds: string[] = [];
+    const marketIds = bulks.map(bulk => bulk.marketId);
+    const bulkOrders = bulks.flatMap((bulk) => {
+      const longSizes = bulk.orders.sizes.filter((_, index) => bulk.orders.sides[index] === Side.LONG);
+      const longLimitTicks = bulk.orders.limitTicks.filter((_, index) => bulk.orders.sides[index] === Side.LONG);
+      const shortSizes = bulk.orders.sizes.filter((_, index) => bulk.orders.sides[index] === Side.SHORT);
+      const shortLimitTicks = bulk.orders.limitTicks.filter((_, index) => bulk.orders.sides[index] === Side.SHORT);
+      bulk.orders.limitTicks.forEach((tick, index) => originalOrderIds.push(`${bulk.marketId}-${tick}-${bulk.orders.sides[index]}-${bulk.orders.sizes[index]}`));
+      const firstSizes = longSizes.length > 0 ? longSizes : shortSizes;
+      const firstLimitTicks = longSizes.length > 0 ? longLimitTicks : shortLimitTicks;
+      const firstSide = longSizes.length > 0 ? Side.LONG : Side.SHORT;
+      const secondSizes = longSizes.length > 0 ? shortSizes : longSizes;
+      const secondLimitTicks = longSizes.length > 0 ? shortLimitTicks : longLimitTicks;
+      const secondSide = longSizes.length > 0 ? Side.SHORT : Side.LONG;
+      const orders = [];
+      orders.push({
+        marketId: bulk.marketId,
+        orders: {
+          tif: bulk.orders.tif,
+          sizes: firstSizes.map((size) => size.toString()),
+          limitTicks: firstLimitTicks,
+          side: firstSide,
+        },
+        cancelData: {
+          ids: bulk.cancelData.ids.map((id) => id.toString()),
+          isAll: bulk.cancelData.isAll,
+          isStrict: bulk.cancelData.isStrict,
+        },
+      });
+      if(secondSizes.length > 0) {
+        orders.push({
+          marketId: bulk.marketId,
+          orders: {
+            tif: bulk.orders.tif,
+            sizes: secondSizes.map((size) => size.toString()),
+            limitTicks: secondLimitTicks,
+            side: secondSide,
+          },
+          cancelData: {
+            ids: [],
+            isAll: false,
+            isStrict: false,
+          },
+        });
+      }
+      return orders;
+    })
+    const { data: bulkPlaceOrderCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV5({
+        cross,
+        bulks: bulkOrders,
+        slippage,
+      });
+    const bulkOrderResponses = await this.signAndExecute(
+      bulkPlaceOrderCalldataResponse.calldatas[0] as Hex
+    );
+
+    const limitOrderPlacedEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+    const limitOrderCancelledEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
+    // const swapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'Swap');
+
+    const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) => event?.args?.orderIds.map((orderId) => orderId.toString()));
+
+    // const orderPlacedMap = new Map<string, {
+    //   originalOrderId: string;
+    //   orderId: string;
+    //   side: Side;
+    //   size: bigint;
+    //   limitTick: number;
+    // }>();
+
+    const orderPlaced = limitOrderPlacedEvents.map((event) => {
+      const { side, tickIndex } = OrderIdLib.unpack(event?.args?.orderIds[0]);
+      const size = event?.args?.sizes[0];
+      const order = {
+        // originalOrderId: `${tickIndex}-${side}-${size}`,
+        orderId: event?.args?.orderIds[0].toString(),
+        side,
+        size,
+        limitTick: tickIndex,
+      }
+      // orderPlacedMap.set(`${tickIndex}-${side}-${size}`, order);
+      return order;
+    });
+
+    // const orderResults= originalOrderIds.map((originalOrderId) => {
+    //   const order = orderPlacedMap.get(originalOrderId);
+    //   if(!order) {
+    //     return {
+    //       error: `Order ${originalOrderId} not found`,
+    //     }
+    //   }
+    //   return {
+    //     originalOrderId,
+    //     orderId: order?.orderId,
+    //     side: order?.side,
+    //     size: order?.size,
+    //     limitTick: order?.limitTick,
+    //   }
+    // });
+
+    return {  
+      executeResponse: bulkOrderResponses.executeResponse,
+      result: {
+        events: bulkOrderResponses.events,
+        orders: orderPlaced,
+        cancelledOrderIds,
+        blockTimestamp: bulkOrderResponses.blockTimestamp,
+        root: this.root,
+        accountId: this.accountId,
+        isCross: request.cross,
+      }
+    };
+
+  }
+
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
     const { orders } = request;
     const longSizes = orders.sizes.filter((_, index) => orders.sides[index] === Side.LONG);
@@ -226,11 +345,13 @@ export class Exchange {
           tif: orders.tif,
           sizes: longSizes.map((size) => size.toString()),
           limitTicks: longLimitTicks,
+          side: Side.LONG,
         },
         shortOrders: {
           tif: orders.tif,
           sizes: shortSizes.map((size) => size.toString()),
           limitTicks: shortLimitTicks,
+          side: Side.SHORT,
         },
       });
       const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as unknown as Hex);
