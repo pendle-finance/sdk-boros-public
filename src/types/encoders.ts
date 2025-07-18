@@ -162,8 +162,20 @@ export interface PayTreasuryReq {
   marketId: MarketId;
   amount: bigint;
 }
+export interface VaultPayTreasuryReq {
+  tokenId: TokenId;
+  amount: bigint;
+}
 
 export const functionEncoder = {
+  vaultPayTreasury(params: VaultPayTreasuryReq) {
+    return encodeFunctionData({
+      abi: iTradeModuleAbi,
+      functionName: 'vaultPayTreasury',
+      args: [params.tokenId, params.amount],
+    })
+  },
+
   vaultDeposit(params: VaultDepositReq) {
     return encodeFunctionData({
       abi: iTradeModuleAbi,
