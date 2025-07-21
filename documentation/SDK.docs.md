@@ -42,7 +42,7 @@ const exchange = new Exchange(
 
 ## Example Flow: Creating an Agent and Placing an Order
 
-Below is a complete example showing how to create an agent, approve it, and place an order:
+Below is a complete example showing how to pay gas to treasury, create an agent, approve it, and place an order:
 
 ```typescript
 import { createWalletClient, http } from 'viem';
@@ -74,6 +74,16 @@ async function placeOrderExample() {
   const tokenId = 0;
   const marketId = 0;
 
+  const gasBalance = await exchange.getGasBalance();
+  console.log('gasBalance', gasBalance);
+
+  const payTreasuryRes = await exchange.payTreasury({
+    isCross: true,
+    marketId: 2,
+    usdAmount: 1,
+  });
+  console.log(payTreasuryRes);
+
   const marketAcc = MarketAccLib.pack(account.address, accountId, tokenId, marketId)
   
   const orderParams: PlaceOrderParams = {
@@ -88,6 +98,39 @@ async function placeOrderExample() {
   const orderResult = await exchange.placeOrder(orderParams);
   
   console.log('Order placed:', orderResult);
+
+    const bulkOrderResult = await exchange.bulkPlaceOrders({
+      marketAcc: '0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff',
+      marketId: 2,
+      orders: {
+          "sides": [
+              0,
+              1
+          ],
+          sizes: [
+            1000000000000000000n,
+            2000000000000000000n,
+          ],
+          limitTicks: [
+              69,
+              89,
+          ],
+          tif: TimeInForce.GOOD_TIL_CANCELLED,
+      },
+      cancels: {
+        ids: [],
+        isAll: false,
+        isStrict: false,
+    }
+    });
+  const {
+    executeResponse: bulkOrderExecuteResponse,
+    result: {
+      orders
+    }
+  } = bulkOrderResult;
+  console.log('Bulk order result:', bulkOrderResult);
+    
   
   return orderResult;
 }
@@ -119,6 +162,19 @@ const tick = estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(marke
 console.log('Tick:', tick);
 ```
 
+### Pay gas to treasury
+```typescript
+const gasBalance = await exchange.getGasBalance();
+console.log('gasBalance', gasBalance);
+
+const payTreasuryRes = await exchange.payTreasury({
+  isCross: true,
+  marketId: 2,
+  usdAmount: 1,
+});
+console.log(payTreasuryRes);
+```
+Pay to treasury to increase gas balance so that we can send transaction for you
 
 
 ### Place Order

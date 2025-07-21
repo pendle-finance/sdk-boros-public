@@ -21,6 +21,16 @@ async function main() {
     );
     const interestRate = 1.5;
 
+    const gasBalance = await exchange.getGasBalance();
+    console.log('gasBalance', gasBalance);
+
+    const payTreasuryRes = await exchange.payTreasury({
+      isCross: true,
+      marketId: 2,
+      usdAmount: 1,
+    });
+    console.log(payTreasuryRes);
+
     const limitOrderParams: PlaceOrderParams = {
       marketAcc,
       marketId,
@@ -61,18 +71,30 @@ async function main() {
     console.log('Market order result:', marketOrderResult);
 
 
-    const bulkOrderParams: BulkPlaceOrderParams = 
-      {
-        marketAcc,
-        marketId,
-        side: Side.LONG,
-        sizes: [BigInt('1000000000000000000'), BigInt('2000000000000000000')],
-        limitTicks: [Number(estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true)),
-           Number(estimateTickForRate(FixedX18.fromNumber(interestRate), BigInt(market.imData.tickStep), true))],
-        tif: TimeInForce.GOOD_TIL_CANCELLED,
-      };
-
-    const bulkOrderResult = await exchange.bulkPlaceOrders(bulkOrderParams);
+    const bulkOrderResult = await exchange.bulkPlaceOrders({
+        marketAcc: '0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff',
+        marketId: 2,
+        orders: {
+            "sides": [
+                0,
+                1
+            ],
+            sizes: [
+              1000000000000000000n,
+              2000000000000000000n,
+            ],
+            limitTicks: [
+                69,
+                89,
+            ],
+            tif: TimeInForce.GOOD_TIL_CANCELLED,
+        },
+        cancels: {
+          ids: [],
+          isAll: false,
+          isStrict: false,
+      }
+      });
     const {
       executeResponse: bulkOrderExecuteResponse,
       result: {
