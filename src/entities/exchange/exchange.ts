@@ -1,7 +1,8 @@
+import { GlobalCache } from './../../common/cacheDecorators';
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, erc20Abi, getContract, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
-import { BulkAgentExecuteParamsResponseV2 } from '../../backend/secrettune/BorosCoreSDK';
+import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
 import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
@@ -24,9 +25,11 @@ import {
 } from './types';
 import { decodeLog } from './utils';
 import { Side } from '../../types';
-import { iExplorerAbi } from '../../contracts';
+import { iAMMAbi, iExplorerAbi } from '../../contracts';
 import { Explorer } from '../../contracts/explorer';
 import { ContractsFactory } from '../../contracts/contracts.factory';
+import { getCurrentTimestamp } from '../../common/time';
+import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -689,13 +692,61 @@ export class Exchange {
     return updateSettingsCalldataResponse;
   }
 
-  async getMarkets(params?: GetMarketsParams) {
+  async getMarketData(marketId: number) {
+    const markets = await this.getMarkets({isWhitelisted: true});
+    const market = markets.results.find(m => m.marketId === marketId)!;
+
+    const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
+    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
+    const ammAddress = market.metadata?.ammAddress;
+    const ammContract = ammAddress ?this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
+    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt] = await Promise.all([
+      explorerContract.getMarketInfo(market.marketId),
+      marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
+      marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
+      ammContract ? ammContract.readState() : undefined,
+      ammContract ? ammContract.impliedRate() : undefined,
+    ]);
+    const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
+    const { impliedApr } = marketInfo;
+
+    let midApr = FixedX18.fromRawValue(impliedApr).toNumber();
+    if (beforeCutOff && ammImpliedRateBigInt) {
+      midApr = FixedX18.fromRawValue(ammImpliedRateBigInt).toNumber();
+      if (bestBidApr) {
+        midApr = Math.max(midApr, bestBidApr.toNumber());
+      }
+      if (bestAskApr) {
+        midApr = Math.min(midApr, bestAskApr.toNumber());
+      }
+    } else if (bestBidApr && bestAskApr) {
+      midApr = (bestBidApr.toNumber() + bestAskApr.toNumber()) / 2;
+    }
+    return {
+      midApr,
+      impliedApr: FixedX18.fromRawValue(impliedApr).toNumber(),
+      bestBidApr: bestBidApr?.toNumber(),
+      bestAskApr: bestAskApr?.toNumber(),
+    }
+  }
+
+  private static _getMarketsCache: { [key: string]: { value: MarketsResponse; timestamp: number } } = {};
+  private static _getMarketsCacheTTL = 10 * 60 * 1000; // 10 minutes in ms
+
+  public async getMarkets(params?: GetMarketsParams): Promise<MarketsResponse> {
+    const cacheKey = JSON.stringify(params ?? {});
+    const now = Date.now();
+    const cached = Exchange._getMarketsCache[cacheKey];
+    if (cached && now - cached.timestamp < Exchange._getMarketsCacheTTL) {
+      return cached.value;
+    }
     const { skip, limit, isWhitelisted } = params ?? {};
     const { data: getMarketsCalldataResponse } = await this.borosCoreSdk.markets.marketsControllerGetMarkets({
       skip,
       limit,
       isWhitelisted,
     });
+    Exchange._getMarketsCache[cacheKey] = { value: getMarketsCalldataResponse, timestamp: now };
     return getMarketsCalldataResponse;
   }
 
@@ -710,7 +761,7 @@ export class Exchange {
 
   private async getPnlLimitOrdersFromContract(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
-    const explorerContract = this.contractsFactory.getExplorerContract('0x0CcB40176E133E5A011130D6BF6665005C29839E');
+    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const userInfo = await explorerContract.getUserInfo(marketAcc);
     const limitOrders = userInfo.positions.flatMap(position => {

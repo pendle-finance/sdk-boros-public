@@ -15,6 +15,8 @@ import { Multicall } from '../multicall/multicall';
 import { iMulticall3Abi } from './abis/viemAbis';
 import { RPC_URL } from '../common';
 import { MULTICALL_ADDRESS } from '../multicall/constants';
+import { MarketContract } from './market';
+import { AMM } from './amm';
 
 export class ContractsFactory {
 
@@ -68,6 +70,14 @@ export class ContractsFactory {
 
   getExplorerContract(address: Address, walletClient?: WalletClient) {
     return new Explorer(address, this.getRpcClientAndMulticall(), walletClient);
+  }
+
+  getMarketContract(address: Address, walletClient?: WalletClient) {
+    return new MarketContract(address, this.getRpcClientAndMulticall(), walletClient);
+  }
+
+  getAmmContract(address: Address, walletClient?: WalletClient) {
+    return new AMM(address, this.getRpcClientAndMulticall(), walletClient);
   }
 
   getMulticall3Contract(address: Address): GetContractReturnType<typeof iMulticall3Abi, PublicClient, Address> {
