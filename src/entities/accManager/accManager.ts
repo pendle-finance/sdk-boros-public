@@ -1,6 +1,6 @@
 import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
 import { ROUTER_ADDRESS } from '../../addresses';
-import { iRouterAbi } from '../../contracts/viemAbis';
+import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { Account, SetAccManagerStruct } from '../../types/common';
 import { getUserAddressFromWalletClient, signSetAccManagerMessage } from '../../utils';
 import { publicClient } from '../publicClient';

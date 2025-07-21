@@ -117,9 +117,11 @@ export type GetOrderBookParams = {
 export type GetPnlLimitOrdersParams = {
   userAddress?: Address;
   accountId?: number;
+  tokenId: number
+  marketId: number;
+  isActive?: boolean;
+  orderBy?: OrderBy;
   skip?: number;
   limit?: number;
-  isActive?: boolean;
-  marketId?: number;
-  orderBy?: OrderBy;
+  fromContract?: boolean;
 };

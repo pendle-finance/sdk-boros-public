@@ -2,7 +2,7 @@ import { Address, ByteArray, createPublicClient, encodeFunctionData, getContract
 import { MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS } from "./constants";
 import { arbitrum } from "viem/chains";
 import { RPC_URL } from "../../common";
-import { multiTokenMerkleDistributorAbi } from "../../contracts/multiTokenMerkleDistributorAbi";
+import { multiTokenMerkleDistributorAbi } from "../../contracts/abis/multiTokenMerkleDistributorAbi";
 
 export class MultiTokenMerkleDistributorContract {
     private distributorContract;

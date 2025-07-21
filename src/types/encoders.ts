@@ -1,5 +1,5 @@
 import { Address, Hex, encodeFunctionData } from 'viem';
-import { iExplorerAbi, iMarketHubAbi, iRouterAbi, iTradeModuleAbi } from '../contracts/viemAbis';
+import { iExplorerAbi, iMarketHubAbi, iRouterAbi, iTradeModuleAbi } from '../contracts/abis/viemAbis';
 import { MarketAcc, MarketId, OrderId, Side, TimeInForce, TokenId } from './common';
 
 export interface GetUserInfoReq {

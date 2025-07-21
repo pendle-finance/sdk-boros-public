@@ -24,6 +24,9 @@ import {
 } from './types';
 import { decodeLog } from './utils';
 import { Side } from '../../types';
+import { iExplorerAbi } from '../../contracts';
+import { Explorer } from '../../contracts/explorer';
+import { ContractsFactory } from '../../contracts/contracts.factory';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -35,13 +38,15 @@ export class Exchange {
   private accountId: number;
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
   private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
+  private contractsFactory: ContractsFactory;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrl?: string) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
     this.borosCoreSdk = BorosBackend.getCoreSdk();
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
+    this.contractsFactory = new ContractsFactory(rpcUrl);
   }
 
   async bulkSignAndExecute(calldatas: Hex[]) {
@@ -703,8 +708,45 @@ export class Exchange {
     return getOrderBookCalldataResponse;
   }
 
-  async getPnlLimitOrders(params?: GetPnlLimitOrdersParams) {
-    const { skip, limit, isActive, marketId, orderBy, userAddress, accountId } = params ?? {};
+  private async getPnlLimitOrdersFromContract(params: GetPnlLimitOrdersParams) {
+    const { marketId, userAddress, accountId, tokenId } = params;
+    const explorerContract = this.contractsFactory.getExplorerContract('0x0CcB40176E133E5A011130D6BF6665005C29839E');
+    const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
+    const userInfo = await explorerContract.getUserInfo(marketAcc);
+    const limitOrders = userInfo.positions.flatMap(position => {
+      const orders = position.orders;
+      return orders.map(order => {
+        const {side, tickIndex} = OrderIdLib.unpack(order.id);
+        const size = order.size;
+        return {
+          side,
+          size,
+          placedSized: undefined,
+          unfilledSize: size,
+          tick: tickIndex,
+          orderId: order.id,
+          root: userAddress ?? this.root,
+          marketId,
+          accountId: accountId ?? this.accountId,
+          isCross: MarketAccLib.isCrossMarket(marketAcc),
+          status: 0,
+          orderType: 0,
+          marketAcc,
+        }
+      })
+    })
+    return {
+      results: limitOrders,
+      total: limitOrders.length,
+    };
+  }  
+
+  async getPnlLimitOrders(params: GetPnlLimitOrdersParams) {
+    const { skip, limit, isActive, marketId, orderBy, userAddress, accountId, fromContract } = params ?? {};
+    if(fromContract) {
+      return this.getPnlLimitOrdersFromContract(params);
+    }
+    
     const { data: getPnlLimitOrdersCalldataResponse } = await this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
       userAddress: userAddress ?? this.root,
       accountId: accountId ?? this.accountId,

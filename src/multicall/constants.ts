@@ -1,0 +1,53 @@
+// 104 weeks in seconds: 104 x 7 x 24 x 60 x 60
+export const MAX_LOCK_DURATION_SECONDS = 104 * 7 * 24 * 60 * 60;
+
+export const DAYS_IN_A_WEEK = 7;
+
+export const DAYS_IN_A_YEAR = 365;
+
+export const HOURS_IN_A_DAY = 24;
+
+export const SECONDS_PER_FIVE_MINUTES = 300;
+
+export const SECONDS_PER_MINUTE = 60;
+
+export const SECONDS_PER_HOUR = 3600;
+
+export const SECONDS_PER_DAY = 3600 * 24;
+
+export const SECONDS_PER_WEEK = SECONDS_PER_DAY * 7;
+
+export const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365;
+
+export const MILLISECONDS_PER_SECOND = 1000;
+
+export const MILLISECONDS_PER_YEAR = SECONDS_PER_YEAR * MILLISECONDS_PER_SECOND;
+
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ONE_ADDRESS = '0x0000000000000000000000000000000000000001';
+
+export const PENDLE_DECIMALS = 18;
+
+export const VEPENDLE_DECIMALS = PENDLE_DECIMALS;
+
+export const INTEREST_FEE_RATE = 0.03; // 3%
+
+export const ONE_E18 = `1${'0'.repeat(18)}`;
+
+export const MILLISECONDS_IN_A_SECOND = 1000;
+
+export const ONE_HUNDRED = 100;
+
+export const MILLISECONDS_IN_A_WEEK = SECONDS_PER_WEEK * MILLISECONDS_IN_A_SECOND;
+
+export const MILLISECONDS_IN_A_MINUTE = SECONDS_PER_MINUTE * MILLISECONDS_IN_A_SECOND;
+
+export const MILLISECONDS_IN_AN_HOUR = SECONDS_PER_HOUR * MILLISECONDS_IN_A_SECOND;
+
+export const MILLISECONDS_IN_A_DAY = SECONDS_PER_DAY * MILLISECONDS_IN_A_SECOND;
+
+export const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+
+export const AVERAGE_BLOCK_TIME_IN_SECONDS = 0.25;
+
+export const MULTICALL_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';

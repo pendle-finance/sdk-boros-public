@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import { ROUTER_ADDRESS } from '../../addresses';
 import { RPC_URL } from '../../common';
-import { iRouterAbi } from '../../contracts/viemAbis';
+import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { ApproveAgentMessage, Account as BorosAccount } from '../../types/common';
 import { getUserAddressFromWalletClient, signApproveAgentMessage } from '../../utils';
 import { getWelcomeMessage } from '../../utils/signing/common';
