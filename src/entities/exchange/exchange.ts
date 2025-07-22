@@ -808,7 +808,6 @@ export class Exchange {
           status: 0,
           orderType: 0,
           marketAcc: order.maker,
-          blockNumber,
         }
       })
     });
@@ -816,6 +815,7 @@ export class Exchange {
     return {
       results: limitOrders,
       total: limitOrders.length,
+      blockNumber
     };
   }  
 
@@ -825,16 +825,22 @@ export class Exchange {
       return this.getPnlLimitOrdersFromContract(params);
     }
     
-    const { data: getPnlLimitOrdersCalldataResponse } = await this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
-      userAddress: userAddress ?? this.root,
-      accountId: accountId ?? this.accountId,
-      marketId,
-      skip,
-      limit,
-      isActive,
-      orderBy,
-    });
-    return getPnlLimitOrdersCalldataResponse;
+    const [{ data: getPnlLimitOrdersCalldataResponse }, blockNumber] = await Promise.all([
+        this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
+        userAddress: userAddress ?? this.root,
+        accountId: accountId ?? this.accountId,
+        marketId,
+        skip,
+        limit,
+        isActive,
+        orderBy,
+      }),
+      this.publicClient.getBlockNumber()
+    ]);
+    return {
+      ...getPnlLimitOrdersCalldataResponse,
+      blockNumber
+    };
   }
 
   async getCollaterals({
