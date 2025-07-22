@@ -1,6 +1,6 @@
 import { GlobalCache } from './../../common/cacheDecorators';
 import { FixedX18, getRateAtTick } from '@pendle/boros-offchain-math';
-import { Address, erc20Abi, getContract, Hex, WalletClient } from 'viem';
+import { Address, createPublicClient, erc20Abi, getContract, Hex, http, PublicClient, WalletClient, BlockNumber } from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
@@ -31,6 +31,7 @@ import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
 import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
 import { ContractUserMarketPosition } from '../../common/types';
+import { arbitrum } from 'viem/chains';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -43,6 +44,7 @@ export class Exchange {
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
   private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
   private contractsFactory: ContractsFactory;
+  private publicClient: PublicClient;
 
   constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrl?: string) {
     this.walletClient = walletClient;
@@ -51,6 +53,10 @@ export class Exchange {
     this.borosCoreSdk = BorosBackend.getCoreSdk();
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
     this.contractsFactory = new ContractsFactory(rpcUrl);
+    this.publicClient = rpcUrl ? createPublicClient({
+      chain: arbitrum,
+      transport: http(rpcUrl),
+    }) : publicClient;
   }
 
   async bulkSignAndExecute(calldatas: Hex[]) {
@@ -72,7 +78,7 @@ export class Exchange {
     const txHash = executeResponses.find((txResponse) => !txResponse.error)?.txHash;
     if (txHash) {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash as Hex });
-      const blockTimestamp = receipt.blockNumber;
+      const blockTimestamp = (await publicClient.getBlock({ blockNumber: receipt.blockNumber })).timestamp;
       const logGroups = [];
       let events = [];
       const decodedEvents = receipt.logs.map((log) => decodeLog(log));
@@ -102,6 +108,7 @@ export class Exchange {
             executeResponse: successExecuteResponses[index].txResponse,
             events,
             blockTimestamp,
+            blockNumber: receipt.blockNumber,
           },
           id: successExecuteResponses[index].id,
         };
@@ -157,7 +164,7 @@ export class Exchange {
       }
     }
 
-    return { executeResponse, events: logGroups[logIndex], blockTimestamp };
+    return { executeResponse, events: logGroups[logIndex], blockTimestamp, blockNumber: receipt.blockNumber };
   }
 
   async placeOrder(params: PlaceOrderParams) {
@@ -318,9 +325,9 @@ export class Exchange {
     //     limitTick: order?.limitTick,
     //   }
     // });
-
     return {  
       executeResponse: bulkOrderResponses.executeResponse,
+      blockNumber: bulkOrderResponses.blockNumber,
       result: {
         events: bulkOrderResponses.events,
         orders: orderPlaced,
@@ -435,6 +442,7 @@ export class Exchange {
 
       return {
         executeResponse: bulkOrderResponses.executeResponse,
+        blockNumber: bulkOrderResponses.blockNumber,
         result: {
           orders: orderResults,
           cancelledOrders: cancelledOrdersInfo,
@@ -495,6 +503,7 @@ export class Exchange {
       };
       return {
         executeResponse: orderResponse.executeResponse,
+        blockNumber: orderResponse.blockNumber,
         result: {
           order: orderInfo,
           events: orderResponse.events,
@@ -768,10 +777,11 @@ export class Exchange {
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
-    const [userInfo, crossUserInfo, marketInfo] = await Promise.all([
+    const [userInfo, crossUserInfo, marketInfo, blockNumber] = await Promise.all([
       explorerContract.getUserInfo(marketAcc),
       marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined,
-      explorerContract.getMarketInfo(marketId)
+      explorerContract.getMarketInfo(marketId),
+      this.publicClient.getBlockNumber()
     ]);
     const positions = userInfo.positions.concat(crossUserInfo?.positions ?? [])
     .filter(position => 
@@ -798,6 +808,7 @@ export class Exchange {
           status: 0,
           orderType: 0,
           marketAcc: order.maker,
+          blockNumber,
         }
       })
     });
