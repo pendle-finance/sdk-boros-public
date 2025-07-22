@@ -701,15 +701,16 @@ export class Exchange {
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ?this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
-    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt] = await Promise.all([
+    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData] = await Promise.all([
       explorerContract.getMarketInfo(market.marketId),
       marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
       marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
       ammContract ? ammContract.readState() : undefined,
       ammContract ? ammContract.impliedRate() : undefined,
+      marketContract.getImpliedRateData(),
     ]);
     const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
-    const { impliedApr } = marketInfo;
+    const { impliedApr, markApr } = marketInfo;
 
     let midApr = FixedX18.fromRawValue(impliedApr).toNumber();
     if (beforeCutOff && ammImpliedRateBigInt) {
@@ -728,6 +729,8 @@ export class Exchange {
       impliedApr: FixedX18.fromRawValue(impliedApr).toNumber(),
       bestBidApr: bestBidApr?.toNumber(),
       bestAskApr: bestAskApr?.toNumber(),
+      lastTradedApr: FixedX18.fromRawValue(impliedRateData.lastTradedRate).toNumber(),
+      markApr: FixedX18.fromRawValue(markApr).toNumber(),
     }
   }
 
@@ -797,7 +800,7 @@ export class Exchange {
         }
       })
     });
-    
+
     return {
       results: limitOrders,
       total: limitOrders.length,
