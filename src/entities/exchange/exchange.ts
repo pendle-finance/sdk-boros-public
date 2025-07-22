@@ -1,5 +1,5 @@
 import { GlobalCache } from './../../common/cacheDecorators';
-import { FixedX18 } from '@pendle/boros-offchain-math';
+import { FixedX18, getRateAtTick } from '@pendle/boros-offchain-math';
 import { Address, erc20Abi, getContract, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
@@ -768,11 +768,11 @@ export class Exchange {
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
-    const [userInfo, crossUserInfo] = await Promise.all([
+    const [userInfo, crossUserInfo, marketInfo] = await Promise.all([
       explorerContract.getUserInfo(marketAcc),
-      marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined
+      marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined,
+      explorerContract.getMarketInfo(marketId)
     ]);
-
     const positions = userInfo.positions.concat(crossUserInfo?.positions ?? [])
     .filter(position => 
       marketId !== CROSS_MARKET_ID ? position.marketId === marketId : true
@@ -789,6 +789,7 @@ export class Exchange {
           placedSized: undefined,
           unfilledSize: size,
           tick: tickIndex,
+          impliedApr: getRateAtTick(BigInt(tickIndex), BigInt(marketInfo.tickStep)).toNumber(),
           orderId: order.id,
           root: userAddress ?? this.root,
           marketId: position.marketId,
