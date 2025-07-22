@@ -30,6 +30,7 @@ import { Explorer } from '../../contracts/explorer';
 import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
 import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
+import { ContractUserMarketPosition } from '../../common/types';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -763,8 +764,18 @@ export class Exchange {
     const { marketId, userAddress, accountId, tokenId } = params;
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
-    const userInfo = await explorerContract.getUserInfo(marketAcc);
-    const limitOrders = userInfo.positions.flatMap(position => {
+    const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
+    const [userInfo, crossUserInfo] = await Promise.all([
+      explorerContract.getUserInfo(marketAcc),
+      marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined
+    ]);
+
+    const positions = userInfo.positions.concat(crossUserInfo?.positions ?? [])
+    .filter(position => 
+      marketId !== CROSS_MARKET_ID ? position.marketId === marketId : true
+    );
+
+    const limitOrders = positions.flatMap(position => {
       const orders = position.orders;
       return orders.map(order => {
         const {side, tickIndex} = OrderIdLib.unpack(order.id);
@@ -777,15 +788,16 @@ export class Exchange {
           tick: tickIndex,
           orderId: order.id,
           root: userAddress ?? this.root,
-          marketId,
+          marketId: position.marketId,
           accountId: accountId ?? this.accountId,
-          isCross: MarketAccLib.isCrossMarket(marketAcc),
+          isCross: MarketAccLib.isCrossMarket(order.maker),
           status: 0,
           orderType: 0,
-          marketAcc,
+          marketAcc: order.maker,
         }
       })
-    })
+    });
+    
     return {
       results: limitOrders,
       total: limitOrders.length,
