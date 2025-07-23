@@ -430,7 +430,18 @@ export class Exchange {
           limitTick: order?.limitTick,
         }
       });
-      
+      const otherOrders = longOrdersPlaced.concat(shortOrdersPlaced).filter((order) => 
+        !orderResults.some((result) => result.originalOrderId === order.originalOrderId)
+      );
+      const otherOrdersInfo = otherOrders.map((order) => {
+        return {
+          originalOrderId: order?.originalOrderId,
+          orderId: order?.orderId,
+          side: order?.side,
+          size: order?.size,
+          limitTick: order?.limitTick,
+        }
+      });
       const cancelledOrderIds = limitOrderCancelledEvent?.args?.orderIds.map((orderId) => orderId.toString());
 
       const cancelledOrdersInfo = cancelledOrderIds ? {
@@ -445,6 +456,7 @@ export class Exchange {
         blockNumber: bulkOrderResponses.blockNumber,
         result: {
           orders: orderResults,
+          otherOrders: otherOrdersInfo,
           cancelledOrders: cancelledOrdersInfo,
           events: bulkOrderResponses.events,
           root: this.root,
@@ -709,7 +721,7 @@ export class Exchange {
     const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const ammAddress = market.metadata?.ammAddress;
-    const ammContract = ammAddress ?this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
+    const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
     const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData] = await Promise.all([
       explorerContract.getMarketInfo(market.marketId),
       marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
