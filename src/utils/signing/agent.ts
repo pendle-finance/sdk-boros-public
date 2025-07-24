@@ -14,78 +14,11 @@ export type SignedAgentExecution = {
   calldata: Hex;
 };
 
-export async function bulkSignWithAgentV2(params: {
-  root: Address;
-  executeParams: {
-    accountId: number;
-    calldata: Hex;
-  }[];
-}) {
-  const { root, executeParams } = params;
-  const messages: PendleSignTxStruct[] = [];
-  for (let i = 0; i < executeParams.length; i++) {
-    const nonce = BigInt(Date.now());
-    const message: PendleSignTxStruct = {
-      account: AccountLib.pack(root, executeParams[i].accountId),
-      connectionId: keccak256(executeParams[i].calldata),
-      nonce,
-    };
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    messages.push(message);
-  }
-
-  const agent = getInternalAgent();
-  const signer = agent.walletClient;
-  const pendleSignTxType = getAbiItem({
-    abi: iRouterAbi,
-    name: 'agentExecute',
-  }).inputs.find((item) => item.name === 'message')!.components;
-
-  const signatures = await Promise.all(
-    messages.map((message) =>
-      signer.signTypedData({
-        account: agent.walletClient.account!,
-        domain: PENDLE_BOROS_ROUTER_DOMAIN,
-        types: {
-          EIP712Domain: EIP712_DOMAIN_TYPES,
-          PendleSignTx: pendleSignTxType,
-        },
-        primaryType: 'PendleSignTx',
-        message,
-      })
-    )
-  );
-
-  const signs = await Promise.all(
-    signatures.map(async (signature, index) => ({
-      agent: await agent.getAddress(),
-      message: messages[index],
-      signature,
-      calldata: executeParams[index].calldata,
-    }))
-  );
-
-  return signs;
-}
-
-export async function bulkSignWithAgent(params: {
-  root: Address;
-  accountId: number;
+async function messagesToSigns(params: {
   calldatas: Hex[];
+  messages: PendleSignTxStruct[];
 }) {
-  const { root, accountId, calldatas } = params;
-  const messages: PendleSignTxStruct[] = [];
-  for (let i = 0; i < calldatas.length; i++) {
-    const nonce = BigInt(Date.now());
-    const message: PendleSignTxStruct = {
-      account: AccountLib.pack(root, accountId),
-      connectionId: keccak256(calldatas[i]),
-      nonce,
-    };
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    messages.push(message);
-  }
-
+  const { calldatas, messages } = params;
   const agent = getInternalAgent();
   const signer = agent.walletClient;
   const pendleSignTxType = getAbiItem({
@@ -117,6 +50,53 @@ export async function bulkSignWithAgent(params: {
     }))
   );
 
+  return signs;
+}
+
+export async function bulkSignWithAgentV2(params: {
+  root: Address;
+  executeParams: {
+    accountId: number;
+    calldata: Hex;
+  }[];
+}) {
+  const { root, executeParams } = params;
+  const messages: PendleSignTxStruct[] = [];
+  for (let i = 0; i < executeParams.length; i++) {
+    const nonce = BigInt(Date.now());
+    const message: PendleSignTxStruct = {
+      account: AccountLib.pack(root, executeParams[i].accountId),
+      connectionId: keccak256(executeParams[i].calldata),
+      nonce,
+    };
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    messages.push(message);
+  }
+  const calldatas = executeParams.map((param) => param.calldata);
+
+  const signs = await messagesToSigns({ calldatas, messages });
+  return signs;
+}
+
+export async function bulkSignWithAgent(params: {
+  root: Address;
+  accountId: number;
+  calldatas: Hex[];
+}) {
+  const { root, accountId, calldatas } = params;
+  const messages: PendleSignTxStruct[] = [];
+  for (let i = 0; i < calldatas.length; i++) {
+    const nonce = BigInt(Date.now());
+    const message: PendleSignTxStruct = {
+      account: AccountLib.pack(root, accountId),
+      connectionId: keccak256(calldatas[i]),
+      nonce,
+    };
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    messages.push(message);
+  }
+
+  const signs = await messagesToSigns({ calldatas, messages });
   return signs;
 }
 
