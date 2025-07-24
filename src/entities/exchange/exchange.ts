@@ -571,7 +571,6 @@ export class Exchange {
     const { data: getGasBalanceCalldataResponse } =
       await this.borosCoreSdk.accounts.accountsControllerGetAccountGasBalance({
         userAddress: this.root,
-        accountId: this.accountId,
       });
     return getGasBalanceCalldataResponse.balanceInUSD;
   }
