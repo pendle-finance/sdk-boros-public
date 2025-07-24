@@ -593,6 +593,15 @@ export interface BulkPlaceOrderQueryDtoV2 {
   slippage?: number;
 }
 
+export interface AgentExecuteParams {
+  calldata: string;
+  accountId: string;
+}
+
+export interface BulkAgentExecuteParamsResponseV3 {
+  executeParams: AgentExecuteParams[];
+}
+
 export interface SettingsByMarketResponse {
   /** Market id */
   marketId: number;
@@ -1276,7 +1285,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2',
+      baseURL: axiosConfig.baseURL || 'http://localhost:8000',
     });
     this.secure = secure;
     this.format = format;
@@ -1369,7 +1378,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl http://localhost:8000
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1466,7 +1475,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753339096
+         * @default 1753349149
          */
         endTimestamp?: number;
       },
@@ -1586,7 +1595,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753339096
+         * @default 1753349149
          */
         endTimestamp?: number;
       },
@@ -2018,29 +2027,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v1/calldata/withdraw/cancel`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetWithdrawFinalizeCalldata
-     * @summary Get finalized withdraw from margin account to wallet calldata
-     * @request GET:/v1/calldata/withdraw/finalize
-     */
-    calldataControllerGetWithdrawFinalizeCalldata: (
-      query: {
-        userAddress: string;
-        tokenId: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<GetCalldataResponse, any>({
-        path: `/v1/calldata/withdraw/finalize`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2610,6 +2596,34 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldataV4
+     * @summary Get add liquidity single cash to amm contract params
+     * @request GET:/v4/calldata/add-liquidity-single-cash-to-amm
+     */
+    calldataControllerGetAddLiquiditySingleCashToAmmCalldataV4: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        netCashIn: string;
+        minLpOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV3, any>({
+        path: `/v4/calldata/add-liquidity-single-cash-to-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata
      * @summary Get remove liquidity single cash from amm contract params
      * @request GET:/v1/calldata/remove-liquidity-single-cash-from-amm
@@ -2680,6 +2694,32 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v3/calldata/remove-liquidity-single-cash-from-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV4
+     * @summary Get remove liquidity single cash from amm contract params
+     * @request GET:/v4/calldata/remove-liquidity-single-cash-from-amm
+     */
+    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV4: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        marketId: number;
+        lpToRemove: string;
+        minCashOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV3, any>({
+        path: `/v4/calldata/remove-liquidity-single-cash-from-amm`,
         method: 'GET',
         query: query,
         format: 'json',
