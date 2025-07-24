@@ -179,6 +179,10 @@ export interface CandleResponse {
   mr: number;
   /** Is Oracle Funding Rate */
   iofr: boolean;
+  /** Oracle Funding Rate */
+  ofr: number;
+  /** 7DMA Realtime Funding Rate */
+  b7dmafr: number;
 }
 
 export interface ChartResponse {
@@ -197,13 +201,20 @@ export interface OrderBooksResponse {
   short: SideTickResponse;
 }
 
+export interface AllTimeRewardsDto {
+  /** pendle token rewards amount */
+  pendleRewards: number;
+  /** swap fee in collateral asset rewards amount */
+  swapFeeRewards: number;
+}
+
 export interface UserVaultInfo {
   /** user deposit */
   depositValue: string;
   /** user unclaimed rewards */
   unclaimedRewards: string;
   /** user all time rewards */
-  allTimeRewards: number;
+  allTimeRewards: AllTimeRewardsDto;
   /** bigint string of total lp */
   totalLp: string;
 }
@@ -219,6 +230,8 @@ export interface GetSingleVaultResponse {
   totalLp: string;
   /** bigint string of total tvl */
   totalValue: string;
+  /** bigint string of total supply cap */
+  totalSupplyCap: string;
   /** lp apy */
   lpApy: number;
   /** user vault info */
@@ -235,8 +248,6 @@ export interface GetAllVaultResponse {
   collaterals: CollateralVaultResponse[];
   /** total tvl in usd */
   totalTvl: number;
-  /** bigint string of total pendle rewards */
-  totalPendleRewards: string;
 }
 
 export interface VaultApyEntryResponse {
@@ -248,6 +259,12 @@ export interface VaultApyEntryResponse {
   a30: number;
   /** TVL */
   tv: string;
+  /** Fees APR */
+  feesApr: number;
+  /** Rewards APR */
+  rewardsApr: number;
+  /** Vault APR */
+  vaultApr: number;
 }
 
 export interface GetVaultApyChartResponse {
@@ -273,6 +290,13 @@ export interface GetAMMInfoByAmmIdResponse {
   isPositive: boolean;
   feeRate: string;
   impliedRate: Function;
+}
+
+export interface GetUserRewardResponse {
+  /** accrued amm rewards amount in usd */
+  accruedAmountInUsd: number;
+  /** unclaimable amm rewards amount in usd */
+  unclaimedAmountInUsd: number;
 }
 
 export interface UserMerkleResponse {
@@ -393,6 +417,8 @@ export interface PlaceOrderSimulationResponseV2 {
   actualLeverage: number;
   /** status */
   status: string;
+  /** maker order rewards in Pendle */
+  makerOrderReward: number;
 }
 
 export interface CancelOrderSimulationResponse {
@@ -601,8 +627,8 @@ export interface AccountGasBalanceResponse {
 export interface GasConsumptionResponse {
   /** Action type */
   actionType: string;
-  /** Account */
-  account: string;
+  /** User address */
+  userAddress: string;
   /** Gas fee */
   gasFee: number;
   /** Transaction hash */
@@ -649,19 +675,6 @@ export interface PnlTransactionsResponse {
   results: PnlTransactionResponse[];
   /** Total number of transactions */
   total: number;
-}
-
-export interface HistoricalPnlChartResponse {
-  /** The time */
-  time: number;
-  /** Underlying APR */
-  underlyingApr: number;
-  /** Average fixed APR */
-  avgFixedApr: number;
-  /** bigint string of settled volume */
-  settledVolume: string;
-  /** bigint string of realised PnL */
-  realisedPnl: string;
 }
 
 export interface LimitOrderMetadataResponse {
@@ -787,6 +800,44 @@ export interface PriceDeviationResponse {
   data: PriceDeviationItem[];
 }
 
+export interface LnAtRateItem {
+  /** LN long at rate */
+  long: number;
+  /** LN short at rate */
+  short: number;
+  /** Rate */
+  rate: number;
+}
+
+export interface LnSnapshotResponse {
+  /** The LN at rates */
+  data: LnAtRateItem[];
+  /**
+   * End time of the snapshot
+   * @format date-time
+   */
+  timestamp: string;
+}
+
+export interface LnSnapshotSeriesResponse {
+  /** The LN snapshot series */
+  series: LnSnapshotResponse[];
+}
+
+export interface LiquidationSnapshotItem {
+  /** Percentage of OI */
+  percentage: number;
+  /** Long liquidation cost at percentage */
+  long: number;
+  /** Short liquidation cost at percentage */
+  short: number;
+}
+
+export interface LiquidationSnapshotResponse {
+  /** Liquidation snapshot */
+  data: LiquidationSnapshotItem[];
+}
+
 export interface UnhealthyVolumeItem {
   /**
    * Timestamp of the unhealthy volume
@@ -866,31 +917,6 @@ export interface TradedVolumeResponse {
   endTime: string;
   /** Traded volume */
   data: TradedVolumeItem[];
-}
-
-export interface LiquidityDepthItem {
-  /**
-   * Timestamp of the liquidity depth
-   * @format date-time
-   */
-  time: string;
-  /** Liquidity depth value */
-  value: number;
-}
-
-export interface LiquidityDepthResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Liquidity depth */
-  data: LiquidityDepthItem[];
 }
 
 export interface LongShortLiquidityDepthItem {
@@ -1107,6 +1133,14 @@ export interface GlobalConfigsResponse {
   personalCoolDown?: PersonalConfigResponse;
 }
 
+export interface GetVePendleBalanceResponse {
+  /**
+   * vependle balance
+   * @example 100000000
+   */
+  balance: number;
+}
+
 export interface MarketWeeklyIncentiveResponse {
   /**
    * market id
@@ -1161,6 +1195,37 @@ export interface MakerIncentiveRewardsResponse {
    * @example 0.01
    */
   unclaimedAmount: number;
+}
+
+export interface MarketMakerIncentiveStatisticsResponse {
+  /**
+   * user maker volume for market with id = marketId in current epoch
+   * @example 100
+   */
+  userMakerVolume: number;
+  /**
+   * total maker volume for market with id = marketId in current epoch
+   * @example 10000
+   */
+  totalMakerVolume: number;
+  /**
+   * total reward will distribute in current epoch
+   * @example 5000
+   */
+  totalEpochReward: number;
+  /**
+   * average reward per yu for market with id = marketId in current epoch
+   * @example 0.5
+   */
+  avgRewardPerYu: number;
+}
+
+export interface GetVolumeResponse {
+  /**
+   * The total volume in USD
+   * @example 1000
+   */
+  volume: number;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -1401,7 +1466,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1752644080
+         * @default 1753339096
          */
         endTimestamp?: number;
       },
@@ -1521,7 +1586,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1752644080
+         * @default 1753339096
          */
         endTimestamp?: number;
       },
@@ -1547,6 +1612,29 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<GetAMMInfoByAmmIdResponse, any>({
         path: `/v2/amm/${ammId}`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetAmmRewards
+     * @summary Get user rewards (amm swap fee rewards + Pendle incentives rewards)
+     * @request GET:/v1/amm/rewards
+     */
+    ammControllerGetAmmRewards: (
+      query: {
+        /** user address */
+        user: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetUserRewardResponse, any>({
+        path: `/v1/amm/rewards`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -1859,6 +1947,30 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<GetCalldataResponse, any>({
         path: `/v2/calldata/deposit`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetVaultPayTreasuryCalldata
+     * @summary Get vault pay treasury calldata
+     * @request GET:/v1/calldata/vault-pay-treasury
+     */
+    calldataControllerGetVaultPayTreasuryCalldata: (
+      query: {
+        userAddress: string;
+        tokenId: number;
+        amount: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetCalldataResponse, any>({
+        path: `/v1/calldata/vault-pay-treasury`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2675,7 +2787,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     accountsControllerGetAccountGasBalance: (
       query: {
         userAddress: string;
-        accountId: number;
       },
       params: RequestParams = {}
     ) =>
@@ -2697,9 +2808,17 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     accountsControllerGetGasConsumptionHistory: (
       query: {
-        account: string;
-        limit: number;
-        skip: number;
+        userAddress: string;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -2740,45 +2859,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<PnlTransactionsResponse, any>({
         path: `/v1/pnl/transactions`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags PnL
-     * @name PnlControllerGetHistoricalPnlChart
-     * @summary Get historical PnL of a user for a market
-     * @request GET:/v1/pnl/historical-chart
-     */
-    pnlControllerGetHistoricalPnlChart: (
-      query: {
-        userAddress: string;
-        marketId: number;
-        accountId: number;
-        /**
-         * Time frame { ONE_MINUTE : 1m, FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w }
-         * @default "1h"
-         */
-        timeFrame?: '1m' | '5m' | '1h' | '1d' | '1w';
-        /**
-         * Start timestamp, default to 0
-         * @default 0
-         */
-        startTimestamp?: number;
-        /**
-         * End timestamp, default to MAX_SAFE_INTEGER
-         * @default 1752644080
-         */
-        endTimestamp?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<HistoricalPnlChartResponse[], any>({
-        path: `/v1/pnl/historical-chart`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3022,6 +3102,80 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Risk
+     * @name RiskControllerLnSnapshot
+     * @summary Get LN overall snapshot
+     * @request GET:/v1/risk/ln-snapshot
+     */
+    riskControllerLnSnapshot: (
+      query: {
+        marketId: number;
+        /** @format date-time */
+        timestamp?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LnSnapshotResponse, any>({
+        path: `/v1/risk/ln-snapshot`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerLnSnapshotSeries
+     * @summary Get LN snapshot series
+     * @request GET:/v1/risk/ln-snapshot-series
+     */
+    riskControllerLnSnapshotSeries: (
+      query: {
+        /** Time series frequency in minutes */
+        frequency: number;
+        marketId: number;
+        /** Maximum number of data points to return, default is 10 */
+        limit?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LnSnapshotSeriesResponse, any>({
+        path: `/v1/risk/ln-snapshot-series`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
+     * @name RiskControllerLiquidationSnapshot
+     * @summary Get liquidation snapshot
+     * @request GET:/v1/risk/liquidation-snapshot
+     */
+    riskControllerLiquidationSnapshot: (
+      query: {
+        marketId: number;
+        /** @format date-time */
+        timestamp?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LiquidationSnapshotResponse, any>({
+        path: `/v1/risk/liquidation-snapshot`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Risk
      * @name RiskControllerGetUnhealthyVolume
      * @summary Get unhealthy volume
      * @request GET:/v1/risk/unhealthy-volume
@@ -3096,35 +3250,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<TradedVolumeResponse, any>({
         path: `/v1/risk/traded-volume`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetLiquidityDepth
-     * @summary Get liquidity depth
-     * @request GET:/v1/risk/liquidity-depth
-     * @deprecated
-     */
-    riskControllerGetLiquidityDepth: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** the price deviation to observe */
-        deltaRate: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LiquidityDepthResponse, any>({
-        path: `/v1/risk/liquidity-depth`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3360,6 +3485,23 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params,
       }),
   };
+  vePendle = {
+    /**
+     * @description Get vependle balance
+     *
+     * @tags vePendle
+     * @name VePendleControllerGetBalance
+     * @summary Get vependle balance
+     * @request GET:/v1/vependle/balance/{user}
+     */
+    vePendleControllerGetBalance: (user: string, params: RequestParams = {}) =>
+      this.request<GetVePendleBalanceResponse, any>({
+        path: `/v1/vependle/balance/${user}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
   incentives = {
     /**
      * @description Get maker incentives for a given maker
@@ -3389,6 +3531,68 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<MakerIncentiveRewardsResponse, any>({
         path: `/v1/incentives/maker-incentives/${maker}/rewards`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get maker market reward statistics for given market and user at current epoch
+     *
+     * @tags Incentives
+     * @name IncentivesControllerGetMakerIncentiveStatistics
+     * @summary Get maker market reward statistics at current epoch
+     * @request GET:/v1/incentives/maker-incentives/statistics
+     */
+    incentivesControllerGetMakerIncentiveStatistics: (
+      query: {
+        /**
+         * Maker address
+         * @example "0x1234567890123456789012345678901234567890"
+         */
+        maker: string;
+        /**
+         * Market id
+         * @example 1
+         */
+        marketId: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MarketMakerIncentiveStatisticsResponse, any>({
+        path: `/v1/incentives/maker-incentives/statistics`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  volume = {
+    /**
+     * No description
+     *
+     * @tags Volume
+     * @name VolumeControllerGetVolume
+     * @request GET:/v1/volume
+     */
+    volumeControllerGetVolume: (
+      query: {
+        /**
+         * The user address
+         * @example "0x1234567890123456789012345678901234567890"
+         */
+        user: string;
+        /**
+         * The end timestamp
+         * @example 1715769600
+         */
+        toTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetVolumeResponse, any>({
+        path: `/v1/volume`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
