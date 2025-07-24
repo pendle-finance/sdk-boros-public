@@ -167,6 +167,12 @@ export interface VaultPayTreasuryReq {
   amount: bigint;
 }
 
+export interface AmmCashTransferReq {
+  marketId: number;
+  cashIn: bigint;
+  cashTransferAll: boolean;
+}
+
 export const functionEncoder = {
   vaultPayTreasury(params: VaultPayTreasuryReq) {
     return encodeFunctionData({
@@ -200,14 +206,6 @@ export const functionEncoder = {
     });
   },
 
-  finalizeVaultWithdrawal(params: FinalizeVaultWithdrawalReq) {
-    return encodeFunctionData({
-      abi: iTradeModuleAbi,
-      functionName: 'finalizeVaultWithdrawal',
-      args: [params.user, params.tokenId],
-    });
-  },
-
   payTreasury(params: PayTreasuryReq) {
     return encodeFunctionData({
       abi: iTradeModuleAbi,
@@ -222,6 +220,14 @@ export const functionEncoder = {
       functionName: 'subaccountTransfer',
       args: [params.accountId, params.tokenId, params.marketId, params.amount, params.isDeposit],
     });
+  },
+
+  ammCashTransfer(req: AmmCashTransferReq) {
+    return encodeFunctionData({
+      abi: iRouterAbi,
+      functionName: 'ammCashTransfer',
+      args: [req]
+    })
   },
 
   cashTransfer(req: CashTransferReq) {
