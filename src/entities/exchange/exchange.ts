@@ -783,6 +783,39 @@ export class Exchange {
     return getOrderBookCalldataResponse;
   }
 
+  async getUserPositions(params: GetPnlLimitOrdersParams) {
+    const { marketId, userAddress, accountId, tokenId } = params;
+    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
+    const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
+    const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
+    const [userInfo, crossUserInfo] = await Promise.all([
+      explorerContract.getUserInfo(marketAcc),
+      marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined,
+    ]);
+    const userPositions = userInfo.positions.map(position => {
+      return {
+        position,
+        marketAcc
+      }
+    });
+    const crossUserPositions = crossUserInfo?.positions.map(position => {
+      return {
+        position,
+        marketAcc: crossMarketAcc
+      }
+    });
+    const positions = userPositions.concat(crossUserPositions ?? [])
+    .filter(val => 
+      marketId !== CROSS_MARKET_ID ? val.position.marketId === marketId : true
+    )
+    .map(val => ({
+      ...val.position,
+      marketAcc: val.marketAcc,
+      isCross: MarketAccLib.isCrossMarket(val.marketAcc),
+    }) );
+    return positions;
+  }
+
   private async getPnlLimitOrdersFromContract(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
