@@ -30,7 +30,7 @@ import { Explorer } from '../../contracts/explorer';
 import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
 import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
-import { ContractUserMarketPosition } from '../../common/types';
+import { ContractUserMarketPosition, MarketStatus } from '../../common/types';
 import { arbitrum } from 'viem/chains';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
@@ -721,7 +721,15 @@ export class Exchange {
     return ammState ? Number(ammState.cutOffTimestamp) : undefined;
   }
 
-  async getMarketData(marketId: number) {
+  async getMarketData(marketId: number) : Promise<{
+    midApr: number;
+    impliedApr: number;
+    bestBidApr: number | undefined;
+    bestAskApr: number | undefined;
+    lastTradedApr: number;
+    markApr: number;
+    marketStatus: MarketStatus;
+}> {
     const markets = await this.getMarkets({isWhitelisted: true});
     const market = markets.results.find(m => m.marketId === marketId)!;
 
@@ -729,13 +737,14 @@ export class Exchange {
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
-    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData] = await Promise.all([
+    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] = await Promise.all([
       explorerContract.getMarketInfo(market.marketId),
       marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
       marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
       ammContract ? ammContract.readState() : undefined,
       ammContract ? ammContract.impliedRate() : undefined,
       marketContract.getImpliedRateData(),
+      marketContract.getMarketConfig(),
     ]);
     const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
     const { impliedApr, markApr } = marketInfo;
@@ -759,6 +768,7 @@ export class Exchange {
       bestAskApr: bestAskApr?.toNumber(),
       lastTradedApr: FixedX18.fromRawValue(impliedRateData.lastTradedRate).toNumber(),
       markApr: FixedX18.fromRawValue(markApr).toNumber(),
+      marketStatus: marketConfig.status,
     }
   }
 
