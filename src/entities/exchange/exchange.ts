@@ -713,6 +713,14 @@ export class Exchange {
     return updateSettingsCalldataResponse;
   }
 
+  async getAmmCutOffTimestamp(marketId: number) {
+    const markets = await this.getMarkets({isWhitelisted: true});
+    const market = markets.results.find(m => m.marketId === marketId)!;
+    const ammContract = this.contractsFactory.getAmmContract(market.metadata?.ammAddress as Address);
+    const ammState = await ammContract?.readState();
+    return ammState ? Number(ammState.cutOffTimestamp) : undefined;
+  }
+
   async getMarketData(marketId: number) {
     const markets = await this.getMarkets({isWhitelisted: true});
     const market = markets.results.find(m => m.marketId === marketId)!;
