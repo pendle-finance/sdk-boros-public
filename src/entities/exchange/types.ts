@@ -21,6 +21,34 @@ export type Orders = {
   sizes: bigint[];
   limitTicks: number[];
 }
+export type BulkOrders = {
+  tif: TimeInForce;
+  side: Side;
+  sizes: bigint[];
+  limitTicks: number[];
+}
+
+export type BulkPlaceOrderV4Params = {
+  singleOrders?: {
+    marketAcc: Hex;
+    marketId: number;
+    sides: Side[];
+    sizes: bigint[];
+    limitTicks: number[];
+    tifs: TimeInForce[];
+    ammId?: number;
+    slippage?: number;
+  };
+  bulkOrders?: {
+    cross: boolean;
+    bulks: {
+      marketId: number;
+      orders: BulkOrders;
+      cancelData: CancelData;
+    }[];
+    slippage?: number;
+  };
+}
 
 export type BulkPlaceOrderV3Params = {
   cross: boolean;

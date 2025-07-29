@@ -11,6 +11,7 @@ import {
   BulkPlaceOrderParams,
   BulkPlaceOrderV2Params,
   BulkPlaceOrderV3Params,
+  BulkPlaceOrderV4Params,
   CancelOrdersParams,
   CashTransferParams,
   CloseActivePositionsParams,
@@ -24,7 +25,7 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog } from './utils';
-import { Side } from '../../types';
+import { BulkOrdersReq, functionEncoder, PlaceSingleOrderReq, Side } from '../../types';
 import { iAMMAbi, iExplorerAbi } from '../../contracts';
 import { Explorer } from '../../contracts/explorer';
 import { ContractsFactory } from '../../contracts/contracts.factory';
@@ -221,6 +222,115 @@ export class Exchange {
       },
     };
     return results;
+  }
+
+  async bulkPlaceOrdersV4(
+    request: BulkPlaceOrderV4Params,
+  ) {
+    const { data: bulkPlaceOrderCalldataResponse } =
+    await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV6({
+      singleOrders: request.singleOrders ? {
+        ...request.singleOrders,
+        sizes: request.singleOrders.sizes.map(size => size.toString()),
+      } : undefined,
+      bulkOrders: request.bulkOrders ? {
+        cross: request.bulkOrders.cross,
+        bulks: request.bulkOrders.bulks.map(bulk => ({
+          marketId: bulk.marketId,
+          orders: {
+            ...bulk.orders,
+            sizes: bulk.orders.sizes.map(size => size.toString()),
+          },
+          cancelData: {
+            ...bulk.cancelData,
+            ids: bulk.cancelData.ids.map(id => id.toString()),
+          },
+        })),
+        slippage: request.bulkOrders.slippage,
+      } : undefined,
+    });
+    const responses = await this.bulkSignAndExecute(
+      bulkPlaceOrderCalldataResponse.calldatas as Hex[]
+    );
+    const bulkOrdersResponses = request.bulkOrders ? responses[responses.length - 1] : undefined;
+    const singleOrdersResponses = request.singleOrders && request.bulkOrders ? responses.slice(0, -1) : request.singleOrders ? responses : undefined;
+    
+    const singleOrdersResults = singleOrdersResponses?.map((orderResponse, index) => {
+      if ('error' in orderResponse) {
+        return {
+          error: orderResponse.error,
+        };
+      }
+      const limitOrderPlacedEvent = orderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
+      const swapEvent = orderResponse.events.find((event) => event?.eventName === 'Swap');
+      const otcSwapEvent = orderResponse.events.find((event) => event?.eventName === 'OtcSwap');
+      const limitOrderPartiallyFilledEvent = orderResponse.events.find(
+        (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+      );
+
+      const filledSize =
+        (swapEvent?.args.sizeOut ?? 0n) +
+        (otcSwapEvent?.args.trade ?? 0n) +
+        (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
+      const orderInfo = {
+        side: request.singleOrders!.sides[index],
+        placedSize: limitOrderPlacedEvent?.args.sizes[0],
+        filledSize,
+        orderId: limitOrderPlacedEvent?.args.orderIds[0],
+        root: this.root,
+        marketId: request.singleOrders!.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(request.singleOrders!.marketAcc),
+        blockTimestamp: orderResponse.blockTimestamp,
+        marketAcc: request.singleOrders!.marketAcc,
+      };
+      return {
+        executeResponse: orderResponse.executeResponse,
+        blockNumber: orderResponse.blockNumber,
+        result: {
+          order: orderInfo,
+          events: orderResponse.events,
+        },
+      };
+    });
+    const getBulkOrdersResults = () => {
+      if(!bulkOrdersResponses) return undefined;
+      if('error' in bulkOrdersResponses) return bulkOrdersResponses;
+      const limitOrderPlacedEvents = bulkOrdersResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+      const limitOrderCancelledEvents = bulkOrdersResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
+
+      const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) => event?.args?.orderIds.map((orderId) => orderId.toString()));
+      const orderPlaced = limitOrderPlacedEvents.map((event) => {
+        const { side, tickIndex } = OrderIdLib.unpack(event?.args?.orderIds[0]);
+        const size = event?.args?.sizes[0];
+        const order = {
+          orderId: event?.args?.orderIds[0].toString(),
+          side,
+          size,
+          limitTick: tickIndex,
+        }
+        return order;
+      });
+      return {  
+        executeResponse: bulkOrdersResponses.executeResponse,
+        blockNumber: bulkOrdersResponses.blockNumber,
+        result: {
+          events: bulkOrdersResponses.events,
+          orders: orderPlaced,
+          cancelledOrderIds,
+          blockTimestamp: bulkOrdersResponses.blockTimestamp,
+          root: this.root,
+          accountId: this.accountId,
+          isCross: request.bulkOrders!.cross,
+        }
+      };
+    }
+
+    
+    return {
+      singleOrders: singleOrdersResults,
+      bulkOrders: getBulkOrdersResults(),
+    }
   }
 
   async bulkPlaceOrdersV3(request: BulkPlaceOrderV3Params) {

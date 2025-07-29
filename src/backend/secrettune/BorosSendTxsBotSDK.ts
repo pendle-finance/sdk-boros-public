@@ -38,6 +38,22 @@ export interface BulkAgentExecuteDto {
   datas: AgentExecuteDto[];
 }
 
+export interface AgentSessionQueryDto {
+  /** Root address */
+  root: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp in seconds */
+  timestamp: number;
+  /** Signature */
+  signature: string;
+}
+
+export interface BulkAgentExecuteV2Dto {
+  datas: AgentExecuteDto[];
+  agentSession: AgentSessionQueryDto;
+}
+
 export interface ApproveAgentQueryDto {
   setAccountManagerCalldata?: string;
   approveAgentCalldata: string;
@@ -96,7 +112,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:9006',
+      baseURL: axiosConfig.baseURL || 'https://secrettune.io/send-txs-bot',
     });
     this.secure = secure;
     this.format = format;
@@ -189,7 +205,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl http://localhost:9006
+ * @baseUrl https://secrettune.io/send-txs-bot
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -263,6 +279,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     agentControllerBulkAgentDirectCallV2: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse[], any>({
         path: `/v2/agent/bulk-direct-call`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
+     * @name AgentControllerBulkAgentDirectCallV3
+     * @summary Send multiple direct call to agent
+     * @request POST:/v3/agent/bulk-direct-call
+     */
+    agentControllerBulkAgentDirectCallV3: (data: BulkAgentExecuteV2Dto, params: RequestParams = {}) =>
+      this.request<TxResponse[], any>({
+        path: `/v3/agent/bulk-direct-call`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
