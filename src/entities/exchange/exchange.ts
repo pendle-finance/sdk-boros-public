@@ -33,6 +33,7 @@ import { getCurrentTimestamp } from '../../common/time';
 import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
 import { ContractUserMarketPosition, MarketStatus } from '../../common/types';
 import { arbitrum } from 'viem/chains';
+import { Environment } from '../../addresses';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -47,16 +48,19 @@ export class Exchange {
   private contractsFactory: ContractsFactory;
   private publicClient: PublicClient;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrl?: string) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, params?: {
+    env?: Environment;
+    rpcUrl?: string;
+  }) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
-    this.borosCoreSdk = BorosBackend.getCoreSdk();
-    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
-    this.contractsFactory = new ContractsFactory(rpcUrl);
-    this.publicClient = rpcUrl ? createPublicClient({
+    this.borosCoreSdk = BorosBackend.getCoreSdk(params?.env);
+    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(params?.env);
+    this.contractsFactory = new ContractsFactory(params?.rpcUrl);
+    this.publicClient = params?.rpcUrl ? createPublicClient({
       chain: arbitrum,
-      transport: http(rpcUrl),
+      transport: http(params?.rpcUrl),
     }) : publicClient;
   }
 

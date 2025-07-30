@@ -2,12 +2,13 @@ import { Address } from 'viem';
 import { BorosBackend } from '../../backend';
 import { RewardDistributor } from './RewardDistributor';
 import { MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS } from './constants';
+import { Environment } from '../../addresses';
 
 export class ReferralRewardsDistributor extends RewardDistributor {
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
-  constructor() {
+  constructor(env?: Environment) {
     super(MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS);
-    this.borosCoreSdk = BorosBackend.getCoreSdk();
+    this.borosCoreSdk = BorosBackend.getCoreSdk(env);
   }
 
   async getMerkleByUser(user: Address): Promise<{
