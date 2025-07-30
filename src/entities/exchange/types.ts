@@ -32,13 +32,13 @@ export type BulkPlaceOrderV4Params = {
   singleOrders?: {
     marketAcc: Hex;
     marketId: number;
-    sides: Side[];
-    sizes: bigint[];
-    limitTicks: number[];
-    tifs: TimeInForce[];
+    side: Side;
+    size: bigint;
+    limitTick: number;
+    tif: TimeInForce;
     ammId?: number;
     slippage?: number;
-  };
+  }[];
   bulkOrders?: {
     cross: boolean;
     bulks: {

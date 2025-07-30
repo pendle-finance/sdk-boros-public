@@ -533,17 +533,17 @@ export interface BulkAgentExecuteParamsResponseV2 {
   calldatas: string[];
 }
 
-export interface SingleOrders {
+export interface SingleOrder {
   marketAcc: string;
   marketId: number;
-  /** Side[] { LONG : 0, SHORT : 1 } */
-  sides: (0 | 1)[];
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
   /** sizes */
-  sizes: string[];
+  size: string;
   /** limit ticks */
-  limitTicks: number[];
-  /** TimeInForce[] { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
-  tifs: (0 | 1 | 2 | 3 | 4)[];
+  limitTick: number;
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+  tif: 0 | 1 | 2 | 3 | 4;
   /** ammId */
   ammId?: number;
   /** slippage */
@@ -584,7 +584,7 @@ export interface BulkOrders {
 }
 
 export interface BulkPlaceOrderQueryDtoV4 {
-  singleOrders?: SingleOrders;
+  singleOrders?: SingleOrder[];
   bulkOrders?: BulkOrders;
 }
 
@@ -1528,7 +1528,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753776938
+         * @default 1753846610
          */
         endTimestamp?: number;
       },
@@ -1648,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753776937
+         * @default 1753846610
          */
         endTimestamp?: number;
       },

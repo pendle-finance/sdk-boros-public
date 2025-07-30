@@ -229,10 +229,10 @@ export class Exchange {
   ) {
     const { data: bulkPlaceOrderCalldataResponse } =
     await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV6({
-      singleOrders: request.singleOrders ? {
-        ...request.singleOrders,
-        sizes: request.singleOrders.sizes.map(size => size.toString()),
-      } : undefined,
+      singleOrders: request.singleOrders ? request.singleOrders.map(singleOrder => ({
+        ...singleOrder,
+        size: singleOrder.size.toString(),
+      })) : undefined,
       bulkOrders: request.bulkOrders ? {
         cross: request.bulkOrders.cross,
         bulks: request.bulkOrders.bulks.map(bulk => ({
@@ -273,16 +273,16 @@ export class Exchange {
         (otcSwapEvent?.args.trade ?? 0n) +
         (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
       const orderInfo = {
-        side: request.singleOrders!.sides[index],
+        side: request.singleOrders![index],
         placedSize: limitOrderPlacedEvent?.args.sizes[0],
         filledSize,
         orderId: limitOrderPlacedEvent?.args.orderIds[0],
         root: this.root,
-        marketId: request.singleOrders!.marketId,
+        marketId: request.singleOrders![index].marketId,
         accountId: this.accountId,
-        isCross: MarketAccLib.isCrossMarket(request.singleOrders!.marketAcc),
+        isCross: MarketAccLib.isCrossMarket(request.singleOrders![index].marketAcc),
         blockTimestamp: orderResponse.blockTimestamp,
-        marketAcc: request.singleOrders!.marketAcc,
+        marketAcc: request.singleOrders![index].marketAcc,
       };
       return {
         executeResponse: orderResponse.executeResponse,
