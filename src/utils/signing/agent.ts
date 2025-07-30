@@ -1,6 +1,7 @@
 import { Address, Hex, getAbiItem, keccak256 } from 'viem';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { Agent, getInternalAgent } from '../../entities';
+import { Environment } from '../../addresses';
 import { MarketAcc, PendleSignTxStruct, functionEncoder } from '../../types';
 import { AccountLib } from '../accountLib';
 import { AGENT_MESSAGE_TYPES, EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
@@ -17,8 +18,9 @@ export type SignedAgentExecution = {
 async function messagesToSigns(params: {
   calldatas: Hex[];
   messages: PendleSignTxStruct[];
+  env?: Environment;
 }) {
-  const { calldatas, messages } = params;
+  const { calldatas, messages, env } = params;
   const agent = getInternalAgent();
   const signer = agent.walletClient;
   const pendleSignTxType = getAbiItem({
@@ -30,7 +32,7 @@ async function messagesToSigns(params: {
     messages.map((message) =>
       signer.signTypedData({
         account: agent.walletClient.account!,
-        domain: PENDLE_BOROS_ROUTER_DOMAIN,
+        domain: PENDLE_BOROS_ROUTER_DOMAIN(env),
         types: {
           EIP712Domain: EIP712_DOMAIN_TYPES,
           PendleSignTx: pendleSignTxType,
@@ -104,9 +106,10 @@ export async function signWithAgent(params: {
   root: Address;
   accountId: number;
   calldata: Hex;
+  env?: Environment;
   agent?: Agent;
 }): Promise<SignedAgentExecution> {
-  const { root, accountId, calldata } = params;
+  const { root, accountId, calldata, env } = params;
 
   const message: PendleSignTxStruct = {
     account: AccountLib.pack(root, accountId),
@@ -123,7 +126,7 @@ export async function signWithAgent(params: {
 
   const signature = await signer.signTypedData({
     account: agent.walletClient.account!,
-    domain: PENDLE_BOROS_ROUTER_DOMAIN,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(env),
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
       PendleSignTx: pendleSignTxType,
@@ -144,8 +147,9 @@ export async function signUpdateSettings(params: {
   marketAcc: MarketAcc;
   marketId: number;
   leverage: number;
+  env?: Environment;
 }) {
-  const { marketAcc, marketId, leverage } = params;
+  const { marketAcc, marketId, leverage, env } = params;
 
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
@@ -154,7 +158,7 @@ export async function signUpdateSettings(params: {
 
   const signature = await signer.signTypedData({
     account: agent.walletClient.account!,
-    domain: PENDLE_BOROS_ROUTER_DOMAIN,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(env),
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
       UpdateSettings: UPDATE_SETTINGS_TYPES,
@@ -176,7 +180,10 @@ export async function signUpdateSettings(params: {
   };
 }
 
-export async function getAgentSignature() {
+export async function getAgentSignature(params?: {
+  env: Environment;
+}) {
+  const { env = 'production' } = params ?? {};
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
   const signer = agent.walletClient;
@@ -184,7 +191,7 @@ export async function getAgentSignature() {
 
   const signature = await signer.signTypedData({
     account: agent.walletClient.account!,
-    domain: PENDLE_BOROS_ROUTER_DOMAIN,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(env),
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
       AgentMessage: AGENT_MESSAGE_TYPES,

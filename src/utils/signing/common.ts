@@ -1,11 +1,11 @@
-import { CHAIN_ID, ROUTER_ADDRESS } from '../../addresses';
+import { CHAIN_ID, Environment, getRouterAddress } from '../../addresses';
 
-export const PENDLE_BOROS_ROUTER_DOMAIN = {
+export const PENDLE_BOROS_ROUTER_DOMAIN = (env?: Environment) => ({
   name: 'Pendle Boros Router',
   version: '1.0',
   chainId: BigInt(CHAIN_ID),
-  verifyingContract: ROUTER_ADDRESS,
-} as const;
+  verifyingContract: getRouterAddress(env),
+} as const);
 
 export const EIP712_DOMAIN_TYPES = [
   { name: 'name', type: 'string' },

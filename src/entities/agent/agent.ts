@@ -1,7 +1,7 @@
 import { http, Address, Hex, WalletClient, createWalletClient, encodeFunctionData, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { ROUTER_ADDRESS } from '../../addresses';
+import { Environment, getRouterAddress } from '../../addresses';
 import { RPC_URL } from '../../common';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { ApproveAgentMessage, Account as BorosAccount } from '../../types/common';
@@ -74,10 +74,10 @@ export class Agent {
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
   }
 
-  async getExpiry(account: BorosAccount): Promise<number> {
+  async getExpiry(account: BorosAccount, env?: Environment): Promise<number> {
     const agentAddress = await this.getAddress();
     const expiry = await publicClient.readContract({
-      address: ROUTER_ADDRESS,
+      address: getRouterAddress(env),
       abi: iRouterAbi,
       functionName: 'agentExpiry',
       args: [account, agentAddress],
