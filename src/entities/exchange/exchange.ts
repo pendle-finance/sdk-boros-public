@@ -2,7 +2,6 @@ import { FixedX18 } from '@pendle/boros-offchain-math';
 import { Address, erc20Abi, getContract, Hex, WalletClient } from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2 } from '../../backend/secrettune/BorosCoreSDK';
-import { CROSS_MARKET_ID } from '../../constants';
 import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
