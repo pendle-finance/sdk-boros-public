@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Generate Boros Backend SDK
-BOROS_CORE_URL=https://secrettune.io/core-v2/docs-json
-BOROS_SEND_TXS_BOT_URL=https://secrettune.io/send-txs-bot/docs-json
+BOROS_CORE_URL=https://staging-api.boros.finance/core/docs-json
+BOROS_SEND_TXS_BOT_URL=https://staging-api.boros.finance/send-txs-bot/docs-json
 OUTPUT_DIR="./src/backend/secrettune/"
 
 if [[ "FROM_LOCAL" -eq "1" ]]; then

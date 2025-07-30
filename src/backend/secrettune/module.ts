@@ -8,8 +8,8 @@ import { Sdk as SendTxsBotSdk } from './BorosSendTxsBotSDK';
 
 // in ./index.ts
 
-let coreBackendUrl = 'https://secrettune.io/core-v2';
-let sendTxsBotBackendUrl = 'https://secrettune.io/send-txs-bot';
+let coreBackendUrl = 'https://staging-api.boros.finance/core';
+let sendTxsBotBackendUrl = 'https://staging-api.boros.finance/send-txs-bot';
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface BorosCoreSdk extends CoreSdk<unknown> {}
 export interface BorosSendTxsBotSdk extends SendTxsBotSdk<unknown> {}
