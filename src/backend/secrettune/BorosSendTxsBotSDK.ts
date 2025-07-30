@@ -39,12 +39,10 @@ export interface BulkAgentExecuteDto {
 }
 
 export interface ApproveAgentQueryDto {
-  setAccountManagerCalldata?: string;
   approveAgentCalldata: string;
 }
 
 export interface ApproveAgentResponse {
-  setAccountManagerResult?: TxResponse;
   approveAgentResult: TxResponse;
 }
 

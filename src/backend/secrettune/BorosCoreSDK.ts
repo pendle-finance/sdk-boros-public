@@ -1466,7 +1466,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753339096
+         * @default 1753861632
          */
         endTimestamp?: number;
       },
@@ -1586,7 +1586,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753339096
+         * @default 1753861632
          */
         endTimestamp?: number;
       },
