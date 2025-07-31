@@ -249,9 +249,9 @@ export class Exchange {
         ...singleOrder,
         size: singleOrder.size.toString(),
       })) : undefined,
-      bulkOrders: request.bulkOrders ? {
-        cross: request.bulkOrders.cross,
-        bulks: request.bulkOrders.bulks.map(bulk => ({
+      bulkOrders: request.bulkOrders ? request.bulkOrders.map(bulkOrder => ({
+        cross: bulkOrder.cross,
+        bulks: bulkOrder.bulks.map(bulk => ({
           marketId: bulk.marketId,
           orders: {
             ...bulk.orders,
@@ -262,14 +262,15 @@ export class Exchange {
             ids: bulk.cancelData.ids.map(id => id.toString()),
           },
         })),
-        slippage: request.bulkOrders.slippage,
-      } : undefined,
+        slippage: bulkOrder.slippage,
+      })) : undefined,
     });
     const responses = await this.bulkSignAndExecute(
       bulkPlaceOrderCalldataResponse.calldatas as Hex[]
     );
-    const bulkOrdersResponses = request.bulkOrders ? responses[responses.length - 1] : undefined;
-    const singleOrdersResponses = request.singleOrders && request.bulkOrders ? responses.slice(0, -1) : request.singleOrders ? responses : undefined;
+    const startBulkIndex = request.bulkOrders ? responses.length - request.bulkOrders.length : 0;
+    const bulkOrdersResponses = request.bulkOrders ? responses.slice(startBulkIndex) : undefined;
+    const singleOrdersResponses = request.singleOrders && request.bulkOrders ? responses.slice(0, startBulkIndex) : request.singleOrders ? responses : undefined;
     
     const singleOrdersResults = singleOrdersResponses?.map((orderResponse, index) => {
       if ('error' in orderResponse) {
@@ -311,9 +312,10 @@ export class Exchange {
     });
     const getBulkOrdersResults = () => {
       if(!bulkOrdersResponses) return undefined;
-      if('error' in bulkOrdersResponses) return bulkOrdersResponses;
-      const limitOrderPlacedEvents = bulkOrdersResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
-      const limitOrderCancelledEvents = bulkOrdersResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
+      return bulkOrdersResponses.map((bulkOrderResponse, index) => {
+        if('error' in bulkOrderResponse) return bulkOrderResponse;
+      const limitOrderPlacedEvents = bulkOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+      const limitOrderCancelledEvents = bulkOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
 
       const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) => event?.args?.orderIds.map((orderId) => orderId.toString()));
       const orderPlaced = limitOrderPlacedEvents.map((event) => {
@@ -328,18 +330,19 @@ export class Exchange {
         return order;
       });
       return {  
-        executeResponse: bulkOrdersResponses.executeResponse,
-        blockNumber: bulkOrdersResponses.blockNumber,
+        executeResponse: bulkOrderResponse.executeResponse,
+        blockNumber: bulkOrderResponse.blockNumber,
         result: {
-          events: bulkOrdersResponses.events,
+          events: bulkOrderResponse.events,
           orders: orderPlaced,
           cancelledOrderIds,
-          blockTimestamp: bulkOrdersResponses.blockTimestamp,
+          blockTimestamp: bulkOrderResponse.blockTimestamp,
           root: this.root,
           accountId: this.accountId,
-          isCross: request.bulkOrders!.cross,
+          isCross: request.bulkOrders![index].cross,
         }
       };
+      })
     }
 
     

@@ -585,7 +585,7 @@ export interface BulkOrders {
 
 export interface BulkPlaceOrderQueryDtoV4 {
   singleOrders?: SingleOrder[];
-  bulkOrders?: BulkOrders;
+  bulkOrders?: BulkOrders[];
 }
 
 export interface BulkPlaceOrderQueryDtoV3 {
@@ -1338,7 +1338,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://staging-api.boros.finance/core',
+      baseURL: axiosConfig.baseURL || 'http://localhost:8000',
     });
     this.secure = secure;
     this.format = format;
@@ -1431,7 +1431,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://staging-api.boros.finance/core
+ * @baseUrl http://localhost:8000
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1528,7 +1528,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753942110
+         * @default 1753943300
          */
         endTimestamp?: number;
       },
@@ -1648,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753942110
+         * @default 1753943300
          */
         endTimestamp?: number;
       },

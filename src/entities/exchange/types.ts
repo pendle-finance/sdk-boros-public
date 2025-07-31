@@ -47,7 +47,7 @@ export type BulkPlaceOrderV4Params = {
       cancelData: CancelData;
     }[];
     slippage?: number;
-  };
+  }[];
 }
 
 export type BulkPlaceOrderV3Params = {
