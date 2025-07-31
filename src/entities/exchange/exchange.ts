@@ -1,5 +1,15 @@
 import { FixedX18, getRateAtTick } from '@pendle/boros-offchain-math';
-import { Address, createPublicClient, erc20Abi, getContract, Hex, http, PublicClient, WalletClient, BlockNumber } from 'viem';
+import {
+  Address,
+  createPublicClient,
+  erc20Abi,
+  getContract,
+  Hex,
+  http,
+  PublicClient,
+  WalletClient,
+  BlockNumber,
+} from 'viem';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { CROSS_MARKET_ID } from '../../constants';
@@ -54,23 +64,23 @@ export class Exchange {
     this.borosCoreSdk = BorosBackend.getCoreSdk(this.env);
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(this.env);
     this.contractsFactory = new ContractsFactory(rpcUrl);
-    this.publicClient = rpcUrl ? createPublicClient({
-      chain: arbitrum,
-      transport: http(rpcUrl),
-    }) : publicClient;
+    this.publicClient = rpcUrl
+      ? createPublicClient({
+          chain: arbitrum,
+          transport: http(rpcUrl),
+        })
+      : publicClient;
   }
 
   async enterMarkets(cross: boolean, marketIds: number[]) {
-    const marketIdsString = marketIds.map(marketId => marketId.toString()).join(',');
+    const marketIdsString = marketIds.map((marketId) => marketId.toString()).join(',');
     const { data: enterMarketsCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetEnterExitMarketsCalldata({
         isCross: cross,
         marketIds: marketIdsString,
         isEnter: true,
       });
-    const enterMarketsResponses = await this.bulkSignAndExecute(
-      enterMarketsCalldataResponse.calldatas as Hex[]
-    );
+    const enterMarketsResponses = await this.bulkSignAndExecute(enterMarketsCalldataResponse.calldatas as Hex[]);
     return enterMarketsResponses;
   }
 
@@ -151,7 +161,7 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldata,
-      env: this.env
+      env: this.env,
     });
 
     const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
@@ -240,38 +250,43 @@ export class Exchange {
     return results;
   }
 
-  async bulkPlaceOrdersV4(
-    request: BulkPlaceOrderV4Params,
-  ) {
+  async bulkPlaceOrdersV4(request: BulkPlaceOrderV4Params) {
     const { data: bulkPlaceOrderCalldataResponse } =
-    await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV6({
-      singleOrders: request.singleOrders ? request.singleOrders.map(singleOrder => ({
-        ...singleOrder,
-        size: singleOrder.size.toString(),
-      })) : undefined,
-      bulkOrders: request.bulkOrders ? request.bulkOrders.map(bulkOrder => ({
-        cross: bulkOrder.cross,
-        bulks: bulkOrder.bulks.map(bulk => ({
-          marketId: bulk.marketId,
-          orders: {
-            ...bulk.orders,
-            sizes: bulk.orders.sizes.map(size => size.toString()),
-          },
-          cancelData: {
-            ...bulk.cancelData,
-            ids: bulk.cancelData.ids.map(id => id.toString()),
-          },
-        })),
-        slippage: bulkOrder.slippage,
-      })) : undefined,
-    });
-    const responses = await this.bulkSignAndExecute(
-      bulkPlaceOrderCalldataResponse.calldatas as Hex[]
-    );
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV6({
+        singleOrders: request.singleOrders
+          ? request.singleOrders.map((singleOrder) => ({
+              ...singleOrder,
+              size: singleOrder.size.toString(),
+            }))
+          : undefined,
+        bulkOrders: request.bulkOrders
+          ? request.bulkOrders.map((bulkOrder) => ({
+              cross: bulkOrder.cross,
+              bulks: bulkOrder.bulks.map((bulk) => ({
+                marketId: bulk.marketId,
+                orders: {
+                  ...bulk.orders,
+                  sizes: bulk.orders.sizes.map((size) => size.toString()),
+                },
+                cancelData: {
+                  ...bulk.cancelData,
+                  ids: bulk.cancelData.ids.map((id) => id.toString()),
+                },
+              })),
+              slippage: bulkOrder.slippage,
+            }))
+          : undefined,
+      });
+    const responses = await this.bulkSignAndExecute(bulkPlaceOrderCalldataResponse.calldatas as Hex[]);
     const startBulkIndex = request.bulkOrders ? responses.length - request.bulkOrders.length : 0;
     const bulkOrdersResponses = request.bulkOrders ? responses.slice(startBulkIndex) : undefined;
-    const singleOrdersResponses = request.singleOrders && request.bulkOrders ? responses.slice(0, startBulkIndex) : request.singleOrders ? responses : undefined;
-    
+    const singleOrdersResponses =
+      request.singleOrders && request.bulkOrders
+        ? responses.slice(0, startBulkIndex)
+        : request.singleOrders
+          ? responses
+          : undefined;
+
     const singleOrdersResults = singleOrdersResponses?.map((orderResponse, index) => {
       if ('error' in orderResponse) {
         return {
@@ -311,57 +326,66 @@ export class Exchange {
       };
     });
     const getBulkOrdersResults = () => {
-      if(!bulkOrdersResponses) return undefined;
+      if (!bulkOrdersResponses) return undefined;
       return bulkOrdersResponses.map((bulkOrderResponse, index) => {
-        if('error' in bulkOrderResponse) return bulkOrderResponse;
-      const limitOrderPlacedEvents = bulkOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
-      const limitOrderCancelledEvents = bulkOrderResponse.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
+        if ('error' in bulkOrderResponse) return bulkOrderResponse;
+        const limitOrderPlacedEvents = bulkOrderResponse.events.filter(
+          (event) => event?.eventName === 'LimitOrderPlaced'
+        );
+        const limitOrderCancelledEvents = bulkOrderResponse.events.filter(
+          (event) => event?.eventName === 'LimitOrderCancelled'
+        );
 
-      const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) => event?.args?.orderIds.map((orderId) => orderId.toString()));
-      const orderPlaced = limitOrderPlacedEvents.map((event) => {
-        const { side, tickIndex } = OrderIdLib.unpack(event?.args?.orderIds[0]);
-        const size = event?.args?.sizes[0];
-        const order = {
-          orderId: event?.args?.orderIds[0].toString(),
-          side,
-          size,
-          limitTick: tickIndex,
-        }
-        return order;
+        const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) =>
+          event?.args?.orderIds.map((orderId) => orderId.toString())
+        );
+        const orderPlaced = limitOrderPlacedEvents.flatMap((event) => {
+          return event.args.orderIds.map((orderId, id) => {
+            const { side, tickIndex } = OrderIdLib.unpack(orderId);
+            const size = event.args.sizes[id];
+            const order = {
+              orderId: orderId.toString(),
+              side,
+              size,
+              limitTick: tickIndex,
+            };
+            return order;
+          });
+        });
+        return {
+          executeResponse: bulkOrderResponse.executeResponse,
+          blockNumber: bulkOrderResponse.blockNumber,
+          result: {
+            events: bulkOrderResponse.events,
+            orders: orderPlaced,
+            cancelledOrderIds,
+            blockTimestamp: bulkOrderResponse.blockTimestamp,
+            root: this.root,
+            accountId: this.accountId,
+            isCross: request.bulkOrders![index].cross,
+          },
+        };
       });
-      return {  
-        executeResponse: bulkOrderResponse.executeResponse,
-        blockNumber: bulkOrderResponse.blockNumber,
-        result: {
-          events: bulkOrderResponse.events,
-          orders: orderPlaced,
-          cancelledOrderIds,
-          blockTimestamp: bulkOrderResponse.blockTimestamp,
-          root: this.root,
-          accountId: this.accountId,
-          isCross: request.bulkOrders![index].cross,
-        }
-      };
-      })
-    }
+    };
 
-    
     return {
       singleOrders: singleOrdersResults,
       bulkOrders: getBulkOrdersResults(),
-    }
+    };
   }
 
   async bulkPlaceOrdersV3(request: BulkPlaceOrderV3Params) {
     const { cross, bulks, slippage } = request;
     const originalOrderIds: string[] = [];
-    const marketIds = bulks.map(bulk => bulk.marketId);
+    const marketIds = bulks.map((bulk) => bulk.marketId);
     const bulkOrders = bulks.flatMap((bulk) => {
       const longSizes = bulk.orders.sizes.filter((_, index) => bulk.orders.sides[index] === Side.LONG);
       const longLimitTicks = bulk.orders.limitTicks.filter((_, index) => bulk.orders.sides[index] === Side.LONG);
       const shortSizes = bulk.orders.sizes.filter((_, index) => bulk.orders.sides[index] === Side.SHORT);
       const shortLimitTicks = bulk.orders.limitTicks.filter((_, index) => bulk.orders.sides[index] === Side.SHORT);
-      bulk.orders.limitTicks.forEach((tick, index) => originalOrderIds.push(`${bulk.marketId}-${tick}-${bulk.orders.sides[index]}-${bulk.orders.sizes[index]}`));
+      bulk.orders.limitTicks.forEach((tick, index) =>
+        originalOrderIds.push(`${bulk.marketId}-${tick}-${bulk.orders.sides[index]}-${bulk.orders.sizes[index]}`)
+      );
       const firstSizes = longSizes.length > 0 ? longSizes : shortSizes;
       const firstLimitTicks = longSizes.length > 0 ? longLimitTicks : shortLimitTicks;
       const firstSide = longSizes.length > 0 ? Side.LONG : Side.SHORT;
@@ -383,7 +407,7 @@ export class Exchange {
           isStrict: bulk.cancelData.isStrict,
         },
       });
-      if(secondSizes.length > 0) {
+      if (secondSizes.length > 0) {
         orders.push({
           marketId: bulk.marketId,
           orders: {
@@ -400,22 +424,24 @@ export class Exchange {
         });
       }
       return orders;
-    })
+    });
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV5({
         cross,
         bulks: bulkOrders,
         slippage,
       });
-    const bulkOrderResponses = await this.signAndExecute(
-      bulkPlaceOrderCalldataResponse.calldatas[0] as Hex
-    );
+    const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as Hex);
 
     const limitOrderPlacedEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
-    const limitOrderCancelledEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled');
+    const limitOrderCancelledEvents = bulkOrderResponses.events.filter(
+      (event) => event?.eventName === 'LimitOrderCancelled'
+    );
     // const swapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'Swap');
 
-    const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) => event?.args?.orderIds.map((orderId) => orderId.toString()));
+    const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) =>
+      event?.args?.orderIds.map((orderId) => orderId.toString())
+    );
 
     // const orderPlacedMap = new Map<string, {
     //   originalOrderId: string;
@@ -434,7 +460,7 @@ export class Exchange {
         side,
         size,
         limitTick: tickIndex,
-      }
+      };
       // orderPlacedMap.set(`${tickIndex}-${side}-${size}`, order);
       return order;
     });
@@ -454,7 +480,7 @@ export class Exchange {
     //     limitTick: order?.limitTick,
     //   }
     // });
-    return {  
+    return {
       executeResponse: bulkOrderResponses.executeResponse,
       blockNumber: bulkOrderResponses.blockNumber,
       result: {
@@ -465,9 +491,8 @@ export class Exchange {
         root: this.root,
         accountId: this.accountId,
         isCross: request.cross,
-      }
+      },
     };
-
   }
 
   async bulkPlaceOrders(request: BulkPlaceOrderParams) {
@@ -476,7 +501,9 @@ export class Exchange {
     const longLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.LONG);
     const shortSizes = orders.sizes.filter((_, index) => orders.sides[index] === Side.SHORT);
     const shortLimitTicks = orders.limitTicks.filter((_, index) => orders.sides[index] === Side.SHORT);
-    const originalOrderIds = orders.limitTicks.map((tick, index) => `${tick}-${orders.sides[index]}-${orders.sizes[index]}`);
+    const originalOrderIds = orders.limitTicks.map(
+      (tick, index) => `${tick}-${orders.sides[index]}-${orders.sizes[index]}`
+    );
     const { data: bulkPlaceOrderCalldataResponse } =
       await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV4({
         marketAcc: request.marketAcc,
@@ -499,17 +526,20 @@ export class Exchange {
           side: Side.SHORT,
         },
       });
-      const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as unknown as Hex);
-      const limitOrderPlacedEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
-      const longLimitOrderPlacedEvent = limitOrderPlacedEvents[0];
-      const shortLimitOrderPlacedEvent = limitOrderPlacedEvents[1];
-      const limitOrderCancelledEvent = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderCancelled')[0];
-      // const swapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'Swap');
-      // const otcSwapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'OtcSwap');
-      // const limitOrderPartiallyFilledEvents = bulkOrderResponses.events.filter(
-      //   (event) => event?.eventName === 'LimitOrderPartiallyFilled'
-      // );
-      const longOrdersPlaced = longLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => { 
+    const bulkOrderResponses = await this.signAndExecute(bulkPlaceOrderCalldataResponse.calldatas[0] as unknown as Hex);
+    const limitOrderPlacedEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+    const longLimitOrderPlacedEvent = limitOrderPlacedEvents[0];
+    const shortLimitOrderPlacedEvent = limitOrderPlacedEvents[1];
+    const limitOrderCancelledEvent = bulkOrderResponses.events.filter(
+      (event) => event?.eventName === 'LimitOrderCancelled'
+    )[0];
+    // const swapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'Swap');
+    // const otcSwapEvents = bulkOrderResponses.events.filter((event) => event?.eventName === 'OtcSwap');
+    // const limitOrderPartiallyFilledEvents = bulkOrderResponses.events.filter(
+    //   (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+    // );
+    const longOrdersPlaced =
+      longLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => {
         const { side, tickIndex } = OrderIdLib.unpack(orderId);
         const size = longLimitOrderPlacedEvent?.args?.sizes[index];
         return {
@@ -518,84 +548,90 @@ export class Exchange {
           side,
           size,
           limitTick: tickIndex,
-        }
+        };
       }) ?? [];
-      const shortOrdersPlaced = shortLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => { 
+    const shortOrdersPlaced =
+      shortLimitOrderPlacedEvent?.args?.orderIds.map((orderId, index) => {
         const { side, tickIndex } = OrderIdLib.unpack(orderId);
         const size = shortLimitOrderPlacedEvent?.args?.sizes[index];
         return {
           originalOrderId: `${tickIndex}-${side}-${size}`,
-          orderId: orderId.toString(), 
+          orderId: orderId.toString(),
           side,
           size,
           limitTick: tickIndex,
-        }
+        };
       }) ?? [];
 
-      const orderPlacedMap = new Map<string, {
+    const orderPlacedMap = new Map<
+      string,
+      {
         originalOrderId: string;
         orderId: string;
         side: Side;
         size: bigint;
         limitTick: number;
-      }>();
+      }
+    >();
 
-      longOrdersPlaced.concat(shortOrdersPlaced).forEach((order) => {
-        orderPlacedMap.set(order.originalOrderId, order);
-      });
+    longOrdersPlaced.concat(shortOrdersPlaced).forEach((order) => {
+      orderPlacedMap.set(order.originalOrderId, order);
+    });
 
-      const orderResults= originalOrderIds.map((originalOrderId) => {
-        const order = orderPlacedMap.get(originalOrderId);
-        if(!order) {
-          return {
-            error: `Order ${originalOrderId} not found`,
-          }
-        }
+    const orderResults = originalOrderIds.map((originalOrderId) => {
+      const order = orderPlacedMap.get(originalOrderId);
+      if (!order) {
         return {
-          originalOrderId,
-          orderId: order?.orderId,
-          side: order?.side,
-          size: order?.size,
-          limitTick: order?.limitTick,
-        }
-      });
-      const otherOrders = longOrdersPlaced.concat(shortOrdersPlaced).filter((order) => 
-        !orderResults.some((result) => result.originalOrderId === order.originalOrderId)
-      );
-      const otherOrdersInfo = otherOrders.map((order) => {
-        return {
-          originalOrderId: order?.originalOrderId,
-          orderId: order?.orderId,
-          side: order?.side,
-          size: order?.size,
-          limitTick: order?.limitTick,
-        }
-      });
-      const cancelledOrderIds = limitOrderCancelledEvent?.args?.orderIds.map((orderId) => orderId.toString());
-
-      const cancelledOrdersInfo = cancelledOrderIds ? {
-        orderIds: cancelledOrderIds,
-        root: this.root,
-        marketId: request.marketId,
-        accountId: this.accountId,
-      } : undefined;
-
+          error: `Order ${originalOrderId} not found`,
+        };
+      }
       return {
-        executeResponse: bulkOrderResponses.executeResponse,
-        blockNumber: bulkOrderResponses.blockNumber,
-        result: {
-          orders: orderResults,
-          otherOrders: otherOrdersInfo,
-          cancelledOrders: cancelledOrdersInfo,
-          events: bulkOrderResponses.events,
+        originalOrderId,
+        orderId: order?.orderId,
+        side: order?.side,
+        size: order?.size,
+        limitTick: order?.limitTick,
+      };
+    });
+    const otherOrders = longOrdersPlaced
+      .concat(shortOrdersPlaced)
+      .filter((order) => !orderResults.some((result) => result.originalOrderId === order.originalOrderId));
+    const otherOrdersInfo = otherOrders.map((order) => {
+      return {
+        originalOrderId: order?.originalOrderId,
+        orderId: order?.orderId,
+        side: order?.side,
+        size: order?.size,
+        limitTick: order?.limitTick,
+      };
+    });
+    const cancelledOrderIds = limitOrderCancelledEvent?.args?.orderIds.map((orderId) => orderId.toString());
+
+    const cancelledOrdersInfo = cancelledOrderIds
+      ? {
+          orderIds: cancelledOrderIds,
           root: this.root,
           marketId: request.marketId,
           accountId: this.accountId,
-          isCross: MarketAccLib.isCrossMarket(request.marketAcc),
-          blockTimestamp: bulkOrderResponses.blockTimestamp,
-          marketAcc: request.marketAcc,
-        },
-      };
+        }
+      : undefined;
+
+    return {
+      executeResponse: bulkOrderResponses.executeResponse,
+      blockNumber: bulkOrderResponses.blockNumber,
+      result: {
+        orders: orderResults,
+        otherOrders: otherOrdersInfo,
+        cancelledOrders: cancelledOrdersInfo,
+        events: bulkOrderResponses.events,
+        root: this.root,
+        marketId: request.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(request.marketAcc),
+        blockTimestamp: bulkOrderResponses.blockTimestamp,
+        marketAcc: request.marketAcc,
+      },
+    };
   }
 
   async bulkPlaceOrdersV2(request: BulkPlaceOrderV2Params) {
@@ -737,28 +773,30 @@ export class Exchange {
     const { userAddress, tokenId, amount, accountId, marketId } = params;
     const [depositCalldataResponse, tokenAddress] = await Promise.all([
       this.borosCoreSdk.calldata.calldataControllerGetDepositCalldataV2({
-      userAddress,
-      tokenId,
-      amount: amount.toString(),
-      accountId,
-      marketId,
+        userAddress,
+        tokenId,
+        amount: amount.toString(),
+        accountId,
+        marketId,
       }),
-      params.tokenAddress ? params.tokenAddress : this.borosCoreSdk.assets.assetsControllerGetAllAssets().then(res => {
-        const tokenAddress = res.data.assets.find((asset) => asset.tokenId === tokenId)?.address!;
-        return tokenAddress;
-       })
+      params.tokenAddress
+        ? params.tokenAddress
+        : this.borosCoreSdk.assets.assetsControllerGetAllAssets().then((res) => {
+            const tokenAddress = res.data.assets.find((asset) => asset.tokenId === tokenId)?.address!;
+            return tokenAddress;
+          }),
     ]);
     const tokenContract = getContract({
       abi: erc20Abi,
       address: tokenAddress as Address,
       client: this.walletClient,
-    })
+    });
 
     const approvalhash = await tokenContract.write.approve([depositCalldataResponse.data.to as Address, amount], {
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
-      type: 'eip1559'
+      type: 'eip1559',
     });
     await publicClient.waitForTransactionReceipt({ hash: approvalhash, confirmations: 1 });
     const hash = await this.walletClient.sendTransaction({
@@ -767,7 +805,7 @@ export class Exchange {
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
-      type: 'eip1559'
+      type: 'eip1559',
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
@@ -789,7 +827,7 @@ export class Exchange {
       account: this.walletClient.account!,
       chain: this.walletClient.chain,
       gas: 1_000_000n,
-      type: 'eip1559'
+      type: 'eip1559',
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
@@ -843,14 +881,14 @@ export class Exchange {
   }
 
   async getAmmCutOffTimestamp(marketId: number) {
-    const markets = await this.getMarkets({isWhitelisted: true});
-    const market = markets.results.find(m => m.marketId === marketId)!;
+    const markets = await this.getMarkets({ isWhitelisted: true });
+    const market = markets.results.find((m) => m.marketId === marketId)!;
     const ammContract = this.contractsFactory.getAmmContract(market.metadata?.ammAddress as Address);
     const ammState = await ammContract?.readState();
     return ammState ? Number(ammState.cutOffTimestamp) : undefined;
   }
 
-  async getMarketData(marketId: number) : Promise<{
+  async getMarketData(marketId: number): Promise<{
     midApr: number;
     impliedApr: number;
     bestBidApr: number | undefined;
@@ -858,23 +896,24 @@ export class Exchange {
     lastTradedApr: number;
     markApr: number;
     marketStatus: MarketStatus;
-}> {
-    const markets = await this.getMarkets({isWhitelisted: true});
-    const market = markets.results.find(m => m.marketId === marketId)!;
+  }> {
+    const markets = await this.getMarkets({ isWhitelisted: true });
+    const market = markets.results.find((m) => m.marketId === marketId)!;
 
     const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
-    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] = await Promise.all([
-      explorerContract.getMarketInfo(market.marketId),
-      marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
-      marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
-      ammContract ? ammContract.readState() : undefined,
-      ammContract ? ammContract.impliedRate() : undefined,
-      marketContract.getImpliedRateData(),
-      marketContract.getMarketConfig(),
-    ]);
+    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] =
+      await Promise.all([
+        explorerContract.getMarketInfo(market.marketId),
+        marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
+        marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
+        ammContract ? ammContract.readState() : undefined,
+        ammContract ? ammContract.impliedRate() : undefined,
+        marketContract.getImpliedRateData(),
+        marketContract.getMarketConfig(),
+      ]);
     const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
     const { impliedApr, markApr } = marketInfo;
 
@@ -898,7 +937,7 @@ export class Exchange {
       lastTradedApr: FixedX18.fromRawValue(impliedRateData.lastTradedRate).toNumber(),
       markApr: FixedX18.fromRawValue(markApr).toNumber(),
       marketStatus: marketConfig.status,
-    }
+    };
   }
 
   private static _getMarketsCache: { [key: string]: { value: MarketsResponse; timestamp: number } } = {};
@@ -934,32 +973,36 @@ export class Exchange {
     const { marketId, userAddress, accountId, tokenId } = params;
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
-    const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
+    const crossMarketAcc = MarketAccLib.pack(
+      userAddress ?? this.root,
+      accountId ?? this.accountId,
+      tokenId,
+      CROSS_MARKET_ID
+    );
     const [userInfo, crossUserInfo] = await Promise.all([
       explorerContract.getUserInfo(marketAcc),
       marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined,
     ]);
-    const userPositions = userInfo.positions.map(position => {
+    const userPositions = userInfo.positions.map((position) => {
       return {
         position,
-        marketAcc
-      }
+        marketAcc,
+      };
     });
-    const crossUserPositions = crossUserInfo?.positions.map(position => {
+    const crossUserPositions = crossUserInfo?.positions.map((position) => {
       return {
         position,
-        marketAcc: crossMarketAcc
-      }
+        marketAcc: crossMarketAcc,
+      };
     });
-    const positions = userPositions.concat(crossUserPositions ?? [])
-    .filter(val => 
-      marketId !== CROSS_MARKET_ID ? val.position.marketId === marketId : true
-    )
-    .map(val => ({
-      ...val.position,
-      marketAcc: val.marketAcc,
-      isCross: MarketAccLib.isCrossMarket(val.marketAcc),
-    }) );
+    const positions = userPositions
+      .concat(crossUserPositions ?? [])
+      .filter((val) => (marketId !== CROSS_MARKET_ID ? val.position.marketId === marketId : true))
+      .map((val) => ({
+        ...val.position,
+        marketAcc: val.marketAcc,
+        isCross: MarketAccLib.isCrossMarket(val.marketAcc),
+      }));
     return positions;
   }
 
@@ -967,22 +1010,26 @@ export class Exchange {
     const { marketId, userAddress, accountId, tokenId } = params;
     const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
-    const crossMarketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, CROSS_MARKET_ID);
+    const crossMarketAcc = MarketAccLib.pack(
+      userAddress ?? this.root,
+      accountId ?? this.accountId,
+      tokenId,
+      CROSS_MARKET_ID
+    );
     const [userInfo, crossUserInfo, marketInfo, blockNumber] = await Promise.all([
       explorerContract.getUserInfo(marketAcc),
       marketId !== CROSS_MARKET_ID ? explorerContract.getUserInfo(crossMarketAcc) : undefined,
       explorerContract.getMarketInfo(marketId),
-      this.publicClient.getBlockNumber()
+      this.publicClient.getBlockNumber(),
     ]);
-    const positions = userInfo.positions.concat(crossUserInfo?.positions ?? [])
-    .filter(position => 
-      marketId !== CROSS_MARKET_ID ? position.marketId === marketId : true
-    );
+    const positions = userInfo.positions
+      .concat(crossUserInfo?.positions ?? [])
+      .filter((position) => (marketId !== CROSS_MARKET_ID ? position.marketId === marketId : true));
 
-    const limitOrders = positions.flatMap(position => {
+    const limitOrders = positions.flatMap((position) => {
       const orders = position.orders;
-      return orders.map(order => {
-        const {side, tickIndex} = OrderIdLib.unpack(order.id);
+      return orders.map((order) => {
+        const { side, tickIndex } = OrderIdLib.unpack(order.id);
         const size = order.size;
         return {
           side,
@@ -999,25 +1046,25 @@ export class Exchange {
           status: 0,
           orderType: 0,
           marketAcc: order.maker,
-        }
-      })
+        };
+      });
     });
 
     return {
       results: limitOrders,
       total: limitOrders.length,
-      blockNumber
+      blockNumber,
     };
-  }  
+  }
 
   async getPnlLimitOrders(params: GetPnlLimitOrdersParams) {
     const { skip, limit, isActive, marketId, orderBy, userAddress, accountId, fromContract } = params ?? {};
-    if(fromContract) {
+    if (fromContract) {
       return this.getPnlLimitOrdersFromContract(params);
     }
-    
+
     const [{ data: getPnlLimitOrdersCalldataResponse }, blockNumber] = await Promise.all([
-        this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
+      this.borosCoreSdk.pnL.pnlControllerGetLimitOrders({
         userAddress: userAddress ?? this.root,
         accountId: accountId ?? this.accountId,
         marketId,
@@ -1026,16 +1073,16 @@ export class Exchange {
         isActive,
         orderBy,
       }),
-      this.publicClient.getBlockNumber()
+      this.publicClient.getBlockNumber(),
     ]);
     return {
       ...getPnlLimitOrdersCalldataResponse,
-      blockNumber
+      blockNumber,
     };
   }
 
   async getCollaterals({
-    userAddress,  
+    userAddress,
     accountId,
   }: {
     userAddress?: Address;
