@@ -19,7 +19,7 @@ export async function bulkSignWithAgent(params: {
   root: Address;
   accountId: number;
   calldatas: Hex[];
-  env?: Environment;
+  env: Environment;
 }) {
   const { root, accountId, calldatas, env } = params;
   const messages: PendleSignTxStruct[] = [];
@@ -73,7 +73,7 @@ export async function signWithAgent(params: {
   accountId: number;
   calldata: Hex;
   agent?: Agent;
-  env?: Environment;
+  env: Environment;
 }): Promise<SignedAgentExecution> {
   const { root, accountId, calldata, env } = params;
 
@@ -113,7 +113,7 @@ export async function signUpdateSettings(params: {
   marketAcc: MarketAcc;
   marketId: number;
   leverage: number;
-  env?: Environment;
+  env: Environment;
 }) {
   const { marketAcc, marketId, leverage, env } = params;
 
@@ -146,10 +146,7 @@ export async function signUpdateSettings(params: {
   };
 }
 
-export async function getAgentSignature(params?: {
-  env: Environment;
-}) {
-  const { env = 'production' } = params ?? {};
+export async function getAgentSignature(env: Environment) {
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
   const signer = agent.walletClient;

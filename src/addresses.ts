@@ -20,31 +20,31 @@ const DEV_ADDRESSES = {
   CHAIN_ID: 42161,
 } as const;
 
-export const getRouterAddress = (env: Environment = 'production'): Address => {
+export const getRouterAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.ROUTER_ADDRESS : DEV_ADDRESSES.ROUTER_ADDRESS;
 };
 
-export const getMarketHubAddress = (env: Environment = 'production'): Address => {
+export const getMarketHubAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.MARKET_HUB_ADDRESS : DEV_ADDRESSES.MARKET_HUB_ADDRESS;
 };
 
-export const getExplorerAddress = (env: Environment = 'production'): Address => {
+export const getExplorerAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.EXPLORER_ADDRESS : DEV_ADDRESSES.EXPLORER_ADDRESS;
 };
 
-export const getMarketFactoryAddress = (env: Environment = 'production'): Address => {
+export const getMarketFactoryAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.MARKET_FACTORY_ADDRESS : DEV_ADDRESSES.MARKET_FACTORY_ADDRESS;
 };
 
-export const getLiquidationExecutorAddress = (env: Environment = 'production'): Address => {
+export const getLiquidationExecutorAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.LIQUIDATION_EXECUTOR_ADDRESS : DEV_ADDRESSES.LIQUIDATION_EXECUTOR_ADDRESS;
 };
 
-export const getChainId = (env: Environment = 'production'): number => {
+export const getChainId = (env: Environment): number => {
   return env === 'production' ? PROD_ADDRESSES.CHAIN_ID : DEV_ADDRESSES.CHAIN_ID;
 };
 
-export const getAddressesForEnvironment = (env: Environment = 'production') => ({
+export const getAddressesForEnvironment = (env: Environment) => ({
   ROUTER_ADDRESS: getRouterAddress(env),
   MARKET_HUB_ADDRESS: getMarketHubAddress(env),
   EXPLORER_ADDRESS: getExplorerAddress(env),

@@ -1528,7 +1528,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753927937
+         * @default 1753936476
          */
         endTimestamp?: number;
       },
@@ -1648,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753927937
+         * @default 1753936476
          */
         endTimestamp?: number;
       },
@@ -2791,6 +2791,31 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV3, any>({
         path: `/v4/calldata/remove-liquidity-single-cash-from-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetEnterExitMarketsCalldataV1
+     * @summary Get enter exit markets contract params
+     * @request GET:/v1/calldata/enter-exit-markets
+     */
+    calldataControllerGetEnterExitMarketsCalldataV1: (
+      query: {
+        isCross: boolean;
+        /** comma separated marketIds */
+        marketIds?: string;
+        isEnter: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v1/calldata/enter-exit-markets`,
         method: 'GET',
         query: query,
         format: 'json',

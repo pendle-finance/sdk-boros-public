@@ -19,10 +19,10 @@ export class AccManager {
     };
   }
 
-  static async setAccManager(userWalletClient: WalletClient, accManagerAddress: Address): Promise<Hex> {
+  static async setAccManager(userWalletClient: WalletClient, accManagerAddress: Address, env: Environment): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const setAccManagerStruct = await AccManager.createSetAccManagerMessage(userAddress, accManagerAddress);
-    const setAccManagerSignature = await signSetAccManagerMessage(userWalletClient, setAccManagerStruct);
+    const setAccManagerSignature = await signSetAccManagerMessage(userWalletClient, setAccManagerStruct, env);
     return AccManager.getSetAccManagerData(setAccManagerStruct, setAccManagerSignature);
   }
 
@@ -35,7 +35,7 @@ export class AccManager {
     return data;
   }
 
-  static async getAccManager(account: Account, env?: Environment): Promise<Address> {
+  static async getAccManager(account: Account, env: Environment): Promise<Address> {
     const accManagerAddress = await publicClient.readContract({
       address: getRouterAddress(env),
       abi: iRouterAbi,

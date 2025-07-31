@@ -67,14 +67,14 @@ export class Agent {
     return { agent, privateKey };
   }
 
-  async approveAgent(userWalletClient: WalletClient, expiry_s: number): Promise<Hex> {
+  async approveAgent(userWalletClient: WalletClient, expiry_s: number, env: Environment): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const approveAgentStruct = await this.createApproveAgentMessage(userAddress, expiry_s);
-    const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct);
+    const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct, env);
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
   }
 
-  async getExpiry(account: BorosAccount, env?: Environment): Promise<number> {
+  async getExpiry(account: BorosAccount, env: Environment): Promise<number> {
     const agentAddress = await this.getAddress();
     const expiry = await publicClient.readContract({
       address: getRouterAddress(env),
