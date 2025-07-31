@@ -1405,13 +1405,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pendle/core-v3@npm:0.5.11":
-  version: 0.5.11
-  resolution: "@pendle/core-v3@npm:0.5.11"
+"@pendle/core-v3@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@pendle/core-v3@npm:1.0.2"
   dependencies:
     "@openzeppelin/contracts": "npm:5.3.0"
     "@openzeppelin/contracts-upgradeable": "npm:5.3.0"
-  checksum: 10/e46ec4ec6e4993a8e8029c100338be14177915fcc995c8c99d78208078a67d41b844a0135133e9dd6cd0fda947fb69b50dc798316b9d098672e6b23f41a68a5a
+  checksum: 10/f2ff777211d1c67d822004626bb36ef56ee3f1102c6ed187be5a8cf686cd96650e85106acd7d11c02d6671bc0a01dbcac2142d20da040c76ca8c6c8ffa59bb0d
   languageName: node
   linkType: hard
 
@@ -1422,7 +1422,7 @@ __metadata:
     "@biomejs/biome": "npm:1.9.4"
     "@changesets/cli": "npm:^2.27.11"
     "@pendle/boros-offchain-math": "npm:1.0.6"
-    "@pendle/core-v3": "npm:0.5.11"
+    "@pendle/core-v3": "npm:1.0.2"
     "@types/jest": "npm:^29.5.14"
     axios: "npm:^1.8.4"
     date-fns: "npm:^4.1.0"
