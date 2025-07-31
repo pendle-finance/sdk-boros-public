@@ -200,14 +200,6 @@ export const functionEncoder = {
     });
   },
 
-  finalizeVaultWithdrawal(params: FinalizeVaultWithdrawalReq) {
-    return encodeFunctionData({
-      abi: iTradeModuleAbi,
-      functionName: 'finalizeVaultWithdrawal',
-      args: [params.user, params.tokenId],
-    });
-  },
-
   payTreasury(params: PayTreasuryReq) {
     return encodeFunctionData({
       abi: iTradeModuleAbi,

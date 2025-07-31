@@ -4,7 +4,7 @@ import { publicClient } from '../publicClient';
 import { SimulateReturnType } from 'viem/actions';
 import { iRouterAbi } from '../../contracts/viemAbis';
 import { SignedAgentExecution } from '../../utils';
-import { ROUTER_ADDRESS } from '../../addresses';
+import { Environment, getRouterAddress } from '../../addresses';
 
 export async function parseEvents(txHash: Hex) {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -51,7 +51,8 @@ export async function getAgentExecuteCalldata(query: SignedAgentExecution) {
 
 export async function simulateDirectCall(
   publicClient: PublicClient,
-  signedAgentExecution: SignedAgentExecution
+  signedAgentExecution: SignedAgentExecution,
+  env?: Environment
 ): Promise<SimulateReturnType> {
   const calldata = await getAgentExecuteCalldata(signedAgentExecution);
   const result = await publicClient.simulate({
@@ -59,7 +60,7 @@ export async function simulateDirectCall(
       {
         calls: [
           {
-            to: ROUTER_ADDRESS,
+            to: getRouterAddress(env),
             data: calldata,
           },
         ],
