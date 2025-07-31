@@ -533,6 +533,23 @@ export interface BulkAgentExecuteParamsResponseV2 {
   calldatas: string[];
 }
 
+export interface SingleOrder {
+  marketAcc: string;
+  marketId: number;
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
+  /** sizes */
+  size: string;
+  /** limit ticks */
+  limitTick: number;
+  /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
+  tif: 0 | 1 | 2 | 3 | 4;
+  /** ammId */
+  ammId?: number;
+  /** slippage */
+  slippage?: number;
+}
+
 export interface CancelData {
   /** ids to cancel */
   ids: string[];
@@ -557,6 +574,18 @@ export interface BulkOrder {
   marketId: number;
   cancelData: CancelData;
   orders: LongShortData;
+}
+
+export interface BulkOrders {
+  cross: boolean;
+  bulks: BulkOrder[];
+  /** slippage */
+  slippage?: number;
+}
+
+export interface BulkPlaceOrderQueryDtoV4 {
+  singleOrders?: SingleOrder[];
+  bulkOrders?: BulkOrders;
 }
 
 export interface BulkPlaceOrderQueryDtoV3 {
@@ -591,6 +620,15 @@ export interface BulkPlaceOrderQueryDtoV2 {
   ammId?: number;
   /** slippage */
   slippage?: number;
+}
+
+export interface AgentExecuteParams {
+  calldata: string;
+  accountId: string;
+}
+
+export interface BulkAgentExecuteParamsResponseV3 {
+  executeParams: AgentExecuteParams[];
 }
 
 export interface SettingsByMarketResponse {
@@ -640,6 +678,30 @@ export interface GasConsumptionResponse {
 export interface AccountGasConsumptionHistoryResponse {
   results: GasConsumptionResponse[];
   total: number;
+}
+
+export interface SetAgentSessionDto {
+  userAddress: string;
+  signature: string;
+  agent: string;
+  timestamp: number;
+  publicKey: string;
+}
+
+export interface AgentSessionResponse {
+  /** The timestamp when the session expires, in seconds */
+  expiresTimestamp: number;
+}
+
+export interface AgentSessionQueryDto {
+  /** Root address */
+  root: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp in seconds */
+  timestamp: number;
+  /** Signature */
+  signature: string;
 }
 
 export interface PnlTransactionResponse {
@@ -1276,7 +1338,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2',
+      baseURL: axiosConfig.baseURL || 'https://api.boros.finance/core',
     });
     this.secure = secure;
     this.format = format;
@@ -1369,7 +1431,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl https://api.boros.finance/core
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1466,7 +1528,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753861632
+         * @default 1753927937
          */
         endTimestamp?: number;
       },
@@ -1586,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753861632
+         * @default 1753927937
          */
         endTimestamp?: number;
       },
@@ -2028,29 +2090,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetWithdrawFinalizeCalldata
-     * @summary Get finalized withdraw from margin account to wallet calldata
-     * @request GET:/v1/calldata/withdraw/finalize
-     */
-    calldataControllerGetWithdrawFinalizeCalldata: (
-      query: {
-        userAddress: string;
-        tokenId: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<GetCalldataResponse, any>({
-        path: `/v1/calldata/withdraw/finalize`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerGetPositionTransferCalldata
      * @summary Get cash transfer contract params
      * @request GET:/v1/calldata/cash-transfer
@@ -2242,6 +2281,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v4/calldata/place-order`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV6
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v6/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV6: (data: BulkPlaceOrderQueryDtoV4, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v6/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -2610,6 +2667,34 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
+     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldataV4
+     * @summary Get add liquidity single cash to amm contract params
+     * @request GET:/v4/calldata/add-liquidity-single-cash-to-amm
+     */
+    calldataControllerGetAddLiquiditySingleCashToAmmCalldataV4: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        userAddress: string;
+        accountId: number;
+        marketId: number;
+        netCashIn: string;
+        minLpOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV3, any>({
+        path: `/v4/calldata/add-liquidity-single-cash-to-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
      * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata
      * @summary Get remove liquidity single cash from amm contract params
      * @request GET:/v1/calldata/remove-liquidity-single-cash-from-amm
@@ -2680,6 +2765,32 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v3/calldata/remove-liquidity-single-cash-from-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV4
+     * @summary Get remove liquidity single cash from amm contract params
+     * @request GET:/v4/calldata/remove-liquidity-single-cash-from-amm
+     */
+    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV4: (
+      query: {
+        /** bigint string of amount to pay treasury */
+        payTreasuryAmount?: string;
+        marketId: number;
+        lpToRemove: string;
+        minCashOut: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV3, any>({
+        path: `/v4/calldata/remove-liquidity-single-cash-from-amm`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2826,6 +2937,42 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1/accounts/gas-consumption-history`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Accounts
+     * @name AccountsControllerSetAgentSession
+     * @summary Set agent session and cookie
+     * @request POST:/v1/accounts/set-agent-session
+     */
+    accountsControllerSetAgentSession: (data: SetAgentSessionDto, params: RequestParams = {}) =>
+      this.request<AgentSessionResponse, any>({
+        path: `/v1/accounts/set-agent-session`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Accounts
+     * @name AccountsControllerVerifyAgentSession
+     * @summary Verify agent session
+     * @request POST:/v1/accounts/verify-agent-session
+     */
+    accountsControllerVerifyAgentSession: (data: AgentSessionQueryDto, params: RequestParams = {}) =>
+      this.request<AgentSessionResponse, any>({
+        path: `/v1/accounts/verify-agent-session`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

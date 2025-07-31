@@ -38,6 +38,22 @@ export interface BulkAgentExecuteDto {
   datas: AgentExecuteDto[];
 }
 
+export interface AgentSessionQueryDto {
+  /** Root address */
+  root: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp in seconds */
+  timestamp: number;
+  /** Signature */
+  signature: string;
+}
+
+export interface BulkAgentExecuteV2Dto {
+  datas: AgentExecuteDto[];
+  agentSession: AgentSessionQueryDto;
+}
+
 export interface ApproveAgentQueryDto {
   approveAgentCalldata: string;
 }
@@ -261,6 +277,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     agentControllerBulkAgentDirectCallV2: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse[], any>({
         path: `/v2/agent/bulk-direct-call`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
+     * @name AgentControllerBulkAgentDirectCallV3
+     * @summary Send multiple direct call to agent
+     * @request POST:/v3/agent/bulk-direct-call
+     */
+    agentControllerBulkAgentDirectCallV3: (data: BulkAgentExecuteV2Dto, params: RequestParams = {}) =>
+      this.request<TxResponse[], any>({
+        path: `/v3/agent/bulk-direct-call`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
