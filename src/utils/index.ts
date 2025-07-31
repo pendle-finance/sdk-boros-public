@@ -7,7 +7,7 @@ import { Environment, getRouterAddress } from '../addresses';
 import { getMarketHubContract } from '../entities/marketHub';
 import { MarketAcc } from '../types';
 
-export async function sendTx(walletClient: WalletClient, calldata: Hex, env?: Environment) {
+export async function sendTx(walletClient: WalletClient, calldata: Hex, env: Environment) {
   const [account] = await walletClient.getAddresses();
   const txHash = await walletClient.sendTransaction({
     account,
@@ -29,6 +29,6 @@ export async function getUserAddressFromWalletClient(userWalletClient: WalletCli
   return userAddress;
 }
 
-export async function getEnteredMarkets(marketAcc: MarketAcc, env?: Environment) {
+export async function getEnteredMarkets(marketAcc: MarketAcc, env: Environment) {
   return getMarketHubContract(env).read.getEnteredMarkets([marketAcc]);
 }

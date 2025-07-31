@@ -52,7 +52,7 @@ export async function getAgentExecuteCalldata(query: SignedAgentExecution) {
 export async function simulateDirectCall(
   publicClient: PublicClient,
   signedAgentExecution: SignedAgentExecution,
-  env?: Environment
+  env: Environment
 ): Promise<SimulateReturnType> {
   const calldata = await getAgentExecuteCalldata(signedAgentExecution);
   const result = await publicClient.simulate({

@@ -4,7 +4,7 @@ import { ApproveAgentMessage, SetAccManagerStruct } from '../../types';
 import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
 import { Environment } from '../../addresses';
 
-export async function signSetAccManagerMessage(wallet: WalletClient, message: SetAccManagerStruct, env?: Environment) {
+export async function signSetAccManagerMessage(wallet: WalletClient, message: SetAccManagerStruct, env: Environment) {
   const account = await getUserAddressFromWalletClient(wallet);
   return wallet.signTypedData({
     account: wallet.account ?? account,
@@ -23,7 +23,7 @@ export async function signSetAccManagerMessage(wallet: WalletClient, message: Se
   });
 }
 
-export async function signApproveAgentMessage(wallet: WalletClient, message: ApproveAgentMessage, env?: Environment) {
+export async function signApproveAgentMessage(wallet: WalletClient, message: ApproveAgentMessage, env: Environment) {
   const account = await getUserAddressFromWalletClient(wallet);
   return wallet.signTypedData({
     account: wallet.account ?? account,

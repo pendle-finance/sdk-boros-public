@@ -1338,7 +1338,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://secrettune.io/core-v2',
+      baseURL: axiosConfig.baseURL || 'http://localhost:8000',
     });
     this.secure = secure;
     this.format = format;
@@ -1431,7 +1431,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://secrettune.io/core-v2
+ * @baseUrl http://localhost:8000
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1528,7 +1528,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753861632
+         * @default 1753936476
          */
         endTimestamp?: number;
       },
@@ -1648,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753861632
+         * @default 1753936476
          */
         endTimestamp?: number;
       },
@@ -2791,6 +2791,31 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV3, any>({
         path: `/v4/calldata/remove-liquidity-single-cash-from-amm`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetEnterExitMarketsCalldataV1
+     * @summary Get enter exit markets contract params
+     * @request GET:/v1/calldata/enter-exit-markets
+     */
+    calldataControllerGetEnterExitMarketsCalldataV1: (
+      query: {
+        isCross: boolean;
+        /** comma separated marketIds */
+        marketIds?: string;
+        isEnter: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v1/calldata/enter-exit-markets`,
         method: 'GET',
         query: query,
         format: 'json',

@@ -47,21 +47,34 @@ export class Exchange {
   private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
   private contractsFactory: ContractsFactory;
   private publicClient: PublicClient;
+  private env: Environment;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number, params?: {
-    env?: Environment;
-    rpcUrl?: string;
-  }) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, env: Environment, rpcUrl?: string) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
-    this.borosCoreSdk = BorosBackend.getCoreSdk(params?.env);
-    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(params?.env);
-    this.contractsFactory = new ContractsFactory(params?.rpcUrl);
-    this.publicClient = params?.rpcUrl ? createPublicClient({
+    this.env = env;
+    this.borosCoreSdk = BorosBackend.getCoreSdk(this.env);
+    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(this.env);
+    this.contractsFactory = new ContractsFactory(rpcUrl);
+    this.publicClient = rpcUrl ? createPublicClient({
       chain: arbitrum,
-      transport: http(params?.rpcUrl),
+      transport: http(rpcUrl),
     }) : publicClient;
+  }
+
+  async enterMarkets(cross: boolean, marketIds: number[]) {
+    const marketIdsString = marketIds.map(marketId => marketId.toString()).join(',');
+    const { data: enterMarketsCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetEnterExitMarketsCalldataV1({
+        isCross: cross,
+        marketIds: marketIdsString,
+        isEnter: true,
+      });
+    const enterMarketsResponses = await this.bulkSignAndExecute(
+      enterMarketsCalldataResponse.calldatas as Hex[]
+    );
+    return enterMarketsResponses;
   }
 
   async bulkSignAndExecute(calldatas: Hex[]) {
@@ -69,6 +82,7 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldatas,
+      env: this.env,
     });
     const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCallV2({
       datas: signs.map((sign) => ({
@@ -140,6 +154,7 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldata,
+      env: this.env
     });
 
     const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
@@ -709,7 +724,7 @@ export class Exchange {
 
     // set expired time to the next 7 days
     const expiredTime = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-    const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime);
+    const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime, this.env);
 
     const { data: approveAgentResponse } = await this.borosSendTxsBotSdk.agent.agentControllerApproveAgent({
       approveAgentCalldata: approveAgentData,

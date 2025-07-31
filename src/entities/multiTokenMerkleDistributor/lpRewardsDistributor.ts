@@ -6,7 +6,7 @@ import { Environment } from '../../addresses';
 
 export class LpRewardsDistributor extends RewardDistributor {
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
-  constructor(env?: Environment) {
+  constructor(env: Environment) {
     super(LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS);
     this.borosCoreSdk = BorosBackend.getCoreSdk(env);
   }

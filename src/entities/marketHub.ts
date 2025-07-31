@@ -4,7 +4,7 @@ import { Environment, getMarketHubAddress } from '../addresses';
 import { RPC_URL } from '../common';
 import { iMarketHubAbi } from '../contracts/abis/viemAbis';
 
-export const getMarketHubContract = (env?: Environment): GetContractReturnType<typeof iMarketHubAbi, PublicClient> => getContract({
+export const getMarketHubContract = (env: Environment): GetContractReturnType<typeof iMarketHubAbi, PublicClient> => getContract({
   address: getMarketHubAddress(env),
   abi: iMarketHubAbi,
   client: createPublicClient({

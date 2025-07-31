@@ -18,7 +18,7 @@ export type SignedAgentExecution = {
 async function messagesToSigns(params: {
   calldatas: Hex[];
   messages: PendleSignTxStruct[];
-  env?: Environment;
+  env: Environment;
 }) {
   const { calldatas, messages, env } = params;
   const agent = getInternalAgent();
@@ -27,6 +27,7 @@ async function messagesToSigns(params: {
     abi: iRouterAbi,
     name: 'agentExecute',
   }).inputs.find((item) => item.name === 'message')!.components;
+
 
   const signatures = await Promise.all(
     messages.map((message) =>
@@ -61,8 +62,9 @@ export async function bulkSignWithAgentV2(params: {
     accountId: number;
     calldata: Hex;
   }[];
+  env: Environment;
 }) {
-  const { root, executeParams } = params;
+  const { root, executeParams, env } = params;
   const messages: PendleSignTxStruct[] = [];
   for (let i = 0; i < executeParams.length; i++) {
     const nonce = BigInt(Date.now());
@@ -76,7 +78,7 @@ export async function bulkSignWithAgentV2(params: {
   }
   const calldatas = executeParams.map((param) => param.calldata);
 
-  const signs = await messagesToSigns({ calldatas, messages });
+  const signs = await messagesToSigns({ calldatas, messages, env });
   return signs;
 }
 
@@ -84,8 +86,9 @@ export async function bulkSignWithAgent(params: {
   root: Address;
   accountId: number;
   calldatas: Hex[];
+  env: Environment;
 }) {
-  const { root, accountId, calldatas } = params;
+  const { root, accountId, calldatas, env } = params;
   const messages: PendleSignTxStruct[] = [];
   for (let i = 0; i < calldatas.length; i++) {
     const nonce = BigInt(Date.now());
@@ -98,7 +101,7 @@ export async function bulkSignWithAgent(params: {
     messages.push(message);
   }
 
-  const signs = await messagesToSigns({ calldatas, messages });
+  const signs = await messagesToSigns({ calldatas, messages, env });
   return signs;
 }
 
@@ -106,7 +109,7 @@ export async function signWithAgent(params: {
   root: Address;
   accountId: number;
   calldata: Hex;
-  env?: Environment;
+  env: Environment;
   agent?: Agent;
 }): Promise<SignedAgentExecution> {
   const { root, accountId, calldata, env } = params;
@@ -147,7 +150,7 @@ export async function signUpdateSettings(params: {
   marketAcc: MarketAcc;
   marketId: number;
   leverage: number;
-  env?: Environment;
+  env: Environment;
 }) {
   const { marketAcc, marketId, leverage, env } = params;
 
@@ -180,10 +183,10 @@ export async function signUpdateSettings(params: {
   };
 }
 
-export async function getAgentSignature(params?: {
+export async function getAgentSignature(params: {
   env: Environment;
 }) {
-  const { env = 'production' } = params ?? {};
+  const { env } = params;
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
   const signer = agent.walletClient;
