@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IArbitrageExecutor
+// IArbitrageExecutorFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iArbitrageExecutorAbi = [
-  { inputs: [], name: 'InsufficientProfit', type: 'error' },
+export const iArbitrageExecutorFacetAbi = [
   {
     anonymous: false,
     inputs: [
@@ -14,30 +13,6 @@ export const iArbitrageExecutorAbi = [
     type: 'event',
   },
   {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'ROUTER',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'deposit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         components: [
@@ -46,7 +21,7 @@ export const iArbitrageExecutorAbi = [
           { internalType: 'int256', name: 'minProfit', type: 'int256' },
           { internalType: 'bool', name: 'maximizeProfit', type: 'bool' },
         ],
-        internalType: 'struct IArbitrageExecutor.ArbitrageParams',
+        internalType: 'struct IArbitrageExecutorFacet.ArbitrageParams',
         name: 'params',
         type: 'tuple',
       },
@@ -64,34 +39,6 @@ export const iArbitrageExecutorAbi = [
     name: 'nTicksToTryAtOnce',
     outputs: [{ internalType: 'uint16', name: '', type: 'uint16' }],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
-    name: 'payMarketEntranceFee',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'requestWithdrawal',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { internalType: 'address', name: 'receiver', type: 'address' },
-    ],
-    name: 'withdraw',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
 ] as const;
@@ -461,16 +408,6 @@ export const iMarketHubEntryOnlyAbi = [
 export const iMarketHubRiskManagementAbi = [
   {
     inputs: [
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      { internalType: 'int256', name: 'delta', type: 'int256' },
-    ],
-    name: 'adjustAccCash',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
       { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       {
@@ -522,16 +459,6 @@ export const iMarketHubRiskManagementAbi = [
       { internalType: 'uint256', name: 'totalTicksPurgedLong', type: 'uint256' },
       { internalType: 'uint256', name: 'totalTicksPurgedShort', type: 'uint256' },
     ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      { internalType: 'int256', name: 'desiredCash', type: 'int256' },
-    ],
-    name: 'setAccCash',
-    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -743,16 +670,6 @@ export const iMarketHubAbi = [
     name: 'accCash',
     outputs: [{ internalType: 'int256', name: '', type: 'int256' }],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      { internalType: 'int256', name: 'delta', type: 'int256' },
-    ],
-    name: 'adjustAccCash',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1151,16 +1068,6 @@ export const iMarketHubAbi = [
     name: 'riskyThresHR',
     outputs: [{ internalType: 'int256', name: '', type: 'int256' }],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
-      { internalType: 'int256', name: 'desiredCash', type: 'int256' },
-    ],
-    name: 'setAccCash',
-    outputs: [],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -2529,23 +2436,6 @@ export const iRouterAbi = [
       {
         components: [
           { internalType: 'Account', name: 'account', type: 'bytes21' },
-          { internalType: 'bytes', name: 'data', type: 'bytes' },
-        ],
-        internalType: 'struct IMiscModule.ManipulateData[]',
-        name: 'calls',
-        type: 'tuple[]',
-      },
-    ],
-    name: 'batchManipulate',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'Account', name: 'account', type: 'bytes21' },
           { internalType: 'address', name: 'target', type: 'address' },
           { internalType: 'bytes', name: 'data', type: 'bytes' },
         ],
@@ -2783,7 +2673,7 @@ export const iRouterAbi = [
               { internalType: 'uint256', name: 'size', type: 'uint256' },
               { internalType: 'int16', name: 'tick', type: 'int16' },
             ],
-            internalType: 'struct IRouterEventsAndTypes.Order',
+            internalType: 'struct IRouterEventsAndTypes.OrderReq',
             name: 'order',
             type: 'tuple',
           },
@@ -3909,13 +3799,6 @@ export const iMarketAbi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
-    name: 'resetDelevLiqNonce',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       { internalType: 'uint64', name: 'newTakerFee', type: 'uint64' },
       { internalType: 'uint64', name: 'newOtcFee', type: 'uint64' },
@@ -4415,7 +4298,7 @@ export const iMarketOffAbi = [
           { internalType: 'uint256', name: 'size', type: 'uint256' },
           { internalType: 'int256', name: 'rate', type: 'int256' },
         ],
-        internalType: 'struct IMarketOffViewOnly.Order[]',
+        internalType: 'struct IMarketAllTypes.Order[]',
         name: '',
         type: 'tuple[]',
       },
@@ -4585,7 +4468,7 @@ export const iMarketOffAbi = [
           { internalType: 'uint256', name: 'size', type: 'uint256' },
           { internalType: 'int256', name: 'rate', type: 'int256' },
         ],
-        internalType: 'struct IMarketOffViewOnly.Order',
+        internalType: 'struct IMarketAllTypes.Order',
         name: 'order',
         type: 'tuple',
       },
@@ -4794,13 +4677,6 @@ export const iMarketOffAbi = [
         type: 'tuple[]',
       },
     ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
-    name: 'resetDelevLiqNonce',
-    outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -6360,13 +6236,6 @@ export const iMarketEntryAbi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
-    name: 'resetDelevLiqNonce',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
       { internalType: 'enum GetRequest', name: 'getType', type: 'uint8' },
@@ -6662,7 +6531,7 @@ export const iMarketOffViewOnlyAbi = [
           { internalType: 'uint256', name: 'size', type: 'uint256' },
           { internalType: 'int256', name: 'rate', type: 'int256' },
         ],
-        internalType: 'struct IMarketOffViewOnly.Order[]',
+        internalType: 'struct IMarketAllTypes.Order[]',
         name: '',
         type: 'tuple[]',
       },
@@ -6765,7 +6634,7 @@ export const iMarketOffViewOnlyAbi = [
           { internalType: 'uint256', name: 'size', type: 'uint256' },
           { internalType: 'int256', name: 'rate', type: 'int256' },
         ],
-        internalType: 'struct IMarketOffViewOnly.Order',
+        internalType: 'struct IMarketAllTypes.Order',
         name: 'order',
         type: 'tuple',
       },
@@ -7147,7 +7016,7 @@ export const iExplorerAbi = [
                   { internalType: 'uint256', name: 'size', type: 'uint256' },
                   { internalType: 'int256', name: 'rate', type: 'int256' },
                 ],
-                internalType: 'struct IMarketOffViewOnly.Order[]',
+                internalType: 'struct IMarketAllTypes.Order[]',
                 name: 'orders',
                 type: 'tuple[]',
               },
@@ -7195,7 +7064,7 @@ export const iExplorerAbi = [
                   { internalType: 'uint256', name: 'size', type: 'uint256' },
                   { internalType: 'int256', name: 'rate', type: 'int256' },
                 ],
-                internalType: 'struct IMarketOffViewOnly.Order[]',
+                internalType: 'struct IMarketAllTypes.Order[]',
                 name: 'orders',
                 type: 'tuple[]',
               },
@@ -7230,7 +7099,7 @@ export const iExplorerAbi = [
                   { internalType: 'uint256', name: 'size', type: 'uint256' },
                   { internalType: 'int256', name: 'rate', type: 'int256' },
                 ],
-                internalType: 'struct IMarketOffViewOnly.Order[]',
+                internalType: 'struct IMarketAllTypes.Order[]',
                 name: 'orders',
                 type: 'tuple[]',
               },
@@ -7282,7 +7151,7 @@ export const iExplorerAbi = [
                   { internalType: 'uint256', name: 'size', type: 'uint256' },
                   { internalType: 'int256', name: 'rate', type: 'int256' },
                 ],
-                internalType: 'struct IMarketOffViewOnly.Order[]',
+                internalType: 'struct IMarketAllTypes.Order[]',
                 name: 'orders',
                 type: 'tuple[]',
               },
@@ -7317,7 +7186,7 @@ export const iExplorerAbi = [
                   { internalType: 'uint256', name: 'size', type: 'uint256' },
                   { internalType: 'int256', name: 'rate', type: 'int256' },
                 ],
-                internalType: 'struct IMarketOffViewOnly.Order[]',
+                internalType: 'struct IMarketAllTypes.Order[]',
                 name: 'orders',
                 type: 'tuple[]',
               },
@@ -7644,7 +7513,7 @@ export const iTradeModuleAbi = [
               { internalType: 'uint256', name: 'size', type: 'uint256' },
               { internalType: 'int16', name: 'tick', type: 'int16' },
             ],
-            internalType: 'struct IRouterEventsAndTypes.Order',
+            internalType: 'struct IRouterEventsAndTypes.OrderReq',
             name: 'order',
             type: 'tuple',
           },
@@ -8164,7 +8033,7 @@ export const iFIndexOracleAbi = [
       { internalType: 'int112', name: 'floatingIndexDelta', type: 'int112' },
       { internalType: 'uint32', name: 'desiredTimestamp', type: 'uint32' },
     ],
-    name: 'updateFloatingRate',
+    name: 'updateFloatingIndex',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -8561,10 +8430,10 @@ export const iBOROS20Abi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ICLOSetter
+// ICLOSetterFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iCLOSetterAbi = [
+export const iCLOSetterFacetAbi = [
   {
     anonymous: false,
     inputs: [
@@ -8575,20 +8444,13 @@ export const iCLOSetterAbi = [
           { internalType: 'uint128', name: 'upperThres', type: 'uint128' },
         ],
         indexed: false,
-        internalType: 'struct ICLOSetter.CLOThreshold',
+        internalType: 'struct ICLOSetterFacet.CLOThreshold',
         name: 'newThreshold',
         type: 'tuple',
       },
     ],
     name: 'CLOThresholdSet',
     type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
   },
   {
     inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
@@ -8599,7 +8461,7 @@ export const iCLOSetterAbi = [
           { internalType: 'uint128', name: 'lowerThres', type: 'uint128' },
           { internalType: 'uint128', name: 'upperThres', type: 'uint128' },
         ],
-        internalType: 'struct ICLOSetter.CLOThreshold',
+        internalType: 'struct ICLOSetterFacet.CLOThreshold',
         name: '',
         type: 'tuple',
       },
@@ -8615,7 +8477,7 @@ export const iCLOSetterAbi = [
           { internalType: 'uint128', name: 'lowerThres', type: 'uint128' },
           { internalType: 'uint128', name: 'upperThres', type: 'uint128' },
         ],
-        internalType: 'struct ICLOSetter.CLOThreshold',
+        internalType: 'struct ICLOSetterFacet.CLOThreshold',
         name: 'newThreshold',
         type: 'tuple',
       },
@@ -8627,14 +8489,7 @@ export const iCLOSetterAbi = [
   },
   {
     inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
-    name: 'turnOffCLO',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
-    name: 'turnOnCLO',
+    name: 'toggleCLO',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -8642,22 +8497,15 @@ export const iCLOSetterAbi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IDeleverager
+// IDeleveragerFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iDeleveragerAbi = [
+export const iDeleveragerFacetAbi = [
   {
     anonymous: false,
     inputs: [{ indexed: false, internalType: 'int256', name: 'newDeleverageThresHR', type: 'int256' }],
     name: 'DeleverageThresHRSet',
     type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
   },
   {
     inputs: [
@@ -8671,17 +8519,17 @@ export const iDeleveragerAbi = [
               { internalType: 'MarketAcc[]', name: 'wins', type: 'bytes26[]' },
               { internalType: 'int256[]', name: 'sizesToWin', type: 'int256[]' },
             ],
-            internalType: 'struct IDeleverager.MarketDeleverageInput[]',
+            internalType: 'struct IDeleveragerFacet.MarketDeleverageInput[]',
             name: 'inputs',
             type: 'tuple[]',
           },
         ],
-        internalType: 'struct IDeleverager.DeleverageRequest[]',
-        name: 'requests',
-        type: 'tuple[]',
+        internalType: 'struct IDeleveragerFacet.DeleverageRequest',
+        name: 'req',
+        type: 'tuple',
       },
     ],
-    name: 'batchDeleverage',
+    name: 'deleverage',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -8703,10 +8551,10 @@ export const iDeleveragerAbi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ILiquidationExecutor
+// ILiquidationExecutorFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iLiquidationExecutorAbi = [
+export const iLiquidationExecutorFacetAbi = [
   {
     anonymous: false,
     inputs: [
@@ -8717,20 +8565,6 @@ export const iLiquidationExecutorAbi = [
     type: 'event',
   },
   {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'ROUTER',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         components: [
@@ -8740,40 +8574,7 @@ export const iLiquidationExecutorAbi = [
           { internalType: 'int256', name: 'maxVioHealthRatio', type: 'int256' },
           { internalType: 'uint256', name: 'minProfit', type: 'uint256' },
         ],
-        internalType: 'struct ILiquidationExecutor.LiquidationParams[]',
-        name: 'batch',
-        type: 'tuple[]',
-      },
-    ],
-    name: 'batchLiquidate',
-    outputs: [
-      { internalType: 'bool[]', name: 'success', type: 'bool[]' },
-      { internalType: 'bytes[]', name: 'results', type: 'bytes[]' },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'deposit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
-          { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
-          { internalType: 'MarketAcc', name: 'violator', type: 'bytes26' },
-          { internalType: 'int256', name: 'maxVioHealthRatio', type: 'int256' },
-          { internalType: 'uint256', name: 'minProfit', type: 'uint256' },
-        ],
-        internalType: 'struct ILiquidationExecutor.LiquidationParams',
+        internalType: 'struct ILiquidationExecutorFacet.LiquidationParams',
         name: 'params',
         type: 'tuple',
       },
@@ -8793,53 +8594,18 @@ export const iLiquidationExecutorAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-  {
-    inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
-    name: 'payMarketEntranceFee',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-    ],
-    name: 'requestWithdrawal',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
-      { internalType: 'uint256', name: 'amount', type: 'uint256' },
-      { internalType: 'address', name: 'receiver', type: 'address' },
-    ],
-    name: 'withdraw',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IOrderCanceller
+// IOrderCancellerFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iOrderCancellerAbi = [
+export const iOrderCancellerFacetAbi = [
   {
     anonymous: false,
     inputs: [{ indexed: false, internalType: 'int256', name: 'newCancelThresHR', type: 'int256' }],
     name: 'CancelThresHRSet',
     type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
   },
   {
     inputs: [],
@@ -8859,7 +8625,7 @@ export const iOrderCancellerAbi = [
           { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
           { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
         ],
-        internalType: 'struct IOrderCanceller.HealthJumpProof[]',
+        internalType: 'struct IOrderCancellerFacet.HealthJumpProof[]',
         name: 'proofs',
         type: 'tuple[]',
       },
@@ -8875,7 +8641,7 @@ export const iOrderCancellerAbi = [
           { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
           { internalType: 'OrderId[]', name: 'ids', type: 'uint64[]' },
         ],
-        internalType: 'struct IOrderCanceller.HealthJumpProof[]',
+        internalType: 'struct IOrderCancellerFacet.HealthJumpProof[]',
         name: 'proofs',
         type: 'tuple[]',
       },
@@ -8895,10 +8661,10 @@ export const iOrderCancellerAbi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IPauser
+// IPauserFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iPauserAbi = [
+export const iPauserFacetAbi = [
   {
     anonymous: false,
     inputs: [
@@ -8907,13 +8673,6 @@ export const iPauserAbi = [
     ],
     name: 'MinTotalMMSet',
     type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
   },
   {
     inputs: [{ internalType: 'MarketAcc[]', name: 'users', type: 'bytes26[]' }],
@@ -8959,10 +8718,10 @@ export const iPauserAbi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IWithdrawalPolice
+// IWithdrawalPoliceFacet
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const iWithdrawalPoliceAbi = [
+export const iWithdrawalPoliceFacetAbi = [
   {
     anonymous: false,
     inputs: [{ indexed: false, internalType: 'address', name: 'user', type: 'address' }],
@@ -8983,13 +8742,6 @@ export const iWithdrawalPoliceAbi = [
     inputs: [{ indexed: false, internalType: 'address', name: 'user', type: 'address' }],
     name: 'ResetPersonalCooldown',
     type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'MARKET_HUB',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
   },
   {
     inputs: [
@@ -9028,6 +8780,126 @@ export const iWithdrawalPoliceAbi = [
       { internalType: 'uint256', name: 'newThreshold', type: 'uint256' },
     ],
     name: 'setLargeWithdrawalUnscaledThreshold',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IMarkRatePusher
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iMarkRatePusherAbi = [
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint256', name: 'newMaxDelta', type: 'uint256' }],
+    name: 'MaxDeltaSet',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'MARKET_HUB',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ROUTER',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'index', type: 'uint256' },
+      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+      { internalType: 'int256', name: 'signedAmount', type: 'int256' },
+    ],
+    name: 'cashTransfer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'index', type: 'uint256' },
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'deposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'index', type: 'uint256' },
+      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+    ],
+    name: 'enterMarket',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'forwarder1',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'forwarder2',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxDelta',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+      { internalType: 'AMMId', name: 'ammId', type: 'uint24' },
+    ],
+    name: 'pushMarkRate',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'index', type: 'uint256' },
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'requestWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'newMaxDelta', type: 'uint256' }],
+    name: 'setMaxDelta',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'index', type: 'uint256' },
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { internalType: 'address', name: 'receiver', type: 'address' },
+    ],
+    name: 'withdraw',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -9205,6 +9077,111 @@ export const iZoneResponderAbi = [
   {
     inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
     name: 'turnOnCLO',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IBotMiscFacet
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iBotMiscFacetAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'bytes4', name: 'selector', type: 'bytes4' },
+      { indexed: true, internalType: 'address', name: 'facet', type: 'address' },
+    ],
+    name: 'SelectorToFacetSet',
+    type: 'event',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'deposit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'MarketId', name: 'marketId', type: 'uint24' }],
+    name: 'enterMarketIsolated',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'bool', name: 'allowFailure', type: 'bool' },
+          { internalType: 'bytes', name: 'callData', type: 'bytes' },
+        ],
+        internalType: 'struct IBotMiscFacet.Call[]',
+        name: 'calls',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'multicall',
+    outputs: [
+      {
+        components: [
+          { internalType: 'bool', name: 'success', type: 'bool' },
+          { internalType: 'bytes', name: 'returnData', type: 'bytes' },
+        ],
+        internalType: 'struct IBotMiscFacet.Result[]',
+        name: 'results',
+        type: 'tuple[]',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'requestWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'bytes4', name: 'selector', type: 'bytes4' }],
+    name: 'selectorToFacet',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'facet', type: 'address' },
+          { internalType: 'bytes4[]', name: 'selectors', type: 'bytes4[]' },
+        ],
+        internalType: 'struct IBotMiscFacet.SelectorsToFacet[]',
+        name: 'arr',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'setSelectorToFacets',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'TokenId', name: 'tokenId', type: 'uint16' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { internalType: 'address', name: 'receiver', type: 'address' },
+    ],
+    name: 'withdraw',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
