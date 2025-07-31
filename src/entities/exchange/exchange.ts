@@ -1,4 +1,3 @@
-import { GlobalCache } from './../../common/cacheDecorators';
 import { FixedX18, getRateAtTick } from '@pendle/boros-offchain-math';
 import { Address, createPublicClient, erc20Abi, getContract, Hex, http, PublicClient, WalletClient, BlockNumber } from 'viem';
 import { BorosBackend } from '../../backend';
@@ -25,13 +24,11 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog } from './utils';
-import { BulkOrdersReq, functionEncoder, PlaceSingleOrderReq, Side } from '../../types';
-import { iAMMAbi, iExplorerAbi } from '../../contracts';
-import { Explorer } from '../../contracts/explorer';
+import { Side } from '../../types';
 import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
 import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
-import { ContractUserMarketPosition, MarketStatus } from '../../common/types';
+import { MarketStatus } from '../../common/types';
 import { arbitrum } from 'viem/chains';
 import { Environment } from '../../addresses';
 
@@ -66,7 +63,7 @@ export class Exchange {
   async enterMarkets(cross: boolean, marketIds: number[]) {
     const marketIdsString = marketIds.map(marketId => marketId.toString()).join(',');
     const { data: enterMarketsCalldataResponse } =
-      await this.borosCoreSdk.calldata.calldataControllerGetEnterExitMarketsCalldataV1({
+      await this.borosCoreSdk.calldata.calldataControllerGetEnterExitMarketsCalldata({
         isCross: cross,
         marketIds: marketIdsString,
         isEnter: true,
