@@ -37,10 +37,9 @@ import { decodeLog } from './utils';
 import { Side } from '../../types';
 import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
-import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
 import { MarketStatus } from '../../common/types';
 import { arbitrum } from 'viem/chains';
-import { Environment } from '../../addresses';
+import { Environment, getExplorerContractAddress } from '../../addresses';
 import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
@@ -923,7 +922,7 @@ export class Exchange {
     const market = markets.results.find((m) => m.marketId === marketId)!;
 
     const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
-    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
     const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] =
@@ -993,7 +992,7 @@ export class Exchange {
 
   async getUserPositions(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
-    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(
       userAddress ?? this.root,
@@ -1030,7 +1029,7 @@ export class Exchange {
 
   private async getPnlLimitOrdersFromContract(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
-    const explorerContract = this.contractsFactory.getExplorerContract(EXPLORER_CONTRACT_ADDRESS);
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(
       userAddress ?? this.root,
