@@ -126,7 +126,7 @@ export class Exchange {
           txResponse,
           id: index,
         }))
-        .filter((txResponse) => !txResponse.txResponse.error);
+        .filter((txResponse) => txResponse.txResponse.txHash !== undefined);
 
       const sentTxResponses = logGroups.map((events, index) => {
         return {
