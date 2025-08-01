@@ -46,7 +46,7 @@ import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
 
-class LengthMismatchError extends Error {
+export class LengthMismatchError extends Error {
   executeResponses: TxResponse[];
   logGroups: any[];
 
