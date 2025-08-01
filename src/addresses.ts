@@ -9,6 +9,11 @@ const PROD_ADDRESSES = {
   MARKET_FACTORY_ADDRESS: '0x3080808080Ee6a795c1a6Ff388195Aa5F11ECeE0',
   EXPLORER_CONTRACT_ADDRESS: '0x40808080804111c374C8F1dc78b13FB57Df93197',
   CHAIN_ID: 42161,
+
+  //TODO: fix this
+  MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS: '0x580bd289c25e7f254634e6ad8a95d631393c7172',
+  MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS: '0xAe94ccf0Cc9E6A783bc5ec3515f745bFaF68960A',
+  LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: '0x5fa1be763d5eb2cb4df90f557468421bd7f27fbf',
 } as const;
 
 const DEV_ADDRESSES = {
@@ -18,6 +23,9 @@ const DEV_ADDRESSES = {
   MARKET_FACTORY_ADDRESS: '0xD3FC4B3fDA95597caAB5ea781337e0cD94d6850A',
   EXPLORER_CONTRACT_ADDRESS: '0x0CcB40176E133E5A011130D6BF6665005C29839E',
   CHAIN_ID: 42161,
+  MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS: '0x580bd289c25e7f254634e6ad8a95d631393c7172',
+  MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS: '0xAe94ccf0Cc9E6A783bc5ec3515f745bFaF68960A',
+  LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: '0x5fa1be763d5eb2cb4df90f557468421bd7f27fbf',
 } as const;
 
 export const getRouterAddress = (env: Environment): Address => {
@@ -40,6 +48,23 @@ export const getExplorerContractAddress = (env: Environment): Address => {
   return env === 'production' ? PROD_ADDRESSES.EXPLORER_CONTRACT_ADDRESS : DEV_ADDRESSES.EXPLORER_CONTRACT_ADDRESS;
 };
 
+export const getMultiTokenMerkleDistributorAddress = (env: Environment): Address => {
+  return env === 'production'
+    ? PROD_ADDRESSES.MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS
+    : DEV_ADDRESSES.MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS;
+};
+export const getMakerIncentiveMerkleDistributorAddress = (env: Environment): Address => {
+  return env === 'production'
+    ? PROD_ADDRESSES.MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS
+    : DEV_ADDRESSES.MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS;
+};
+
+export const getLpRewardsMerkleDistributorAddress = (env: Environment): Address => {
+  return env === 'production'
+    ? PROD_ADDRESSES.LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS
+    : DEV_ADDRESSES.LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS;
+};
+
 export const getChainId = (env: Environment): number => {
   return env === 'production' ? PROD_ADDRESSES.CHAIN_ID : DEV_ADDRESSES.CHAIN_ID;
 };
@@ -51,6 +76,9 @@ export const getAddressesForEnvironment = (env: Environment) => ({
   MARKET_FACTORY_ADDRESS: getMarketFactoryAddress(env),
   EXPLORER_CONTRACT_ADDRESS: getExplorerContractAddress(env),
   CHAIN_ID: getChainId(env),
+  MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS: getMultiTokenMerkleDistributorAddress(env),
+  MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS: getMakerIncentiveMerkleDistributorAddress(env),
+  LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: getLpRewardsMerkleDistributorAddress(env),
 });
 
 export const ROUTER_ADDRESS = getRouterAddress('production');
@@ -59,6 +87,9 @@ export const EXPLORER_ADDRESS = getExplorerAddress('production');
 export const MARKET_FACTORY_ADDRESS = getMarketFactoryAddress('production');
 export const CHAIN_ID = getChainId('production');
 export const EXPLORER_CONTRACT_ADDRESS = getExplorerContractAddress('production');
+export const MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS = getMultiTokenMerkleDistributorAddress('production');
+export const MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS = getMakerIncentiveMerkleDistributorAddress('production');
+export const LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS = getLpRewardsMerkleDistributorAddress('production');
 
 export const PROD_ADDRESSES_CONFIG = PROD_ADDRESSES;
 export const DEV_ADDRESSES_CONFIG = DEV_ADDRESSES;

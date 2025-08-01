@@ -1,13 +1,12 @@
 import { Address } from 'viem';
 import { BorosBackend } from '../../backend';
 import { RewardDistributor } from './RewardDistributor';
-import { LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS, MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS } from './constants';
-import { Environment } from '../../addresses';
+import { Environment, getLpRewardsMerkleDistributorAddress } from '../../addresses';
 
 export class LpRewardsDistributor extends RewardDistributor {
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
   constructor(env: Environment) {
-    super(LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS);
+    super(getLpRewardsMerkleDistributorAddress(env));
     this.borosCoreSdk = BorosBackend.getCoreSdk(env);
   }
 
