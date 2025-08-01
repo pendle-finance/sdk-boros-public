@@ -41,9 +41,23 @@ import { EXPLORER_CONTRACT_ADDRESS } from '../../contracts/consts';
 import { MarketStatus } from '../../common/types';
 import { arbitrum } from 'viem/chains';
 import { Environment } from '../../addresses';
+import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
+
+class LengthMismatchError extends Error {
+  executeResponses: TxResponse[];
+  logGroups: any[];
+
+  constructor(message: string, executeResponses: TxResponse[], logGroups: any[]) {
+    super(message);
+    this.name = 'LengthMismatchError';
+    this.executeResponses = executeResponses;
+    this.logGroups = logGroups;
+  }
+}
+
 export class Exchange {
   static readonly DEFAULT_SLIPPAGE = 0.05;
 
@@ -127,6 +141,14 @@ export class Exchange {
           id: index,
         }))
         .filter((txResponse) => txResponse.txResponse.txHash !== undefined);
+
+      if (successExecuteResponses.length !== logGroups.length) {
+        throw new LengthMismatchError(
+          `Length mismatch between successExecuteResponses and logGroups: ${successExecuteResponses.length} !== ${logGroups.length}`,
+          executeResponses,
+          logGroups
+        );
+      }
 
       const sentTxResponses = logGroups.map((events, index) => {
         return {
