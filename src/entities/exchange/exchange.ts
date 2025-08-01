@@ -69,20 +69,15 @@ export class Exchange {
   private publicClient: PublicClient;
   private env: Environment;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number, env: Environment, rpcUrl?: string) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, env: Environment, rpcUrls: string[]) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
     this.env = env;
     this.borosCoreSdk = BorosBackend.getCoreSdk(this.env);
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(this.env);
-    this.contractsFactory = new ContractsFactory(rpcUrl);
-    this.publicClient = rpcUrl
-      ? createPublicClient({
-          chain: arbitrum,
-          transport: http(rpcUrl),
-        })
-      : publicClient;
+    this.contractsFactory = new ContractsFactory(rpcUrls);
+    this.publicClient = this.contractsFactory.getRpcClient();
   }
 
   async enterMarkets(cross: boolean, marketIds: number[]) {

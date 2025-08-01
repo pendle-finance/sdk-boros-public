@@ -1,4 +1,3 @@
-
 import {
   http,
   Address,
@@ -7,24 +6,23 @@ import {
   WalletClient,
   createPublicClient,
   getContract,
-  webSocket,
+  Transport,
 } from 'viem';
 import { arbitrum } from 'viem/chains';
 import { Explorer } from './explorer';
 import { Multicall } from '../multicall/multicall';
 import { iMulticall3Abi } from './abis/viemAbis';
-import { RPC_URL } from '../common';
 import { MULTICALL_ADDRESS } from '../multicall/constants';
 import { MarketContract } from './market';
 import { AMM } from './amm';
+import { fallbackRpcTransport } from './viem-transport';
 
 export class ContractsFactory {
-
   private rpcClient: PublicClient; //map should be faster to read
   private multicallContract: Multicall | undefined;
-  private RPC_URL: string;
-  constructor(rpcUrl?: string) {
-    this.RPC_URL = rpcUrl ?? RPC_URL;
+  private RPC_URLs: string[];
+  constructor(rpcUrls: string[]) {
+    this.RPC_URLs = rpcUrls;
     this.rpcClient = this.createRpcClient();
   }
 
@@ -42,15 +40,30 @@ export class ContractsFactory {
     this.multicallContract = undefined;
   }
 
-  getProviderUrl(): string {
-    return this.RPC_URL;
+  getProviderUrls(): string[] {
+    return this.RPC_URLs;
   }
 
-  createRpcClient(): PublicClient {
+  private createRpcClientWithTransport(transport: Transport) {
     return createPublicClient({
-      transport: http(this.getProviderUrl()),
+      transport,
       chain: arbitrum,
     }) as unknown as PublicClient;
+  }
+
+  getRpcHttpTransport() {
+    const rpcProviders = this.getProviderUrls();
+    const retryCount = rpcProviders.length > 1 ? 0 : undefined;
+    return fallbackRpcTransport(
+      rpcProviders.map((rpc) => http(rpc)),
+      {
+        retryCount,
+      }
+    );
+  }
+
+  private createRpcClient(): PublicClient {
+    return this.createRpcClientWithTransport(this.getRpcHttpTransport());
   }
 
   getRpcClient(): PublicClient {
@@ -66,7 +79,6 @@ export class ContractsFactory {
       multicall: this.getCachedMulticall(multicall, client),
     };
   }
-
 
   getExplorerContract(address: Address, walletClient?: WalletClient) {
     return new Explorer(address, this.getRpcClientAndMulticall(), walletClient);
