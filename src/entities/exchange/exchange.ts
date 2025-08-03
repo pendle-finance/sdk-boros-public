@@ -43,19 +43,6 @@ import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
-
-export class LengthMismatchError extends Error {
-  executeResponses: TxResponse[];
-  logGroups: any[];
-
-  constructor(message: string, executeResponses: TxResponse[], logGroups: any[]) {
-    super(message);
-    this.name = 'LengthMismatchError';
-    this.executeResponses = executeResponses;
-    this.logGroups = logGroups;
-  }
-}
-
 export class Exchange {
   static readonly DEFAULT_SLIPPAGE = 0.05;
 
@@ -893,7 +880,7 @@ export class Exchange {
   }
 
   async getAmmCutOffTimestamp(marketId: number) {
-    const markets = await this.getMarkets({ isWhitelisted: true });
+    const markets = await this.getMarkets();
     const market = markets.results.find((m) => m.marketId === marketId)!;
     const ammContract = this.contractsFactory.getAmmContract(market.metadata?.ammAddress as Address);
     const ammState = await ammContract?.readState();
@@ -909,7 +896,7 @@ export class Exchange {
     markApr: number;
     marketStatus: MarketStatus;
   }> {
-    const markets = await this.getMarkets({ isWhitelisted: true });
+    const markets = await this.getMarkets();
     const market = markets.results.find((m) => m.marketId === marketId)!;
 
     const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
@@ -953,7 +940,7 @@ export class Exchange {
   }
 
   private static _getMarketsCache: { [key: string]: { value: MarketsResponse; timestamp: number } } = {};
-  private static _getMarketsCacheTTL = 10 * 60 * 1000; // 10 minutes in ms
+  private static _getMarketsCacheTTL = 5 * 60 * 1000; // 5 minutes in ms
 
   public async getMarkets(params?: GetMarketsParams): Promise<MarketsResponse> {
     const cacheKey = JSON.stringify(params ?? {});
