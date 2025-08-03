@@ -132,25 +132,24 @@ export class Exchange {
         }))
         .filter((txResponse) => txResponse.txResponse.txHash !== undefined);
 
-      if (successExecuteResponses.length !== logGroups.length) {
-        throw new LengthMismatchError(
-          `Length mismatch between successExecuteResponses and logGroups: ${successExecuteResponses.length} !== ${logGroups.length}`,
-          executeResponses,
-          logGroups
-        );
-      }
-
-      const sentTxResponses = logGroups.map((events, index) => {
-        return {
-          result: {
-            executeResponse: successExecuteResponses[index].txResponse,
-            events,
-            blockTimestamp,
-            blockNumber: receipt.blockNumber,
-          },
-          id: successExecuteResponses[index].id,
-        };
-      });
+      const sentTxResponses = logGroups
+        .filter((_events, index) => {
+          const successExecuteResponse = successExecuteResponses.find(
+            (successExecuteResponse) => successExecuteResponse.txResponse.index === index
+          );
+          return successExecuteResponse !== undefined;
+        })
+        .map((events, index) => {
+          return {
+            result: {
+              executeResponse: successExecuteResponses[index].txResponse,
+              events,
+              blockTimestamp,
+              blockNumber: receipt.blockNumber,
+            },
+            id: successExecuteResponses[index].id,
+          };
+        });
 
       const res = executeResponses.map((txResponse, index) => {
         if (txResponse.error) {
@@ -271,21 +270,23 @@ export class Exchange {
             }))
           : undefined,
         bulkOrders: request.bulkOrders
-          ? request.bulkOrders.map((bulkOrder) => ({
-              cross: bulkOrder.cross,
-              bulks: bulkOrder.bulks.map((bulk) => ({
-                marketId: bulk.marketId,
-                orders: {
-                  ...bulk.orders,
-                  sizes: bulk.orders.sizes.map((size) => size.toString()),
-                },
-                cancelData: {
-                  ...bulk.cancelData,
-                  ids: bulk.cancelData.ids.map((id) => id.toString()),
-                },
-              })),
-              slippage: bulkOrder.slippage,
-            }))
+          ? request.bulkOrders
+              .filter((bulkOrder) => bulkOrder.bulks.length > 0)
+              .map((bulkOrder) => ({
+                cross: bulkOrder.cross,
+                bulks: bulkOrder.bulks.map((bulk) => ({
+                  marketId: bulk.marketId,
+                  orders: {
+                    ...bulk.orders,
+                    sizes: bulk.orders.sizes.map((size) => size.toString()),
+                  },
+                  cancelData: {
+                    ...bulk.cancelData,
+                    ids: bulk.cancelData.ids.map((id) => id.toString()),
+                  },
+                })),
+                slippage: bulkOrder.slippage,
+              }))
           : undefined,
       });
     const responses = await this.bulkSignAndExecute(bulkPlaceOrderCalldataResponse.calldatas as Hex[]);
