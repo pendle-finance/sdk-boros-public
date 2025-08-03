@@ -4,7 +4,7 @@ import { publicClient } from '../publicClient';
 import { SimulateReturnType } from 'viem/actions';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { SignedAgentExecution } from '../../utils';
-import { Environment, getRouterAddress } from '../../addresses';
+import { getRouterAddress } from '../../addresses';
 
 export async function parseEvents(txHash: Hex) {
   const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -19,8 +19,7 @@ export function decodeLog(log: Log<bigint, number, false>) {
   for (const abi of abis) {
     try {
       return decodeEventLog({ abi, data: log.data, topics: log.topics });
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   return null;
 }
@@ -51,8 +50,7 @@ export async function getAgentExecuteCalldata(query: SignedAgentExecution) {
 
 export async function simulateDirectCall(
   publicClient: PublicClient,
-  signedAgentExecution: SignedAgentExecution,
-  env: Environment
+  signedAgentExecution: SignedAgentExecution
 ): Promise<SimulateReturnType> {
   const calldata = await getAgentExecuteCalldata(signedAgentExecution);
   const result = await publicClient.simulate({
@@ -60,7 +58,7 @@ export async function simulateDirectCall(
       {
         calls: [
           {
-            to: getRouterAddress(env),
+            to: getRouterAddress(),
             data: calldata,
           },
         ],

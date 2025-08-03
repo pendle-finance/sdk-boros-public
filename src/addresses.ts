@@ -2,6 +2,12 @@ import { Address } from 'viem';
 
 export type Environment = 'production' | 'development';
 
+export let env: Environment = 'production';
+
+export function setEnv(environment: Environment) {
+  env = environment;
+}
+
 const PROD_ADDRESSES = {
   ROUTER_ADDRESS: '0x8080808080daB95eFED788a9214e400ba552DEf6',
   MARKET_HUB_ADDRESS: '0x1080808080f145b14228443212e62447C112ADaD',
@@ -28,68 +34,68 @@ const DEV_ADDRESSES = {
   LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: '0x5fa1be763d5eb2cb4df90f557468421bd7f27fbf',
 } as const;
 
-export const getRouterAddress = (env: Environment): Address => {
+export const getRouterAddress = (): Address => {
   return env === 'production' ? PROD_ADDRESSES.ROUTER_ADDRESS : DEV_ADDRESSES.ROUTER_ADDRESS;
 };
 
-export const getMarketHubAddress = (env: Environment): Address => {
+export const getMarketHubAddress = (): Address => {
   return env === 'production' ? PROD_ADDRESSES.MARKET_HUB_ADDRESS : DEV_ADDRESSES.MARKET_HUB_ADDRESS;
 };
 
-export const getExplorerAddress = (env: Environment): Address => {
+export const getExplorerAddress = (): Address => {
   return env === 'production' ? PROD_ADDRESSES.EXPLORER_ADDRESS : DEV_ADDRESSES.EXPLORER_ADDRESS;
 };
 
-export const getMarketFactoryAddress = (env: Environment): Address => {
+export const getMarketFactoryAddress = (): Address => {
   return env === 'production' ? PROD_ADDRESSES.MARKET_FACTORY_ADDRESS : DEV_ADDRESSES.MARKET_FACTORY_ADDRESS;
 };
 
-export const getExplorerContractAddress = (env: Environment): Address => {
+export const getExplorerContractAddress = (): Address => {
   return env === 'production' ? PROD_ADDRESSES.EXPLORER_CONTRACT_ADDRESS : DEV_ADDRESSES.EXPLORER_CONTRACT_ADDRESS;
 };
 
-export const getMultiTokenMerkleDistributorAddress = (env: Environment): Address => {
+export const getMultiTokenMerkleDistributorAddress = (): Address => {
   return env === 'production'
     ? PROD_ADDRESSES.MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS
     : DEV_ADDRESSES.MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS;
 };
-export const getMakerIncentiveMerkleDistributorAddress = (env: Environment): Address => {
+export const getMakerIncentiveMerkleDistributorAddress = (): Address => {
   return env === 'production'
     ? PROD_ADDRESSES.MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS
     : DEV_ADDRESSES.MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS;
 };
 
-export const getLpRewardsMerkleDistributorAddress = (env: Environment): Address => {
+export const getLpRewardsMerkleDistributorAddress = (): Address => {
   return env === 'production'
     ? PROD_ADDRESSES.LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS
     : DEV_ADDRESSES.LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS;
 };
 
-export const getChainId = (env: Environment): number => {
+export const getChainId = (): number => {
   return env === 'production' ? PROD_ADDRESSES.CHAIN_ID : DEV_ADDRESSES.CHAIN_ID;
 };
 
-export const getAddressesForEnvironment = (env: Environment) => ({
-  ROUTER_ADDRESS: getRouterAddress(env),
-  MARKET_HUB_ADDRESS: getMarketHubAddress(env),
-  EXPLORER_ADDRESS: getExplorerAddress(env),
-  MARKET_FACTORY_ADDRESS: getMarketFactoryAddress(env),
-  EXPLORER_CONTRACT_ADDRESS: getExplorerContractAddress(env),
-  CHAIN_ID: getChainId(env),
-  MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS: getMultiTokenMerkleDistributorAddress(env),
-  MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS: getMakerIncentiveMerkleDistributorAddress(env),
-  LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: getLpRewardsMerkleDistributorAddress(env),
+export const getAddressesForEnvironment = () => ({
+  ROUTER_ADDRESS: getRouterAddress(),
+  MARKET_HUB_ADDRESS: getMarketHubAddress(),
+  EXPLORER_ADDRESS: getExplorerAddress(),
+  MARKET_FACTORY_ADDRESS: getMarketFactoryAddress(),
+  EXPLORER_CONTRACT_ADDRESS: getExplorerContractAddress(),
+  CHAIN_ID: getChainId(),
+  MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS: getMultiTokenMerkleDistributorAddress(),
+  MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS: getMakerIncentiveMerkleDistributorAddress(),
+  LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS: getLpRewardsMerkleDistributorAddress(),
 });
 
-export const ROUTER_ADDRESS = getRouterAddress('production');
-export const MARKET_HUB_ADDRESS = getMarketHubAddress('production');
-export const EXPLORER_ADDRESS = getExplorerAddress('production');
-export const MARKET_FACTORY_ADDRESS = getMarketFactoryAddress('production');
-export const CHAIN_ID = getChainId('production');
-export const EXPLORER_CONTRACT_ADDRESS = getExplorerContractAddress('production');
-export const MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS = getMultiTokenMerkleDistributorAddress('production');
-export const MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS = getMakerIncentiveMerkleDistributorAddress('production');
-export const LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS = getLpRewardsMerkleDistributorAddress('production');
+export const ROUTER_ADDRESS = getRouterAddress();
+export const MARKET_HUB_ADDRESS = getMarketHubAddress();
+export const EXPLORER_ADDRESS = getExplorerAddress();
+export const MARKET_FACTORY_ADDRESS = getMarketFactoryAddress();
+export const CHAIN_ID = getChainId();
+export const EXPLORER_CONTRACT_ADDRESS = getExplorerContractAddress();
+export const MULTI_TOKEN_MERKLE_DISTRIBUTOR_ADDRESS = getMultiTokenMerkleDistributorAddress();
+export const MAKER_INCENTIVE_MERKLE_DISTRIBUTOR_ADDRESS = getMakerIncentiveMerkleDistributorAddress();
+export const LP_REWARDS_MERKLE_DISTRIBUTOR_ADDRESS = getLpRewardsMerkleDistributorAddress();
 
 export const PROD_ADDRESSES_CONFIG = PROD_ADDRESSES;
 export const DEV_ADDRESSES_CONFIG = DEV_ADDRESSES;

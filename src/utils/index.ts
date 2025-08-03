@@ -3,15 +3,15 @@ export * from './accountLib';
 export * from './orderLib';
 
 import { Address, Hex, WalletClient } from 'viem';
-import { Environment, getRouterAddress } from '../addresses';
+import { getRouterAddress } from '../addresses';
 import { getMarketHubContract } from '../entities/marketHub';
 import { MarketAcc } from '../types';
 
-export async function sendTx(walletClient: WalletClient, calldata: Hex, env: Environment) {
+export async function sendTx(walletClient: WalletClient, calldata: Hex) {
   const [account] = await walletClient.getAddresses();
   const txHash = await walletClient.sendTransaction({
     account,
-    to: getRouterAddress(env),
+    to: getRouterAddress(),
     data: calldata,
     // FIXME: @negativez2 handle native token
     value: 0n,
@@ -29,6 +29,6 @@ export async function getUserAddressFromWalletClient(userWalletClient: WalletCli
   return userAddress;
 }
 
-export async function getEnteredMarkets(marketAcc: MarketAcc, env: Environment) {
-  return getMarketHubContract(env).read.getEnteredMarkets([marketAcc]);
+export async function getEnteredMarkets(marketAcc: MarketAcc) {
+  return getMarketHubContract().read.getEnteredMarkets([marketAcc]);
 }

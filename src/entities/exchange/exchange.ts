@@ -38,8 +38,7 @@ import { Side } from '../../types';
 import { ContractsFactory } from '../../contracts/contracts.factory';
 import { getCurrentTimestamp } from '../../common/time';
 import { MarketStatus } from '../../common/types';
-import { arbitrum } from 'viem/chains';
-import { Environment, getExplorerContractAddress } from '../../addresses';
+import { getExplorerContractAddress } from '../../addresses';
 import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
@@ -67,15 +66,13 @@ export class Exchange {
   private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
   private contractsFactory: ContractsFactory;
   private publicClient: PublicClient;
-  private env: Environment;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number, env: Environment, rpcUrls: string[]) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrls: string[]) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
-    this.env = env;
-    this.borosCoreSdk = BorosBackend.getCoreSdk(this.env);
-    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk(this.env);
+    this.borosCoreSdk = BorosBackend.getCoreSdk();
+    this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
     this.contractsFactory = new ContractsFactory(rpcUrls);
     this.publicClient = this.contractsFactory.getRpcClient();
   }
@@ -97,7 +94,6 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldatas,
-      env: this.env,
     });
     const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCallV2({
       datas: signs.map((sign) => ({
@@ -177,7 +173,6 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldata,
-      env: this.env,
     });
 
     const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
@@ -776,7 +771,7 @@ export class Exchange {
 
     // set expired time to the next 7 days
     const expiredTime = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-    const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime, this.env);
+    const approveAgentData = await agentToUse.approveAgent(this.walletClient, expiredTime);
 
     const { data: approveAgentResponse } = await this.borosSendTxsBotSdk.agent.agentControllerApproveAgent({
       approveAgentCalldata: approveAgentData,
@@ -917,7 +912,7 @@ export class Exchange {
     const market = markets.results.find((m) => m.marketId === marketId)!;
 
     const marketContract = this.contractsFactory.getMarketContract(market.address as Address);
-    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress());
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
     const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] =
@@ -987,7 +982,7 @@ export class Exchange {
 
   async getUserPositions(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
-    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress());
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(
       userAddress ?? this.root,
@@ -1024,7 +1019,7 @@ export class Exchange {
 
   private async getPnlLimitOrdersFromContract(params: GetPnlLimitOrdersParams) {
     const { marketId, userAddress, accountId, tokenId } = params;
-    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress(this.env));
+    const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress());
     const marketAcc = MarketAccLib.pack(userAddress ?? this.root, accountId ?? this.accountId, tokenId, marketId);
     const crossMarketAcc = MarketAccLib.pack(
       userAddress ?? this.root,

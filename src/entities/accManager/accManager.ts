@@ -1,5 +1,5 @@
 import { Address, Hex, WalletClient, encodeFunctionData } from 'viem';
-import { Environment, getRouterAddress } from '../../addresses';
+import { getRouterAddress } from '../../addresses';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { Account, SetAccManagerStruct } from '../../types/common';
 import { getUserAddressFromWalletClient, signSetAccManagerMessage } from '../../utils';
@@ -19,10 +19,10 @@ export class AccManager {
     };
   }
 
-  static async setAccManager(userWalletClient: WalletClient, accManagerAddress: Address, env: Environment): Promise<Hex> {
+  static async setAccManager(userWalletClient: WalletClient, accManagerAddress: Address): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const setAccManagerStruct = await AccManager.createSetAccManagerMessage(userAddress, accManagerAddress);
-    const setAccManagerSignature = await signSetAccManagerMessage(userWalletClient, setAccManagerStruct, env);
+    const setAccManagerSignature = await signSetAccManagerMessage(userWalletClient, setAccManagerStruct);
     return AccManager.getSetAccManagerData(setAccManagerStruct, setAccManagerSignature);
   }
 
@@ -35,9 +35,9 @@ export class AccManager {
     return data;
   }
 
-  static async getAccManager(account: Account, env: Environment): Promise<Address> {
+  static async getAccManager(account: Account): Promise<Address> {
     const accManagerAddress = await publicClient.readContract({
-      address: getRouterAddress(env),
+      address: getRouterAddress(),
       abi: iRouterAbi,
       functionName: 'accountManager',
       args: [account],

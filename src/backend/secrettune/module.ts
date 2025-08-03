@@ -3,7 +3,7 @@
 export * as Core from './BorosCoreSDK';
 export * as SendTxsBot from './BorosSendTxsBotSDK';
 
-import { Environment } from '../../addresses';
+import { env } from '../../addresses';
 import { Sdk as CoreSdk } from './BorosCoreSDK';
 import { Sdk as SendTxsBotSdk } from './BorosSendTxsBotSDK';
 
@@ -52,13 +52,15 @@ export function createSendTxsBotSdk(baseURL: string) {
   return sdk;
 }
 
-export function getCoreSdk(env: Environment = 'production'): BorosCoreSdk {
-  const currentCoreBackendUrl = coreBackendUrl ?? (env === 'production' ?  PROD_CORE_BACKEND_URL : STAGING_CORE_BACKEND_URL);
+export function getCoreSdk(): BorosCoreSdk {
+  const currentCoreBackendUrl =
+    coreBackendUrl ?? (env === 'production' ? PROD_CORE_BACKEND_URL : STAGING_CORE_BACKEND_URL);
   return cachedCoreSdk !== undefined ? cachedCoreSdk : (cachedCoreSdk = createCoreSdk(currentCoreBackendUrl));
 }
 
-export function getSendTxsBotSdk(env: Environment = 'production'): BorosSendTxsBotSdk {
-  const currentSendTxsBotBackendUrl = sendTxsBotBackendUrl ?? (env === 'production' ? PROD_SEND_TXS_BOT_BACKEND_URL : STAGING_SEND_TXS_BOT_BACKEND_URL);
+export function getSendTxsBotSdk(): BorosSendTxsBotSdk {
+  const currentSendTxsBotBackendUrl =
+    sendTxsBotBackendUrl ?? (env === 'production' ? PROD_SEND_TXS_BOT_BACKEND_URL : STAGING_SEND_TXS_BOT_BACKEND_URL);
   return cachedSendTxsBotSdk !== undefined
     ? cachedSendTxsBotSdk
     : (cachedSendTxsBotSdk = createSendTxsBotSdk(currentSendTxsBotBackendUrl));

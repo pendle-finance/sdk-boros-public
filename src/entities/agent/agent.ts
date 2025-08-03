@@ -1,7 +1,7 @@
 import { http, Address, Hex, WalletClient, createWalletClient, encodeFunctionData, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { Environment, getRouterAddress } from '../../addresses';
+import { getRouterAddress } from '../../addresses';
 import { RPC_URL } from '../../common';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { ApproveAgentMessage, Account as BorosAccount } from '../../types/common';
@@ -67,17 +67,17 @@ export class Agent {
     return { agent, privateKey };
   }
 
-  async approveAgent(userWalletClient: WalletClient, expiry_s: number, env: Environment): Promise<Hex> {
+  async approveAgent(userWalletClient: WalletClient, expiry_s: number): Promise<Hex> {
     const userAddress = await getUserAddressFromWalletClient(userWalletClient);
     const approveAgentStruct = await this.createApproveAgentMessage(userAddress, expiry_s);
-    const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct, env);
+    const approveSignature = await signApproveAgentMessage(userWalletClient, approveAgentStruct);
     return this.getApproveAgentData(approveAgentStruct, approveSignature);
   }
 
-  async getExpiry(account: BorosAccount, env: Environment): Promise<number> {
+  async getExpiry(account: BorosAccount): Promise<number> {
     const agentAddress = await this.getAddress();
     const expiry = await publicClient.readContract({
-      address: getRouterAddress(env),
+      address: getRouterAddress(),
       abi: iRouterAbi,
       functionName: 'agentExpiry',
       args: [account, agentAddress],
