@@ -34,4 +34,21 @@ export class WrappedEth {
       value: amount,
     };
   }
+
+  async withdraw(userAddress: Address, amount: bigint) {
+    const data = encodeFunctionData({
+      abi: wethAbi,
+      functionName: 'withdraw',
+      args: [amount],
+    });
+    const gas = await this.wrappedEthContract.estimateGas.withdraw([amount], {
+      account: userAddress,
+    });
+    return {
+      from: userAddress,
+      to: WETH_ADDRESS,
+      data,
+      gas,
+    };
+  }
 }
