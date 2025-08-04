@@ -18,6 +18,7 @@ export const customPendleContractErrorMessageHandler: PendleContractErrorMessage
       MarketOrderRateOutOfBound: () => 'Rate Too Far Off',
       MarketSelfSwap: () => 'Self swapping error',
       TradeUndesiredRate: () => 'Slippage too high',
+      MMInsufficientMinCash: () => 'Top up at least ~$10 to trade',
     },
     // Keep the default fallback for other errors
     (errorName, ...args) => `${errorName}(${joinArgs(args)})`
