@@ -5,14 +5,19 @@ export * from './orderLib';
 import {
   Abi,
   Address,
+  Chain,
   ContractEventName,
+  ContractFunctionExecutionError,
   decodeEventLog,
+  formatTransactionReceipt,
   GetContractEventsReturnType,
+  GetTransactionReceiptReturnType,
   Hex,
   Log,
   PublicClient,
   RawContractError,
   TransactionReceipt,
+  TransactionReceiptNotFoundError,
   WalletClient,
 } from 'viem';
 import { getRouterAddress } from '../addresses';
@@ -111,13 +116,21 @@ function getCorrespondingResultAndLogs(txHash: Hex, receipt: TransactionReceipt,
   };
 }
 
-export async function parseResponse(executeResponses: TxResponse[], publicClient: PublicClient) {
+export async function parseResponse(
+  executeResponses: TxResponse[],
+  publicClient: PublicClient,
+  waitForTransactionReceiptParams?: {
+    maxAttempts?: number;
+    pollInterval?: number;
+  }
+) {
   const uniqueTxHashes = [...new Set(executeResponses.map((executeResponse) => executeResponse.txHash))].flatMap(
     (txHash) => (txHash ? [txHash] : [])
   );
   const uniqueTxReceipts = await Promise.all(
     uniqueTxHashes.map(
-      async (txHash) => [txHash as Hex, await publicClient.waitForTransactionReceipt({ hash: txHash as Hex })] as const
+      async (txHash) =>
+        [txHash as Hex, await waitForTransaction(publicClient, txHash as Hex, waitForTransactionReceiptParams)] as const
     )
   );
   const txReceiptsMap = new Map(uniqueTxReceipts);
@@ -127,4 +140,60 @@ export async function parseResponse(executeResponses: TxResponse[], publicClient
     return getCorrespondingResultAndLogs(txHash, txReceipt, executeResponse.index!);
   });
   return results;
+}
+
+async function getTransactionReceipt(
+  hash: `0x${string}`,
+  publicClient: PublicClient,
+  params?: {
+    maxAttempts?: number;
+    pollInterval?: number;
+  }
+) {
+  let rawReceipt = null;
+  let attempts = 0;
+  const maxAttempts = params?.maxAttempts ?? 20;
+  const pollInterval = params?.pollInterval ?? 500; // 0.5 second
+
+  while (!rawReceipt && attempts < maxAttempts) {
+    rawReceipt = await publicClient.request(
+      {
+        method: 'eth_getTransactionReceipt',
+        params: [hash],
+      },
+      { dedupe: true }
+    );
+    if (!rawReceipt) {
+      attempts++;
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+  }
+
+  if (!rawReceipt) throw new TransactionReceiptNotFoundError({ hash });
+
+  const format = publicClient.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
+  const receipt = format(rawReceipt) as GetTransactionReceiptReturnType<Chain>;
+  return receipt;
+}
+
+export async function waitForTransaction(
+  publicClient: PublicClient,
+  hashPromise: Hex | Promise<Hex>,
+  params?: {
+    maxAttempts?: number;
+    pollInterval?: number;
+  }
+) {
+  let hash: Hex;
+  try {
+    hash = await hashPromise;
+  } catch (error) {
+    if (error instanceof ContractFunctionExecutionError) {
+      throw new Error(error.shortMessage);
+    }
+    throw error;
+  }
+  const receipt = await getTransactionReceipt(hash, publicClient, params);
+
+  return receipt;
 }
