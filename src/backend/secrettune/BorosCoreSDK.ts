@@ -587,6 +587,15 @@ export interface BulkOrders {
   slippage?: number;
 }
 
+export interface OrderRequest {
+  singleOrder?: SingleOrder;
+  bulkOrder?: BulkOrders;
+}
+
+export interface BulkPlaceOrderQueryDtoV5 {
+  orderRequests?: OrderRequest[];
+}
+
 export interface BulkPlaceOrderQueryDtoV4 {
   singleOrders?: SingleOrder[];
   bulkOrders?: BulkOrders[];
@@ -1534,7 +1543,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1754314185
+         * @default 1754379957
          */
         endTimestamp?: number;
       },
@@ -1654,7 +1663,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1754314185
+         * @default 1754379957
          */
         endTimestamp?: number;
       },
@@ -2287,6 +2296,24 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v4/calldata/place-order`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Calldata
+     * @name CalldataControllerGetBulkPlaceOrderCalldataV7
+     * @summary Get place multiple limit orders contract params
+     * @request POST:/v7/calldata/place-orders
+     */
+    calldataControllerGetBulkPlaceOrderCalldataV7: (data: BulkPlaceOrderQueryDtoV5, params: RequestParams = {}) =>
+      this.request<BulkAgentExecuteParamsResponseV2, any>({
+        path: `/v7/calldata/place-orders`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

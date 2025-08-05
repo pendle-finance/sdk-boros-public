@@ -17,10 +17,12 @@ import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../.
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
 import {
+  BulkOrderRequest,
   BulkPlaceOrderParams,
   BulkPlaceOrderV2Params,
   BulkPlaceOrderV3Params,
   BulkPlaceOrderV4Params,
+  BulkPlaceOrderV5Params,
   CancelOrdersParams,
   CashTransferParams,
   CloseActivePositionsParams,
@@ -30,6 +32,7 @@ import {
   GetPnlLimitOrdersParams,
   PayTreasuryParams,
   PlaceOrderParams,
+  SingleOrderRequest,
   UpdateSettingsParams,
   WithdrawParams,
 } from './types';
@@ -244,6 +247,133 @@ export class Exchange {
         events: placeOrderResponse.events,
       },
     };
+    return results;
+  }
+
+  async bulkPlaceOrdersV5(request: BulkPlaceOrderV5Params) {
+    const { data: bulkPlaceOrderCalldataResponse } =
+      await this.borosCoreSdk.calldata.calldataControllerGetBulkPlaceOrderCalldataV7({
+        orderRequests: request.orderRequests.map((orderRequest) => {
+          if ('size' in orderRequest) {
+            return {
+              singleOrder: {
+                ...orderRequest,
+                size: orderRequest.size.toString(),
+              },
+            };
+          }
+          return {
+            bulkOrder: {
+              cross: orderRequest.cross,
+              bulks: orderRequest.bulks.map((bulk) => ({
+                marketId: bulk.marketId,
+                orders: {
+                  ...bulk.orders,
+                  sizes: bulk.orders.sizes.map((size) => size.toString()),
+                },
+                cancelData: {
+                  ...bulk.cancelData,
+                  ids: bulk.cancelData.ids.map((id) => id.toString()),
+                },
+              })),
+              slippage: orderRequest.slippage,
+            },
+          };
+        }),
+      });
+    const responses = await this.bulkSignAndExecute(bulkPlaceOrderCalldataResponse.calldatas as Hex[]);
+    const parseSingleOrderResult = (index: number) => {
+      const singleOrderRequest = request.orderRequests[index] as SingleOrderRequest;
+      const orderResponse = responses[index];
+      if ('error' in orderResponse) {
+        return {
+          error: orderResponse.error,
+        };
+      }
+      const limitOrderPlacedEvent = orderResponse.events.find((event) => event?.eventName === 'LimitOrderPlaced');
+      const swapEvent = orderResponse.events.find((event) => event?.eventName === 'Swap');
+      const otcSwapEvent = orderResponse.events.find((event) => event?.eventName === 'OtcSwap');
+      const limitOrderPartiallyFilledEvent = orderResponse.events.find(
+        (event) => event?.eventName === 'LimitOrderPartiallyFilled'
+      );
+
+      const filledSize =
+        (swapEvent?.args.sizeOut ?? 0n) +
+        (otcSwapEvent?.args.trade ?? 0n) +
+        (limitOrderPartiallyFilledEvent?.args.filledSize ?? 0n);
+
+      const orderInfo = {
+        side: singleOrderRequest!,
+        placedSize: limitOrderPlacedEvent?.args.sizes[0],
+        filledSize,
+        orderId: limitOrderPlacedEvent?.args.orderIds[0],
+        root: this.root,
+        marketId: singleOrderRequest.marketId,
+        accountId: this.accountId,
+        isCross: MarketAccLib.isCrossMarket(singleOrderRequest.marketAcc),
+        blockTimestamp: orderResponse.blockTimestamp,
+        marketAcc: singleOrderRequest.marketAcc,
+      };
+      return {
+        executeResponse: orderResponse.executeResponse,
+        blockNumber: orderResponse.blockNumber,
+        result: {
+          order: orderInfo,
+          events: orderResponse.events,
+        },
+      };
+    };
+    const parseBulkOrderResult = (index: number) => {
+      const bulkOrderRequest = request.orderRequests[index] as BulkOrderRequest;
+      const orderResponse = responses[index];
+      if ('error' in orderResponse) {
+        return {
+          error: orderResponse.error,
+        };
+      }
+      if ('error' in orderResponse) return orderResponse;
+      const limitOrderPlacedEvents = orderResponse.events.filter((event) => event?.eventName === 'LimitOrderPlaced');
+      const limitOrderCancelledEvents = orderResponse.events.filter(
+        (event) => event?.eventName === 'LimitOrderCancelled'
+      );
+
+      const cancelledOrderIds = limitOrderCancelledEvents.flatMap((event) =>
+        event?.args?.orderIds.map((orderId) => orderId.toString())
+      );
+      const orderPlaced = limitOrderPlacedEvents.flatMap((event) => {
+        return event.args.orderIds.map((orderId, id) => {
+          const { side, tickIndex } = OrderIdLib.unpack(orderId);
+          const size = event.args.sizes[id];
+          const order = {
+            orderId: orderId.toString(),
+            side,
+            size,
+            limitTick: tickIndex,
+          };
+          return order;
+        });
+      });
+      return {
+        executeResponse: orderResponse.executeResponse,
+        blockNumber: orderResponse.blockNumber,
+        result: {
+          events: orderResponse.events,
+          orders: orderPlaced,
+          cancelledOrderIds,
+          blockTimestamp: orderResponse.blockTimestamp,
+          root: this.root,
+          accountId: this.accountId,
+          isCross: bulkOrderRequest.cross,
+        },
+      };
+    };
+
+    const results = request.orderRequests.map((orderRequest, index) => {
+      if ('size' in orderRequest) {
+        return parseSingleOrderResult(index);
+      }
+      return parseBulkOrderResult(index);
+    });
     return results;
   }
 

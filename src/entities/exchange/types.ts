@@ -20,13 +20,37 @@ export type Orders = {
   sides: Side[];
   sizes: bigint[];
   limitTicks: number[];
-}
+};
 export type BulkOrders = {
   tif: TimeInForce;
   side: Side;
   sizes: bigint[];
   limitTicks: number[];
-}
+};
+
+export type SingleOrderRequest = {
+  marketAcc: Hex;
+  marketId: number;
+  side: Side;
+  size: bigint;
+  limitTick: number;
+  tif: TimeInForce;
+  ammId?: number;
+  slippage?: number;
+};
+
+export type BulkOrderRequest = {
+  cross: boolean;
+  bulks: {
+    marketId: number;
+    orders: BulkOrders;
+    cancelData: CancelData;
+  }[];
+  slippage?: number;
+};
+export type BulkPlaceOrderV5Params = {
+  orderRequests: (SingleOrderRequest | BulkOrderRequest)[];
+};
 
 export type BulkPlaceOrderV4Params = {
   singleOrders?: {
@@ -48,7 +72,7 @@ export type BulkPlaceOrderV4Params = {
     }[];
     slippage?: number;
   }[];
-}
+};
 
 export type BulkPlaceOrderV3Params = {
   cross: boolean;
@@ -58,14 +82,14 @@ export type BulkPlaceOrderV3Params = {
     cancelData: CancelData;
   }[];
   slippage?: number;
-}
+};
 
 export type BulkPlaceOrderParams = {
   marketAcc: Hex;
   marketId: number;
   cancels: CancelData;
   orders: Orders;
-}
+};
 
 export type BulkPlaceOrderV2Params = {
   marketAcc: Hex;
@@ -145,7 +169,7 @@ export type GetOrderBookParams = {
 export type GetPnlLimitOrdersParams = {
   userAddress?: Address;
   accountId?: number;
-  tokenId: number
+  tokenId: number;
   marketId: number;
   isActive?: boolean;
   orderBy?: OrderBy;
