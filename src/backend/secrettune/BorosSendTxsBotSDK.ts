@@ -25,7 +25,7 @@ export interface AgentExecuteDto {
 
 export interface TxResponse {
   /** Transaction status */
-  status: string;
+  status?: string;
   /** Transaction hash */
   txHash?: string;
   /** Logs index */
@@ -36,6 +36,7 @@ export interface TxResponse {
 
 export interface BulkAgentExecuteDto {
   datas: AgentExecuteDto[];
+  skipReceipt?: boolean;
 }
 
 export interface AgentSessionQueryDto {
@@ -52,10 +53,12 @@ export interface AgentSessionQueryDto {
 export interface BulkAgentExecuteV2Dto {
   datas: AgentExecuteDto[];
   agentSession: AgentSessionQueryDto;
+  skipReceipt?: boolean;
 }
 
 export interface ApproveAgentQueryDto {
   approveAgentCalldata: string;
+  skipReceipt?: boolean;
 }
 
 export interface ApproveAgentResponse {
@@ -110,7 +113,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:9006',
+      baseURL: axiosConfig.baseURL || 'https://api.boros.finance/send-txs-bot',
     });
     this.secure = secure;
     this.format = format;
@@ -203,7 +206,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl http://localhost:9006
+ * @baseUrl https://api.boros.finance/send-txs-bot
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation

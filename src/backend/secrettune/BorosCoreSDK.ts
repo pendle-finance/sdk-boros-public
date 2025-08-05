@@ -263,8 +263,6 @@ export interface VaultApyEntryResponse {
   feesApr: number;
   /** Rewards APR */
   rewardsApr: number;
-  /** Vault APR */
-  vaultApr: number;
 }
 
 export interface GetVaultApyChartResponse {
@@ -488,6 +486,12 @@ export interface AssetMetadataResponse {
    * @example false
    */
   isWhitelisted: boolean;
+  /** Asset origin pro symbol */
+  originProSymbol: string;
+  /** Asset token icon */
+  tokenIcon: string;
+  /** Asset zone icon */
+  zoneIcon: string;
 }
 
 export interface AssetResponse {
@@ -1116,6 +1120,8 @@ export interface MarketPositionResponse {
 export interface MarketAccCollateralResponse {
   /** market acc */
   marketAcc: string;
+  /** bigint string of market entrance fee */
+  marketEntranceFee: string;
   /** List market positions info */
   marketPositions: MarketPositionResponse[];
   isCross: boolean;
@@ -1338,7 +1344,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:8000',
+      baseURL: axiosConfig.baseURL || 'https://staging-api.boros.finance/core',
     });
     this.secure = secure;
     this.format = format;
@@ -1431,7 +1437,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl http://localhost:8000
+ * @baseUrl https://staging-api.boros.finance/core
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -1528,7 +1534,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753943300
+         * @default 1754314185
          */
         endTimestamp?: number;
       },
@@ -1648,7 +1654,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1753943300
+         * @default 1754314185
          */
         endTimestamp?: number;
       },
