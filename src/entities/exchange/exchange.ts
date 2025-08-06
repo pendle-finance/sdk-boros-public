@@ -1021,7 +1021,9 @@ export class Exchange {
     midApr: number;
     impliedApr: number;
     bestBidApr: number | undefined;
+    bestBidTick: number | undefined;
     bestAskApr: number | undefined;
+    bestAskTick: number | undefined;
     lastTradedApr: number;
     markApr: number;
     marketStatus: MarketStatus;
@@ -1033,36 +1035,45 @@ export class Exchange {
     const explorerContract = this.contractsFactory.getExplorerContract(getExplorerContractAddress());
     const ammAddress = market.metadata?.ammAddress;
     const ammContract = ammAddress ? this.contractsFactory.getAmmContract(ammAddress as Address) : undefined;
-    const [marketInfo, bestBidApr, bestAskApr, ammState, ammImpliedRateBigInt, impliedRateData, marketConfig] =
-      await Promise.all([
-        explorerContract.getMarketInfo(market.marketId),
-        marketContract.getBestBidApr(BigInt(market.imData.tickStep)),
-        marketContract.getBestAskApr(BigInt(market.imData.tickStep)),
-        ammContract ? ammContract.readState() : undefined,
-        ammContract ? ammContract.impliedRate() : undefined,
-        marketContract.getImpliedRateData(),
-        marketContract.getMarketConfig(),
-      ]);
+    const [
+      marketInfo,
+      bestBidTickAndApr,
+      bestAskTickAndApr,
+      ammState,
+      ammImpliedRateBigInt,
+      impliedRateData,
+      marketConfig,
+    ] = await Promise.all([
+      explorerContract.getMarketInfo(market.marketId),
+      marketContract.getBestBidTickAndApr(BigInt(market.imData.tickStep)),
+      marketContract.getBestAskTickAndApr(BigInt(market.imData.tickStep)),
+      ammContract ? ammContract.readState() : undefined,
+      ammContract ? ammContract.impliedRate() : undefined,
+      marketContract.getImpliedRateData(),
+      marketContract.getMarketConfig(),
+    ]);
     const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
     const { impliedApr, markApr } = marketInfo;
 
     let midApr = FixedX18.fromRawValue(impliedApr).toNumber();
     if (beforeCutOff && ammImpliedRateBigInt) {
       midApr = FixedX18.fromRawValue(ammImpliedRateBigInt).toNumber();
-      if (bestBidApr) {
-        midApr = Math.max(midApr, bestBidApr.toNumber());
+      if (bestBidTickAndApr) {
+        midApr = Math.max(midApr, bestBidTickAndApr.apr.toNumber());
       }
-      if (bestAskApr) {
-        midApr = Math.min(midApr, bestAskApr.toNumber());
+      if (bestAskTickAndApr) {
+        midApr = Math.min(midApr, bestAskTickAndApr.apr.toNumber());
       }
-    } else if (bestBidApr && bestAskApr) {
-      midApr = (bestBidApr.toNumber() + bestAskApr.toNumber()) / 2;
+    } else if (bestBidTickAndApr && bestAskTickAndApr) {
+      midApr = (bestBidTickAndApr.apr.toNumber() + bestAskTickAndApr.apr.toNumber()) / 2;
     }
     return {
       midApr,
       impliedApr: FixedX18.fromRawValue(impliedApr).toNumber(),
-      bestBidApr: bestBidApr?.toNumber(),
-      bestAskApr: bestAskApr?.toNumber(),
+      bestBidApr: bestBidTickAndApr?.apr.toNumber(),
+      bestBidTick: bestBidTickAndApr?.tick,
+      bestAskApr: bestAskTickAndApr?.apr.toNumber(),
+      bestAskTick: bestAskTickAndApr?.tick,
       lastTradedApr: FixedX18.fromRawValue(impliedRateData.lastTradedRate).toNumber(),
       markApr: FixedX18.fromRawValue(markApr).toNumber(),
       marketStatus: marketConfig.status,

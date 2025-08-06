@@ -68,6 +68,14 @@ export class MarketContract extends BaseContractHelper<typeof iMarketOffAbi> {
     return latestFTime;
   }
 
+  async getBestBidTickAndApr(tickStep: bigint, multicallOptions?: MulticallOptions) {
+    const bestBidTicks = await this.getNextNTicks(Side.LONG, TICK_MIN_VALUE, 1n, multicallOptions);
+    if (bestBidTicks.ticks.length === 0) {
+      return undefined;
+    }
+    return { tick: bestBidTicks.ticks[0], apr: getRateAtTick(BigInt(bestBidTicks.ticks[0]), tickStep) };
+  }
+
   async getBestBidApr(tickStep: bigint, multicallOptions?: MulticallOptions) {
     const bestBidTicks = await this.getNextNTicks(Side.LONG, TICK_MIN_VALUE, 1n, multicallOptions);
 
@@ -76,6 +84,14 @@ export class MarketContract extends BaseContractHelper<typeof iMarketOffAbi> {
     }
 
     return getRateAtTick(BigInt(bestBidTicks.ticks[0]), tickStep);
+  }
+
+  async getBestAskTickAndApr(tickStep: bigint, multicallOptions?: MulticallOptions) {
+    const bestAskTicks = await this.getNextNTicks(Side.SHORT, TICK_MAX_VALUE, 1n, multicallOptions);
+    if (bestAskTicks.ticks.length === 0) {
+      return undefined;
+    }
+    return { tick: bestAskTicks.ticks[0], apr: getRateAtTick(BigInt(bestAskTicks.ticks[0]), tickStep) };
   }
 
   async getBestAskApr(tickStep: bigint, multicallOptions?: MulticallOptions) {
