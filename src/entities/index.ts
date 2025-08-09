@@ -6,3 +6,4 @@ export * from './accManager';
 export * from './Distributor';
 export * from './multiTokenMerkleDistributor';
 export * from './wrappedEth';
+export * from './subaccount';
