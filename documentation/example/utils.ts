@@ -31,7 +31,8 @@ export async function setupExchange(config: ExampleConfig): Promise<{
   const exchange = new Exchange(
     walletClient,
     account.address,
-    config.accountId
+    config.accountId,
+    [config.rpcUrl]
   );
 
   const { agent } = await Agent.create(walletClient);

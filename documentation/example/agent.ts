@@ -1,9 +1,11 @@
 import { http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient } from "viem";
-import { Agent, Exchange } from "../../src";
+import { Agent, Exchange, setEnv } from "../../src";
 
 async function createAndApproveAgentExample() {
+
+  setEnv('production');
 
   const PRIVATE_KEY = '0x...'
   const RPC_URL = 'https://rpc-url'
@@ -16,7 +18,7 @@ async function createAndApproveAgentExample() {
     transport: http(RPC_URL),
   });
 
-  const exchange = new Exchange(walletClient, account.address, accountId);
+  const exchange = new Exchange(walletClient, account.address, accountId, [RPC_URL]);
   
   // Submit the agent for creation
   const {agent, privateKey} = await Agent.create(walletClient);

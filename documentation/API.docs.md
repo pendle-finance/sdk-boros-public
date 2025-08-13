@@ -14,7 +14,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/markets/1"
+  curl -X GET "https://api.boros.finance/core/v1/markets/1"
   ```
 
   Response:
@@ -84,7 +84,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/markets/markets?skip=0&limit=10&isWhitelisted=true"
+  curl -X GET "https://api.boros.finance/core/v1/markets/markets?skip=0&limit=10&isWhitelisted=true"
   ```
 
   Response:
@@ -157,7 +157,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/markets/market-trades?skip=0&limit=10&marketId=1"
+  curl -X GET "https://api.boros.finance/core/v1/markets/market-trades?skip=0&limit=10&marketId=1"
   ```
 
   Response:
@@ -237,7 +237,7 @@ Boros Core V2 provides a comprehensive REST API for interacting with the protoco
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/markets/chart?marketId=1&timeFrame=5m&startTimestamp=0&endTimestamp=1746356141"
+  curl -X GET "https://api.boros.finance/core/v1/markets/chart?marketId=1&timeFrame=5m&startTimestamp=0&endTimestamp=1746356141"
   ```
 
   Response:
@@ -301,7 +301,7 @@ Available chart intervals:
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/order-books/1?tickSize=0.00001"
+  curl -X GET "https://api.boros.finance/core/v1/order-books/1?tickSize=0.00001"
   ```
 
   Response:
@@ -371,7 +371,7 @@ Supported price increments for order placement:
 
   Example:
   ```bash
-  curl -X GET "https://secrettune.io/core/v1/amm/1"
+  curl -X GET "https://api.boros.finance/core/v1/amm/1"
   ```
 
   Response:
@@ -402,7 +402,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core/v1/simulations/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
+   curl -X GET "https://api.boros.finance/core/v1/simulations/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
    ```
 
    Response:
@@ -449,7 +449,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core/v1/simulations/cash-transfer?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&marketId=1&isDeposit=true&amount=1000"
+   curl -X GET "https://api.boros.finance/core/v1/simulations/cash-transfer?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&marketId=1&isDeposit=true&amount=1000"
    ```
 
    Response:
@@ -484,7 +484,7 @@ Supported price increments for order placement:
 
    Example:
    ```bash
-   curl -X GET "https://secrettune.io/core/v1/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&tif=0&slippage=0.05&mockTransfer=false"
+   curl -X GET "https://api.boros.finance/core/v1/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&tif=0&slippage=0.05&mockTransfer=false"
    ```
 
    Response:
@@ -526,7 +526,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core/v1/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
+    curl -X GET "https://api.boros.finance/core/v1/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
     ```
     
     Response:
@@ -543,7 +543,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=0&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true"
+    curl -X GET "https://api.boros.finance/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=0&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true"
     ```
 
     Response:
@@ -558,7 +558,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core/v1/calldata/cash-transfer?marketId=1&isDeposit=true&amount=1000"
+    curl -X GET "https://api.boros.finance/core/v1/calldata/cash-transfer?marketId=1&isDeposit=true&amount=1000"
     ```
 
     Response:
@@ -574,7 +574,7 @@ Supported price increments for order placement:
 
     Example:
     ```bash
-    curl -X GET "https://secrettune.io/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&slippage=0.05&tif=0"
+    curl -X GET "https://api.boros.finance/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&slippage=0.05&tif=0"
 
 5. **Agent Direct Call** (`POST /v1/calldata/agent-direct-call`)
     - execute calldata by agent
@@ -582,7 +582,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://secrettune.io/core/v1/calldata/agent-direct-call' \
+    'https://api.boros.finance/core/v1/calldata/agent-direct-call' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
@@ -610,7 +610,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://secrettune.io/core/v1/calldata/approve-agent' \
+    'https://api.boros.finance/core/v1/calldata/approve-agent' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
@@ -633,7 +633,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core/v1/pnl/positions/active?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
+    'https://api.boros.finance/core/v1/pnl/positions/active?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
     -H 'accept: application/json'
     ```
     
@@ -693,7 +693,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core/v1/pnl/positions/closed?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&limit=10&skip=0&orderBy=timeClosed%3A-1' \
+    'https://api.boros.finance/core/v1/pnl/positions/closed?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&limit=10&skip=0&orderBy=timeClosed%3A-1' \
     -H 'accept: application/json'
     ```
     
@@ -760,7 +760,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core/v1/pnl/limit-orders?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&skip=0&limit=10&orderBy=blockTimestamp%3A-1' \
+    'https://api.boros.finance/core/v1/pnl/limit-orders?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0&skip=0&limit=10&orderBy=blockTimestamp%3A-1' \
     -H 'accept: application/json'
     ```
     
@@ -795,7 +795,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'GET' \
-    'https://secrettune.io/core/v1/collaterals/summary?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
+    'https://api.boros.finance/core/v1/collaterals/summary?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&accountId=0' \
     -H 'accept: application/json'
     ```
     

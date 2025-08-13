@@ -47,8 +47,10 @@ Below is a complete example showing how to pay gas to treasury, create an agent,
 ```typescript
 import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { Exchange, Agent, Side, TimeInForce, MarketAccLib } from 'pendle-sdk-boros';
+import { Exchange, Agent, Side, TimeInForce, MarketAccLib, setEnv } from 'pendle-sdk-boros';
 
+
+setEnv('production')
 // Setup wallet client
 const PRIVATE_KEY = '0xYourPrivateKey';
 const RPC_URL = 'https://your-rpc-endpoint.com';
