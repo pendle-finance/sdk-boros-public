@@ -4,6 +4,13 @@
 
 Boros Core V2 provides a comprehensive REST API for interacting with the protocol. The API is organized into several main categories.
 
+## Swagger link
+### core
+`https://api.boros.finance/core/docs`
+
+### send-txs-bot
+`https://api.boros.finance/send-txs-bot/docs`
+
 ## API Endpoints and Related Terms
 
 ### Markets
@@ -478,13 +485,13 @@ Supported price increments for order placement:
   }
    ```
 
-4. **Place Order Simulation** (`GET /v1/simulations/place-order`)
+4. **Place Order Simulation** (`GET /v2/simulations/place-order`)
    - Simulate limit order placement
    - Supports various order types
 
    Example:
    ```bash
-   curl -X GET "https://api.boros.finance/core/v1/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&tif=0&slippage=0.05&mockTransfer=false"
+   curl -X GET "https://api.boros.finance/core/v2/simulations/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&tif=0&slippage=0.05&mockTransfer=false"
    ```
 
    Response:
@@ -521,12 +528,12 @@ Supported price increments for order placement:
   }
    ```
 ##### Calldata
-1. **Deposit** (`GET /v1/calldata/deposit`)
+1. **Deposit** (`GET /v2/calldata/deposit`)
     - Get calldata for deposit
 
     Example:
     ```bash
-    curl -X GET "https://api.boros.finance/core/v1/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
+    curl -X GET "https://api.boros.finance/core/v2/calldata/deposit?userAddress=0x1eCa053Af93A7AFaeFCD2133A352f422c3C04903&collateralAddress=0x70a5cc7c683e7431a7f0a596305b870161fc515d&amount=1000"
     ```
     
     Response:
@@ -538,22 +545,7 @@ Supported price increments for order placement:
     "gas": "116207"
     }
     ```
-2. **Withdraw** (`GET /v1/calldata/withdraw`)
-    - Get calldata for withdraw
-
-    Example:
-    ```bash
-    curl -X GET "https://api.boros.finance/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketAddress=0xc463e26c9001f7838a079e9a936ff7697c96c14e&side=0&size=10000000000000000000&limitTick=123&tif=0&useOrderBook=true"
-    ```
-
-    Response:
-    ```json
-    {
-    "tag": "agentExecute",
-    "data": "0x1927114900000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007b0000000000000000000000000000000000000000000000008ac7230489e80000"
-    }
-    ```
-3. **Cash Transfer** (`GET /v1/calldata/cash-transfer`)
+3. **Cash Transfer** (`GET /v3/calldata/cash-transfer`)
     - Get calldata for cash transfer
 
     Example:
@@ -564,17 +556,18 @@ Supported price increments for order placement:
     Response:
     ```json
     {
-    "tag": "agentExecute",
-    "data": "0x185a2032000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000001"
+    "calldatas":[
+     "0x185a2032000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000001"
+    ]  
     }
     ```
 
-4. **Place Order** (`GET /v1/calldata/place-order`)
+4. **Place Order** (`GET /v4/calldata/place-order`)
     - Get calldata for place order
 
     Example:
     ```bash
-    curl -X GET "https://api.boros.finance/core/v1/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&slippage=0.05&tif=0"
+    curl -X GET "https://api.boros.finance/core/v4/calldata/place-order?marketAcc=0x1eca053af93a7afaefcd2133a352f422c3c04903000001ffffff&marketId=1&side=0&size=10000000000000000000&limitTick=123&slippage=0.05&tif=0"
 
 5. **Agent Direct Call** (`POST /v1/calldata/agent-direct-call`)
     - execute calldata by agent
@@ -582,7 +575,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://api.boros.finance/core/v1/calldata/agent-direct-call' \
+    'https://api.boros.finance/send-txs-bot/v2/calldata/direct-call' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
@@ -610,7 +603,7 @@ Supported price increments for order placement:
     Example:
     ```bash
     curl -X 'POST' \
-    'https://api.boros.finance/core/v1/calldata/approve-agent' \
+    'https://api.boros.finance/send-txs-bot/v1/calldata/approve-agent' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d '{
