@@ -17,7 +17,8 @@ export function combineMarketOrderBookAndAMM(
   marketOrderBook: OrderBooksResponse,
   ammStateResponse: AMMStateResponse,
   isPositiveAMM: boolean,
-  ammShiftedRate: string
+  ammShiftedRate: string,
+  orderBookSizePerSide: number = ORDER_BOOK_SIZE_PER_SIDE
 ): OrderBooksResponse {
   const ammFeeRate = FixedX18.fromRawValue(BigInt(ammShiftedRate)).toNumber();
   const ammState = convertAMMStateResponseToAMMContractState(ammStateResponse);
@@ -72,7 +73,7 @@ export function combineMarketOrderBookAndAMM(
     shortIa = Math.max(shortIa, marketOrderBook.long.ia[0] + 1);
   }
 
-  while (short.ia.length < ORDER_BOOK_SIZE_PER_SIDE) {
+  while (short.ia.length < orderBookSizePerSide) {
     let sz = 0n;
     while (
       shortOrderBookIndex < marketOrderBook.short.ia.length &&
@@ -103,7 +104,7 @@ export function combineMarketOrderBookAndAMM(
     shortIa++;
   }
 
-  while (long.ia.length < ORDER_BOOK_SIZE_PER_SIDE) {
+  while (long.ia.length < orderBookSizePerSide) {
     let sz = 0n;
     while (
       longOrderBookIndex < marketOrderBook.long.ia.length &&
