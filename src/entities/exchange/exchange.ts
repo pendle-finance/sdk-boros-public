@@ -1047,8 +1047,8 @@ export class Exchange {
       explorerContract.getMarketInfo(market.marketId),
       marketContract.getBestBidTickAndApr(BigInt(market.imData.tickStep)),
       marketContract.getBestAskTickAndApr(BigInt(market.imData.tickStep)),
-      ammContract ? ammContract.readState() : undefined,
-      ammContract ? ammContract.impliedRate() : undefined,
+      ammContract ? ammContract.readState().catch(() => undefined) : undefined,
+      ammContract ? ammContract.impliedRate().catch(() => undefined) : undefined,
       marketContract.getImpliedRateData(),
       marketContract.getMarketConfig(),
     ]);
