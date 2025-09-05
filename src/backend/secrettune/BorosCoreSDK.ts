@@ -52,6 +52,10 @@ export interface MarketConfigResponse {
   useImpliedAsMarkRate: boolean;
   /** Soft OI cap of the market */
   softOICap?: number;
+  /** CLO lower threshold of the market */
+  cloLowerThresh?: number;
+  /** CLO upper threshold of the market */
+  cloUpperThresh?: number;
 }
 
 export interface MarketExtendedConfigResponse {
@@ -177,12 +181,12 @@ export interface CandleResponse {
   u: number;
   /** Mark Rate */
   mr: number;
-  /** Is Oracle Funding Rate */
-  iofr: boolean;
   /** Oracle Funding Rate */
   ofr: number;
   /** 7DMA Realtime Funding Rate */
   b7dmafr: number;
+  /** Future Premium */
+  fp: number;
 }
 
 export interface ChartResponse {
@@ -217,6 +221,8 @@ export interface UserVaultInfo {
   allTimeRewards: AllTimeRewardsDto;
   /** bigint string of total lp */
   totalLp: string;
+  /** avg lp price */
+  avgLpPrice: number;
 }
 
 export interface GetSingleVaultResponse {
@@ -234,6 +240,8 @@ export interface GetSingleVaultResponse {
   totalSupplyCap: string;
   /** lp apy */
   lpApy: number;
+  /** lp price */
+  lpPrice: number;
   /** user vault info */
   user: UserVaultInfo;
 }
@@ -263,6 +271,8 @@ export interface VaultApyEntryResponse {
   feesApr: number;
   /** Rewards APR */
   rewardsApr: number;
+  /** LP Price */
+  lpPrice: number;
 }
 
 export interface GetVaultApyChartResponse {
@@ -417,6 +427,8 @@ export interface PlaceOrderSimulationResponseV2 {
   status: string;
   /** maker order rewards in Pendle */
   makerOrderReward: number;
+  /** long yield apr */
+  longYieldApr: number;
 }
 
 export interface CancelOrderSimulationResponse {
@@ -428,6 +440,10 @@ export interface AddLiquiditySingleCashStateResponse {
   collateralBalance: string;
   /** margin ratio */
   marginRatio: number;
+  /** bigint string of total lp */
+  totalLp: string;
+  /** Corresponding collateral amount of LP tokens */
+  lpAmountInCollateral: number;
 }
 
 export interface AddLiquiditySingleCashMatchedResponse {
@@ -451,6 +467,10 @@ export interface RemoveLiquiditySingleCashStateResponse {
   collateralBalance: string;
   /** margin ratio */
   marginRatio: number;
+  /** bigint string of total lp */
+  totalLp: string;
+  /** Corresponding collateral amount of LP tokens */
+  lpAmountInCollateral: number;
 }
 
 export interface RemoveLiquiditySingleCashMatchedResponse {
@@ -521,17 +541,6 @@ export interface GetCalldataResponse {
   gas: string;
 }
 
-export interface AgentExecuteParamsResponse {
-  tag: string;
-  data: string;
-}
-
-export interface BulkAgentExecuteParamsResponse {
-  tag: string;
-  /** calldatas */
-  datas: string[];
-}
-
 export interface BulkAgentExecuteParamsResponseV2 {
   /** calldatas */
   calldatas: string[];
@@ -599,21 +608,6 @@ export interface BulkPlaceOrderQueryDtoV5 {
 export interface BulkPlaceOrderQueryDtoV4 {
   singleOrders?: SingleOrder[];
   bulkOrders?: BulkOrders[];
-}
-
-export interface BulkPlaceOrderQueryDtoV3 {
-  cross: boolean;
-  bulks: BulkOrder[];
-  /** slippage */
-  slippage?: number;
-}
-
-export interface BulkPlaceOrderQueryDto {
-  marketAcc: string;
-  marketId: number;
-  cancels: CancelData;
-  longOrders: LongShortData;
-  shortOrders: LongShortData;
 }
 
 export interface BulkPlaceOrderQueryDtoV2 {
@@ -734,8 +728,12 @@ export interface PnlTransactionResponse {
   notionalSize: string;
   /** bigint string of trade value */
   tradeValue: string;
-  /** Fixed APR */
+  /** Close APR */
   fixedApr: number;
+  /** Entry APR, only for decrease position size */
+  entryApr?: number;
+  /** PnL percentage */
+  pnlPercentage?: number;
   /** bigint string of fee */
   fee: string;
   /** bigint string of PnL */
@@ -833,227 +831,23 @@ export interface TransferLogsResponse {
   results: TransferLogResponse[];
 }
 
-export interface RiskAllMarketsStatusesResponse {
-  /** The market status */
-  markets: string[];
-}
-
-export interface CalculateLNResponse {
-  /** Total Open Interest as a string */
-  totalOI: string;
-}
-
-export interface RiskGetAmmImpliedRateResponse {
-  /** The AMM address */
-  address: string;
-  /** The AMM implied rate */
-  impliedRate: number;
-}
-
-export interface PriceDeviationItem {
-  /**
-   * Timestamp of the price deviation
-   * @format date-time
-   */
-  time: string;
-  /** Price deviation value */
-  value: number;
-}
-
-export interface PriceDeviationResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Price deviation */
-  data: PriceDeviationItem[];
-}
-
-export interface LnAtRateItem {
-  /** LN long at rate */
-  long: number;
-  /** LN short at rate */
-  short: number;
-  /** Rate */
-  rate: number;
-}
-
-export interface LnSnapshotResponse {
-  /** The LN at rates */
-  data: LnAtRateItem[];
-  /**
-   * End time of the snapshot
-   * @format date-time
-   */
-  timestamp: string;
-}
-
-export interface LnSnapshotSeriesResponse {
-  /** The LN snapshot series */
-  series: LnSnapshotResponse[];
-}
-
-export interface LiquidationSnapshotItem {
-  /** Percentage of OI */
-  percentage: number;
-  /** Long liquidation cost at percentage */
-  long: number;
-  /** Short liquidation cost at percentage */
-  short: number;
-}
-
-export interface LiquidationSnapshotResponse {
-  /** Liquidation snapshot */
-  data: LiquidationSnapshotItem[];
-}
-
-export interface UnhealthyVolumeItem {
-  /**
-   * Timestamp of the unhealthy volume
-   * @format date-time
-   */
-  time: string;
-  /** Unhealthy volume value */
-  value: number;
-}
-
-export interface UnhealthyVolumeResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Unhealthy volume */
-  data: UnhealthyVolumeItem[];
-}
-
-export interface LongShortCostItem {
-  /** Long liquidation cost */
-  long: number;
-  /** Short liquidation cost */
-  short: number;
-}
-
-export interface LiquidationCostItem {
-  /**
-   * Timestamp of the liquidity depth
-   * @format date-time
-   */
-  time: string;
-  value: LongShortCostItem;
-}
-
-export interface LiquidationCostResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Liquidation cost */
-  data: LiquidationCostItem[];
-}
-
-export interface TradedVolumeItem {
-  /**
-   * Timestamp of the traded volume
-   * @format date-time
-   */
-  time: string;
-  /** Traded volume value */
-  value: number;
-}
-
-export interface TradedVolumeResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Traded volume */
-  data: TradedVolumeItem[];
-}
-
-export interface LongShortLiquidityDepthItem {
-  /** Long liquidity depth value */
-  long: number;
-  /** Short liquidity depth value */
-  short: number;
-}
-
-export interface LiquidityDepthItemV2 {
-  /**
-   * Timestamp of the liquidity depth
-   * @format date-time
-   */
-  time: string;
-  /** Liquidity depth value */
-  value: LongShortLiquidityDepthItem;
-}
-
-export interface LiquidityDepthResponseV2 {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Liquidity depth */
-  data: LiquidityDepthItemV2[];
-}
-
-export interface MarketSnapshotItem {
-  /**
-   * Timestamp of the market snapshot
-   * @format date-time
-   */
-  time: string;
-  /** Mark rate */
-  markApr: number;
-}
-
-export interface MarketSnapshotResponse {
-  /**
-   * Start time
-   * @format date-time
-   */
-  startTime: string;
-  /**
-   * End time
-   * @format date-time
-   */
-  endTime: string;
-  /** Market snapshots */
-  data: MarketSnapshotItem[];
-}
-
-export interface GetAllMarketAccsResponse {
-  /** List of all market accounts */
-  allMarketAccs: string[];
+export interface SharePositionPnlResponse {
+  /** Share position PnL percentage */
+  pnlPercentage: number;
+  /** Settled percentage */
+  settledProgressPercentage: number;
+  /** Settled PnL percentage */
+  settledPnlPercentage: number;
+  /** Average paid APR */
+  avgPaidApr: number;
+  /** Average received APR */
+  avgReceivedApr: number;
+  /** Unrealized PnL percentage */
+  unrealizedPnlPercentage: number;
+  /** Entry implied APR */
+  entryImpliedApr: number;
+  /** Current implied APR */
+  currentImpliedApr: number;
 }
 
 export interface SettlementResponse {
@@ -1122,8 +916,18 @@ export interface MarketPositionResponse {
   notionalSize: string;
   /** bigint string of initial margin */
   initialMargin: string;
-  /** profit 25% apr */
-  profit25PercentApr: number;
+  /** bigint string of long available balance */
+  longAvailableBalance: string;
+  /** bigint string of short available balance */
+  shortAvailableBalance: string;
+  /** bigint string of long initial margin */
+  longInitialMargin: string;
+  /** bigint string of short initial margin */
+  shortInitialMargin: string;
+  /** bigint string of position initial margin */
+  positionInitialMargin: string;
+  /** settled progress percentage */
+  settledProgressPercentage: number;
 }
 
 export interface MarketAccCollateralResponse {
@@ -1239,6 +1043,8 @@ export interface MarketWeeklyIncentiveResponse {
    * @example 0.01
    */
   rewardAmount: number;
+  /** penalty message */
+  penaltyMessage?: string;
 }
 
 export interface WeeklyIncentiveResponse {
@@ -1303,6 +1109,178 @@ export interface GetVolumeResponse {
    * @example 1000
    */
   volume: number;
+}
+
+export interface GetUserReferralInfoResponse {
+  /** The referral code of the user */
+  code?: string;
+  /** The address of the user who referred the user */
+  referrer?: string;
+  /** The referral code of the user who referred the user */
+  referrerCode?: string;
+  /**
+   * The referral join date for user
+   * @format date-time
+   */
+  referralJoinDate?: string;
+  /** The total trade in USD for user */
+  totalTradeInUsd: number;
+}
+
+export interface CheckReferralExistBodyDto {
+  /** referral code to check existence */
+  code: string;
+}
+
+export interface CheckReferralExistResponse {
+  /** Indicate if the referral code exists */
+  exist: boolean;
+}
+
+export interface CreateReferralBodyDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /** referral code by user address */
+  code: string;
+}
+
+export interface JoinReferralBodyDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /** the address of the user who join by referral code */
+  referee: string;
+  /** the referral code */
+  code: string;
+}
+
+export interface JoinReferralResponse {
+  /** Indicate if the referral is successfully joined */
+  success: boolean;
+}
+
+export interface ReferralActivityResponse {
+  /** The address of the user */
+  user: string;
+  /**
+   * The date of the user join the referral
+   * @format date-time
+   */
+  referralJoinDate: string;
+  /**
+   * The asset pro symbols of the user
+   * @example ["ETH","USDC"]
+   */
+  assetProSymbols: string[];
+  /**
+   * The total trading volumes of the user
+   * @example [1000,2000]
+   */
+  totalTradingVolumes: number[];
+  /**
+   * The total settlement volumes of the user
+   * @example [800,1500]
+   */
+  totalSettledVolumes: number[];
+  /**
+   * The total paid fees of the user
+   * @example [5,10]
+   */
+  totalFeesPaids: number[];
+  /**
+   * The total share fee earnings of the user
+   * @example [10,20]
+   */
+  totalFeesEarneds: number[];
+  /**
+   * The total ongoing fees of the user of this epoch
+   * @example [1,2]
+   */
+  ongoingFees: number[];
+  /**
+   * The total distributed fees of the user
+   * @example [10,20]
+   */
+  distributedFees: number[];
+}
+
+export interface ReferralActivitiesResponse {
+  /** The activity of all users used referral code */
+  referralActivities: ReferralActivityResponse[];
+}
+
+export interface Reward {
+  /**
+   * The asset symbol
+   * @example "ETH"
+   */
+  symbol: string;
+  /** The total referral rewards in asset */
+  amountInAsset: number;
+  /** The total referral rewards in usd */
+  amountInUsd: number;
+}
+
+export interface ReferralRewardResponse {
+  /** The referral rewards in assets (10% fee rebate if eligible + 20% fee from referees) */
+  totalReferralRewards: Reward[];
+  /** The unclaimed referral rewards in assets */
+  unclaimedReferralRewards: Reward[];
+}
+
+export interface RebateRewardResponse {
+  tokenId: number;
+  /** @format int64 */
+  totalNotionalVolume: number;
+  /** @format int64 */
+  totalFeePaid: number;
+  /** @format int64 */
+  rebateDistributed: number;
+  /** @format int64 */
+  rebateOngoing: number;
+}
+
+export interface ReferralRewardV2Response {
+  tokenId: number;
+  /** @format int64 */
+  distributed: number;
+  /** @format int64 */
+  ongoing: number;
+}
+
+export interface CombinedRewardResponse {
+  tokenId: number;
+  /** @format int64 */
+  distributed: number;
+  distributedUsd: number;
+  /** @format int64 */
+  claimed: number;
+  claimedUsd: number;
+  /** @format int64 */
+  ongoing: number;
+  ongoingUsd: number;
+}
+
+export interface RewardsStateResponse {
+  distributedUsd: number;
+  claimedUsd: number;
+  ongoingUsd: number;
+}
+
+export interface UserReferralRewardsResponse {
+  rebateRewards: RebateRewardResponse[];
+  referralRewards: ReferralRewardV2Response[];
+  combinedRewards: CombinedRewardResponse[];
+  rewardsState: RewardsStateResponse;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -1534,7 +1512,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         /** Market id */
         marketId: number;
-        /** ClosePositionType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        /** TimeFrameType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
         timeFrame: '5m' | '1h' | '1d' | '1w';
         /**
          * Start timestamp
@@ -1543,7 +1521,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1754379957
+         * @default 1757043734
          */
         endTimestamp?: number;
       },
@@ -1650,10 +1628,10 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name AmmControllerGetVaultApyChart
      * @summary Get vault apy chart
      * @request GET:/v1/amm/chart
+     * @deprecated
      */
     ammControllerGetVaultApyChart: (
       query: {
-        marketId: number;
         /** TimeFrame { ONE_MINUTE : 1m, FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
         timeFrame: '1m' | '5m' | '1h' | '1d' | '1w';
         /**
@@ -1663,14 +1641,49 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1754379957
+         * @default 1757043733
          */
         endTimestamp?: number;
+        marketId: number;
       },
       params: RequestParams = {}
     ) =>
       this.request<GetVaultApyChartResponse, any>({
         path: `/v1/amm/chart`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags AMM
+     * @name AmmControllerGetVaultApyChartV2
+     * @summary Get vault apy chart
+     * @request GET:/v2/amm/chart
+     */
+    ammControllerGetVaultApyChartV2: (
+      query: {
+        /** TimeFrame { ONE_MINUTE : 1m, FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '1m' | '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1757043733
+         */
+        endTimestamp?: number;
+        ammId: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetVaultApyChartResponse, any>({
+        path: `/v2/amm/chart`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1981,33 +1994,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetDepositCalldata
-     * @summary Get deposit from wallet to root margin account calldata
-     * @request GET:/v1/calldata/deposit
-     * @deprecated
-     */
-    calldataControllerGetDepositCalldata: (
-      query: {
-        userAddress: string;
-        tokenId: number;
-        amount: string;
-        accountId: number;
-        marketId: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<GetCalldataResponse, any>({
-        path: `/v1/calldata/deposit`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerGetDepositCalldataV2
      * @summary Get deposit from wallet to margin account calldata
      * @request GET:/v2/calldata/deposit
@@ -2105,62 +2091,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetPositionTransferCalldata
-     * @summary Get cash transfer contract params
-     * @request GET:/v1/calldata/cash-transfer
-     * @deprecated
-     */
-    calldataControllerGetPositionTransferCalldata: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketId: number;
-        /** true if you want to transfer cash from cross to isolated account, false vice versa */
-        isDeposit: boolean;
-        amount: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/cash-transfer`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetPositionTransferCalldataV2
-     * @summary Get cash transfer contract params
-     * @request GET:/v2/calldata/cash-transfer
-     * @deprecated
-     */
-    calldataControllerGetPositionTransferCalldataV2: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketId: number;
-        /** true if you want to transfer cash from cross to isolated account, false vice versa */
-        isDeposit: boolean;
-        amount: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/cash-transfer`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerGetPositionTransferCalldataV3
      * @summary Get cash transfer contract params
      * @request GET:/v3/calldata/cash-transfer
@@ -2178,84 +2108,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v3/calldata/cash-transfer`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetPlaceOrderCalldataV2
-     * @summary Get place limit order contract params
-     * @request GET:/v2/calldata/place-order
-     * @deprecated
-     */
-    calldataControllerGetPlaceOrderCalldataV2: (
-      query: {
-        marketId: number;
-        /** Side { LONG : 0, SHORT : 1 } */
-        side: 0 | 1;
-        /** bigint string of size */
-        size: string;
-        /**
-         * @min -32768
-         * @max 32767
-         */
-        limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
-        tif: 0 | 1 | 2 | 3 | 4;
-        /** @default 0.05 */
-        slippage?: number;
-        marketAcc: string;
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/place-order`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetPlaceOrderCalldataV3
-     * @summary Get place limit order contract params
-     * @request GET:/v3/calldata/place-order
-     * @deprecated
-     */
-    calldataControllerGetPlaceOrderCalldataV3: (
-      query: {
-        marketId: number;
-        /** Side { LONG : 0, SHORT : 1 } */
-        side: 0 | 1;
-        /** bigint string of size */
-        size: string;
-        /**
-         * @min -32768
-         * @max 32767
-         */
-        limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
-        tif: 0 | 1 | 2 | 3 | 4;
-        /** @default 0.05 */
-        slippage?: number;
-        marketAcc: string;
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v3/calldata/place-order`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2340,60 +2192,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Calldata
-     * @name CalldataControllerGetBulkPlaceOrderCalldataV5
-     * @summary Get place multiple limit orders contract params
-     * @request POST:/v5/calldata/place-orders
-     */
-    calldataControllerGetBulkPlaceOrderCalldataV5: (data: BulkPlaceOrderQueryDtoV3, params: RequestParams = {}) =>
-      this.request<BulkAgentExecuteParamsResponseV2, any>({
-        path: `/v5/calldata/place-orders`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetBulkPlaceOrderCalldataV4
-     * @summary Get place multiple limit orders contract params
-     * @request POST:/v4/calldata/place-orders
-     */
-    calldataControllerGetBulkPlaceOrderCalldataV4: (data: BulkPlaceOrderQueryDto, params: RequestParams = {}) =>
-      this.request<BulkAgentExecuteParamsResponseV2, any>({
-        path: `/v4/calldata/place-orders`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetBulkPlaceOrderCalldataV2
-     * @summary Get place multiple limit orders contract params
-     * @request POST:/v2/calldata/place-orders
-     */
-    calldataControllerGetBulkPlaceOrderCalldataV2: (data: BulkPlaceOrderQueryDtoV2, params: RequestParams = {}) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/place-orders`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
      * @name CalldataControllerGetBulkPlaceOrderCalldataV3
      * @summary Get place multiple limit orders contract params
      * @request POST:/v3/calldata/place-orders
@@ -2404,64 +2202,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetCancelOrderCalldata
-     * @summary Get cancel order contract params
-     * @request GET:/v1/calldata/cancel-order
-     * @deprecated
-     */
-    calldataControllerGetCancelOrderCalldata: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketAcc: string;
-        marketId: number;
-        cancelAll: boolean;
-        /** comma separated orderIds */
-        orderIds?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/cancel-order`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetCancelOrderCalldataV2
-     * @summary Get cancel order contract params
-     * @request GET:/v2/calldata/cancel-order
-     * @deprecated
-     */
-    calldataControllerGetCancelOrderCalldataV2: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketAcc: string;
-        marketId: number;
-        cancelAll: boolean;
-        /** comma separated orderIds */
-        orderIds?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/cancel-order`,
-        method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -2488,84 +2228,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v3/calldata/cancel-order`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetCloseActiveMarketPositionV2
-     * @summary Get close active position contract params
-     * @request GET:/v2/calldata/close-active-position
-     * @deprecated
-     */
-    calldataControllerGetCloseActiveMarketPositionV2: (
-      query: {
-        marketId: number;
-        /** Side { LONG : 0, SHORT : 1 } */
-        side: 0 | 1;
-        /** bigint string of size */
-        size: string;
-        /**
-         * @min -32768
-         * @max 32767
-         */
-        limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
-        tif: 0 | 1 | 2 | 3 | 4;
-        /** @default 0.05 */
-        slippage?: number;
-        marketAcc: string;
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/close-active-position`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetCloseActiveMarketPositionV3
-     * @summary Get close active position contract params
-     * @request GET:/v3/calldata/close-active-position
-     * @deprecated
-     */
-    calldataControllerGetCloseActiveMarketPositionV3: (
-      query: {
-        marketId: number;
-        /** Side { LONG : 0, SHORT : 1 } */
-        side: 0 | 1;
-        /** bigint string of size */
-        size: string;
-        /**
-         * @min -32768
-         * @max 32767
-         */
-        limitTick?: number;
-        /** TimeInForce { GOOD_TIL_CANCELLED : 0, IMMEDIATE_OR_CANCEL : 1, FILL_OR_KILL : 2, ADD_LIQUIDITY_ONLY : 3, SOFT_ADD_LIQUIDITY_ONLY : 4 } */
-        tif: 0 | 1 | 2 | 3 | 4;
-        /** @default 0.05 */
-        slippage?: number;
-        marketAcc: string;
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v3/calldata/close-active-position`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2604,64 +2266,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v4/calldata/close-active-position`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldata
-     * @summary Get add liquidity single cash to amm contract params
-     * @request GET:/v1/calldata/add-liquidity-single-cash-to-amm
-     * @deprecated
-     */
-    calldataControllerGetAddLiquiditySingleCashToAmmCalldata: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        userAddress: string;
-        accountId: number;
-        marketId: number;
-        netCashIn: string;
-        minLpOut: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/add-liquidity-single-cash-to-amm`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetAddLiquiditySingleCashToAmmCalldataV2
-     * @summary Get add liquidity single cash to amm contract params
-     * @request GET:/v2/calldata/add-liquidity-single-cash-to-amm
-     * @deprecated
-     */
-    calldataControllerGetAddLiquiditySingleCashToAmmCalldataV2: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        userAddress: string;
-        accountId: number;
-        marketId: number;
-        netCashIn: string;
-        minLpOut: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/add-liquidity-single-cash-to-amm`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2718,60 +2322,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV3, any>({
         path: `/v4/calldata/add-liquidity-single-cash-to-amm`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata
-     * @summary Get remove liquidity single cash from amm contract params
-     * @request GET:/v1/calldata/remove-liquidity-single-cash-from-amm
-     * @deprecated
-     */
-    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldata: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketId: number;
-        lpToRemove: string;
-        minCashOut: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<AgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/remove-liquidity-single-cash-from-amm`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV2
-     * @summary Get remove liquidity single cash from amm contract params
-     * @request GET:/v2/calldata/remove-liquidity-single-cash-from-amm
-     * @deprecated
-     */
-    calldataControllerGetRemoveLiquiditySingleCashFromAmmCalldataV2: (
-      query: {
-        /** bigint string of amount to pay treasury */
-        payTreasuryAmount?: string;
-        marketId: number;
-        lpToRemove: string;
-        minCashOut: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v2/calldata/remove-liquidity-single-cash-from-amm`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2849,31 +2399,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<BulkAgentExecuteParamsResponseV2, any>({
         path: `/v1/calldata/enter-exit-markets`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Calldata
-     * @name CalldataControllerGetPayTreasuryCalldata
-     * @summary Pay treasury
-     * @request GET:/v1/calldata/pay-treasury
-     * @deprecated
-     */
-    calldataControllerGetPayTreasuryCalldata: (
-      query: {
-        isCross: boolean;
-        marketId: number;
-        usdAmount: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BulkAgentExecuteParamsResponse, any>({
-        path: `/v1/calldata/pay-treasury`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3191,342 +2716,26 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params,
       }),
-  };
-  risk = {
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetRiskAllMarketsStatuses
-     * @summary Get all user statuses
-     * @request GET:/v1/risk/all-markets-statuses
-     */
-    riskControllerGetRiskAllMarketsStatuses: (
-      query?: {
-        marketId?: number;
-        /**
-         * Array of user addresses
-         * @example ["0x1234...","0x5678..."]
-         */
-        userAddresses?: string[];
-        /** Side { LONG : 0, SHORT : 1 } */
-        side?: 0 | 1;
-        accountId?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<RiskAllMarketsStatusesResponse[], any>({
-        path: `/v1/risk/all-markets-statuses`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
 
     /**
      * No description
      *
-     * @tags Risk
-     * @name RiskControllerCalculateLn
-     * @summary Calculate position Open Interest for liquidation at given rate and side
-     * @request GET:/v1/risk/calculate-ln
+     * @tags PnL
+     * @name PnlControllerSharePositionPnl
+     * @summary Share position PnL
+     * @request GET:/v1/pnl/share-position-pnl
      */
-    riskControllerCalculateLn: (
+    pnlControllerSharePositionPnl: (
       query: {
-        /** Market ID */
-        marketId: number;
-        /** Rate as a number */
-        rateFrom?: number;
-        /** Rate as a number */
-        rateTo?: number;
-        /** Side { LONG : 0, SHORT : 1 } */
-        side: 0 | 1;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<CalculateLNResponse, any>({
-        path: `/v1/risk/calculate-ln`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetAmmImpliedRate
-     * @summary Get AMM implied rate
-     * @request GET:/v1/risk/amm-implied-rate
-     */
-    riskControllerGetAmmImpliedRate: (
-      query: {
-        /** Market ID */
+        marketAcc: string;
         marketId: number;
       },
       params: RequestParams = {}
     ) =>
-      this.request<RiskGetAmmImpliedRateResponse, any>({
-        path: `/v1/risk/amm-implied-rate`,
+      this.request<SharePositionPnlResponse, any>({
+        path: `/v1/pnl/share-position-pnl`,
         method: 'GET',
         query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetPriceDeviation
-     * @summary Get price deviation
-     * @request GET:/v1/risk/price-deviation
-     */
-    riskControllerGetPriceDeviation: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** Time window to calculate the price deviation in minutes */
-        timeWindow: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<PriceDeviationResponse, any>({
-        path: `/v1/risk/price-deviation`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerLnSnapshot
-     * @summary Get LN overall snapshot
-     * @request GET:/v1/risk/ln-snapshot
-     */
-    riskControllerLnSnapshot: (
-      query: {
-        marketId: number;
-        /** @format date-time */
-        timestamp?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LnSnapshotResponse, any>({
-        path: `/v1/risk/ln-snapshot`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerLnSnapshotSeries
-     * @summary Get LN snapshot series
-     * @request GET:/v1/risk/ln-snapshot-series
-     */
-    riskControllerLnSnapshotSeries: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LnSnapshotSeriesResponse, any>({
-        path: `/v1/risk/ln-snapshot-series`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerLiquidationSnapshot
-     * @summary Get liquidation snapshot
-     * @request GET:/v1/risk/liquidation-snapshot
-     */
-    riskControllerLiquidationSnapshot: (
-      query: {
-        marketId: number;
-        /** @format date-time */
-        timestamp?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LiquidationSnapshotResponse, any>({
-        path: `/v1/risk/liquidation-snapshot`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetUnhealthyVolume
-     * @summary Get unhealthy volume
-     * @request GET:/v1/risk/unhealthy-volume
-     */
-    riskControllerGetUnhealthyVolume: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** The rate to observe unhealthy volume, 1% is 0.01 */
-        rate: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<UnhealthyVolumeResponse, any>({
-        path: `/v1/risk/unhealthy-volume`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetLiquidationCost
-     * @summary Get liquidation cost
-     * @request GET:/v1/risk/liquidation-cost
-     */
-    riskControllerGetLiquidationCost: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** the percentage of Open Interest to calculate liquidation cost, 1% is 0.01 */
-        openInterestPercentage: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LiquidationCostResponse, any>({
-        path: `/v1/risk/liquidation-cost`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetTradedVolume
-     * @summary Get traded volume
-     * @request GET:/v1/risk/traded-volume
-     */
-    riskControllerGetTradedVolume: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** Time window for calculating traded volume in minutes */
-        timeWindow: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<TradedVolumeResponse, any>({
-        path: `/v1/risk/traded-volume`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetLiquidityDepthV2
-     * @summary Get liquidity depth
-     * @request GET:/v2/risk/liquidity-depth
-     */
-    riskControllerGetLiquidityDepthV2: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-        /** the price deviation to observe */
-        deltaRate: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<LiquidityDepthResponseV2, any>({
-        path: `/v2/risk/liquidity-depth`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetMarketSnapshots
-     * @summary Get market snapshots
-     * @request GET:/v1/risk/market-snapshots
-     */
-    riskControllerGetMarketSnapshots: (
-      query: {
-        /** Time series frequency in minutes */
-        frequency: number;
-        marketId: number;
-        /** Maximum number of data points to return, default is 10 */
-        limit?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<MarketSnapshotResponse, any>({
-        path: `/v1/risk/market-snapshots`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Risk
-     * @name RiskControllerGetAllMarketAccs
-     * @summary Get all market accounts
-     * @request GET:/v1/risk/all-market-accs
-     */
-    riskControllerGetAllMarketAccs: (params: RequestParams = {}) =>
-      this.request<GetAllMarketAccsResponse, any>({
-        path: `/v1/risk/all-market-accs`,
-        method: 'GET',
         format: 'json',
         ...params,
       }),
@@ -3798,6 +3007,128 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1/volume`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  referral = {
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetUserReferralInfo
+     * @summary Get user referral details by user address
+     * @request GET:/v1/referrals/{userAddress}
+     */
+    referralControllerGetUserReferralInfo: (userAddress: string, params: RequestParams = {}) =>
+      this.request<GetUserReferralInfoResponse, any>({
+        path: `/v1/referrals/${userAddress}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerCreateReferralCode
+     * @summary create referral code for user address
+     * @request POST:/v1/referrals/{userAddress}
+     */
+    referralControllerCreateReferralCode: (
+      userAddress: string,
+      data: CreateReferralBodyDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/v1/referrals/${userAddress}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerCheckReferralExist
+     * @summary check if referral code exists
+     * @request POST:/v1/referrals/check-exist
+     */
+    referralControllerCheckReferralExist: (data: CheckReferralExistBodyDto, params: RequestParams = {}) =>
+      this.request<CheckReferralExistResponse, any>({
+        path: `/v1/referrals/check-exist`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerJoinReferralCode
+     * @summary join by referral code
+     * @request POST:/v1/referrals/{userAddress}/join
+     */
+    referralControllerJoinReferralCode: (userAddress: string, data: JoinReferralBodyDto, params: RequestParams = {}) =>
+      this.request<JoinReferralResponse, any>({
+        path: `/v1/referrals/${userAddress}/join`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralActivities
+     * @summary get all referree activities by user address
+     * @request GET:/v1/referrals/{userAddress}/referral-activities
+     */
+    referralControllerGetReferralActivities: (userAddress: string, params: RequestParams = {}) =>
+      this.request<ReferralActivitiesResponse, any>({
+        path: `/v1/referrals/${userAddress}/referral-activities`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralRewards
+     * @summary get referral rewards by user address
+     * @request GET:/v1/referrals/{userAddress}/referral-rewards
+     */
+    referralControllerGetReferralRewards: (userAddress: string, params: RequestParams = {}) =>
+      this.request<ReferralRewardResponse, any>({
+        path: `/v1/referrals/${userAddress}/referral-rewards`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralRewardsInfo
+     * @summary get referral rewards info by user address
+     * @request GET:/v1/referrals/{userAddress}/referral-rewards-info
+     */
+    referralControllerGetReferralRewardsInfo: (userAddress: string, params: RequestParams = {}) =>
+      this.request<UserReferralRewardsResponse, any>({
+        path: `/v1/referrals/${userAddress}/referral-rewards-info`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

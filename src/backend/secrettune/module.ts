@@ -4,8 +4,10 @@ export * as Core from './BorosCoreSDK';
 export * as SendTxsBot from './BorosSendTxsBotSDK';
 
 import { env } from '../../addresses';
+import { httpConfig } from '../../config/http';
 import { Sdk as CoreSdk } from './BorosCoreSDK';
 import { Sdk as SendTxsBotSdk } from './BorosSendTxsBotSDK';
+import { Agent } from 'http';
 
 // in ./index.ts
 
@@ -37,10 +39,10 @@ export function setSendTxsBotBackendUrl(url: string) {
 }
 
 export function createCoreSdk(baseURL: string) {
-  // const { SDK_API_KEY } = sdkEnv();
   const sdk = new CoreSdk<unknown>({
     baseURL,
-    // headers: { ...(SDK_API_KEY != null ? { 'api-key': SDK_API_KEY } : {}) },
+    httpAgent: httpConfig.isKeepAliveDisabled() ? new Agent({ keepAlive: false }) : undefined,
+    httpsAgent: httpConfig.isKeepAliveDisabled() ? new Agent({ keepAlive: false }) : undefined,
   });
   return sdk;
 }
@@ -48,6 +50,8 @@ export function createCoreSdk(baseURL: string) {
 export function createSendTxsBotSdk(baseURL: string) {
   const sdk = new SendTxsBotSdk<unknown>({
     baseURL,
+    httpAgent: httpConfig.isKeepAliveDisabled() ? new Agent({ keepAlive: false }) : undefined,
+    httpsAgent: httpConfig.isKeepAliveDisabled() ? new Agent({ keepAlive: false }) : undefined,
   });
   return sdk;
 }

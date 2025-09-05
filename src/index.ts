@@ -5,3 +5,4 @@ export * from './constants';
 export * from './addresses';
 export * from './errors';
 export * from './backend';
+export { setDisableKeepAlive, isKeepAliveDisabled } from './config/http';

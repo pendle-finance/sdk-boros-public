@@ -16,6 +16,7 @@ import { MULTICALL_ADDRESS } from '../multicall/constants';
 import { MarketContract } from './market';
 import { AMM } from './amm';
 import { fallbackRpcTransport } from './viem-transport';
+import { httpConfig } from '../config/http';
 
 export class ContractsFactory {
   private rpcClient: PublicClient; //map should be faster to read
@@ -55,7 +56,13 @@ export class ContractsFactory {
     const rpcProviders = this.getProviderUrls();
     const retryCount = rpcProviders.length > 1 ? 0 : undefined;
     return fallbackRpcTransport(
-      rpcProviders.map((rpc) => http(rpc)),
+      rpcProviders.map((rpc) =>
+        http(rpc, {
+          fetchOptions: {
+            keepalive: httpConfig.getKeepAliveValue(),
+          },
+        })
+      ),
       {
         retryCount,
       }

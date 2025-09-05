@@ -217,25 +217,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Agent
-     * @name AgentControllerDirectCall
-     * @summary Agent direct call
-     * @request POST:/v1/agent/direct-call
-     * @deprecated
-     */
-    agentControllerDirectCall: (data: AgentExecuteDto, params: RequestParams = {}) =>
-      this.request<TxResponse, any>({
-        path: `/v1/agent/direct-call`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Agent
      * @name AgentControllerDirectCallV2
      * @summary Agent direct call
      * @request POST:/v2/agent/direct-call
@@ -243,25 +224,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     agentControllerDirectCallV2: (data: AgentExecuteDto, params: RequestParams = {}) =>
       this.request<TxResponse, any>({
         path: `/v2/agent/direct-call`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Agent
-     * @name AgentControllerBulkAgentDirectCall
-     * @summary Send multiple direct call to agent
-     * @request POST:/v1/agent/bulk-direct-call
-     * @deprecated
-     */
-    agentControllerBulkAgentDirectCall: (data: BulkAgentExecuteDto, params: RequestParams = {}) =>
-      this.request<TxResponse[], any>({
-        path: `/v1/agent/bulk-direct-call`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
