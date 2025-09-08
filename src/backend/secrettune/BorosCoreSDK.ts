@@ -676,6 +676,8 @@ export interface GasConsumptionResponse {
   userAddress: string;
   /** Gas fee */
   gasFee: number;
+  /** Gas fee v2 */
+  gasFeeV2: number;
   /** Transaction hash */
   txHash: string;
   /** The block timestamp of the gas consumption, in seconds */
@@ -1521,7 +1523,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757043734
+         * @default 1757305196
          */
         endTimestamp?: number;
       },
@@ -1641,7 +1643,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757043733
+         * @default 1757305196
          */
         endTimestamp?: number;
         marketId: number;
@@ -1675,7 +1677,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757043733
+         * @default 1757305196
          */
         endTimestamp?: number;
         ammId: number;
@@ -3128,6 +3130,37 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerGetReferralRewardsInfo: (userAddress: string, params: RequestParams = {}) =>
       this.request<UserReferralRewardsResponse, any>({
         path: `/v1/referrals/${userAddress}/referral-rewards-info`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
+  gasPrice = {
+    /**
+     * No description
+     *
+     * @tags gas-price
+     * @name GasPriceControllerGetCurrentGasPrice
+     * @summary Get current gas price for Arbitrum One
+     * @request GET:/v1/gas-price
+     */
+    gasPriceControllerGetCurrentGasPrice: (params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Gas price in wei as string (multiplied by 1.5) */
+          gasPrice?: string;
+          /** Actual gas price in Wei */
+          actualGasPriceWei?: string;
+          /** Actual gas price in USD */
+          actualGasPriceUsd?: number;
+          /** Timestamp when price was recorded */
+          timestamp?: number;
+          /** Chain ID (42161 for Arbitrum One) */
+          chainId?: number;
+        },
+        any
+      >({
+        path: `/v1/gas-price`,
         method: 'GET',
         format: 'json',
         ...params,
