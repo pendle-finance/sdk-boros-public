@@ -1,6 +1,8 @@
 import assert from 'assert';
 import { FixedX18 } from '@pendle/boros-offchain-math';
 
+export const AMM_CUT_OFF_REACHED_ERROR = 'AMMCutOffReached()';
+
 export type AMMSeedParams = {
   minAbsRate: bigint; // FixedX18
   maxAbsRate: bigint; // FixedX18
@@ -225,7 +227,7 @@ export class PositiveAMMMath {
   }
 
   static calcNormalizedTime(state: AMMContractState): bigint {
-    _require(state.latestFTime < state.cutOffTimestamp, 'AMMCutOffReached()');
+    _require(state.latestFTime < state.cutOffTimestamp, 'AMM_CUT_OFF_REACHED_ERROR()');
     return PMath.divDown(state.maturity - state.latestFTime, state.maturity - state.seedTime);
   }
 }
