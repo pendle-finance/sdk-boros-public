@@ -1,9 +1,16 @@
-import { Address, Hex, getAbiItem, keccak256 } from 'viem';
+import { Address, Hex, encodeAbiParameters, getAbiItem, keccak256, parseAbiParameters } from 'viem';
 import { iRouterAbi } from '../../contracts/abis/viemAbis';
 import { Agent, getInternalAgent } from '../../entities';
-import { MarketAcc, PendleSignTxStruct, functionEncoder } from '../../types';
+import { Account, MarketAcc, MarketId, PendleSignTxStruct, Side, TimeInForce, functionEncoder } from '../../types';
 import { AccountLib } from '../accountLib';
-import { AGENT_MESSAGE_TYPES, EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN, UPDATE_SETTINGS_TYPES } from './common';
+import {
+  AGENT_MESSAGE_TYPES,
+  EIP712_DOMAIN_TYPES,
+  PENDLE_BOROS_ROUTER_DOMAIN,
+  PLACE_CONDITIONAL_MESSAGE_TYPES,
+  STOP_ORDER_CANCEL_REQUEST_TYPES,
+  UPDATE_SETTINGS_TYPES,
+} from './common';
 
 export type AgentExecution = keyof typeof functionEncoder;
 
@@ -174,6 +181,79 @@ export async function signUpdateSettings(params: {
     agent: agentAddress,
     timestamp,
   };
+}
+
+export async function signStopOrderRequest(params: {
+  req: {
+    account: Account;
+    cross: boolean;
+    marketId: MarketId;
+    side: Side;
+    tif: TimeInForce;
+    size: bigint;
+    tick: number;
+    reduceOnly: boolean;
+    salt: bigint;
+  };
+  timestamp: number;
+  offchainCondition: Hex;
+}) {
+  const { req, timestamp, offchainCondition } = params;
+
+  const agent = getInternalAgent();
+  const agentAddress = await agent.getAddress();
+  const signer = agent.walletClient;
+
+  const reqHash = keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt'
+      ),
+      [req.account, req.cross, req.marketId, req.side, req.tif, req.size, req.tick, req.reduceOnly, req.salt]
+    )
+  );
+
+  const signature = await signer.signTypedData({
+    account: agent.walletClient.account!,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(),
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      PlaceConditionalMessage: PLACE_CONDITIONAL_MESSAGE_TYPES,
+    },
+    primaryType: 'PlaceConditionalMessage',
+    message: {
+      reqHash,
+      timestamp,
+      offchainCondition,
+    },
+  });
+
+  return { agent: agentAddress, signature, timestamp };
+}
+
+export async function signCancelStopOrderRequest(params: {
+  orderId: Hex;
+}) {
+  const { orderId } = params;
+
+  const agent = getInternalAgent();
+  const agentAddress = await agent.getAddress();
+  const signer = agent.walletClient;
+
+  const signature = await signer.signTypedData({
+    account: agent.walletClient.account!,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(),
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      CancelStopOrderRequest: STOP_ORDER_CANCEL_REQUEST_TYPES,
+    },
+    primaryType: 'CancelStopOrderRequest',
+    message: {
+      orderId,
+    },
+  });
+
+  return { agent: agentAddress, signature, orderId };
 }
 
 export async function getAgentSignature() {

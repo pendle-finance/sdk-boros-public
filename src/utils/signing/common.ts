@@ -66,4 +66,12 @@ export const UPDATE_SETTINGS_TYPES = [
   { name: 'timestamp', type: 'uint256' },
 ] as const;
 
+export const PLACE_CONDITIONAL_MESSAGE_TYPES = [
+  { name: 'reqHash', type: 'bytes32' },
+  { name: 'timestamp', type: 'uint32' },
+  { name: 'offchainCondition', type: 'bytes' },
+] as const;
+
+export const STOP_ORDER_CANCEL_REQUEST_TYPES = [{ name: 'orderId', type: 'bytes32' }] as const;
+
 export const AGENT_MESSAGE_TYPES = [{ name: 'timestamp', type: 'uint256' }] as const;
