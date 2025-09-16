@@ -53,11 +53,11 @@ export interface LongShort {
 }
 
 export interface BulkOrder {
-  marketId: MarketId,
-  orders: LongShort,
-  cancelData: CancelData,
+  marketId: MarketId;
+  orders: LongShort;
+  cancelData: CancelData;
 }
-export interface BulkOrdersReq{
+export interface BulkOrdersReq {
   cross: boolean;
   bulks: BulkOrder[];
   desiredMatchRates: bigint[];
@@ -102,6 +102,8 @@ export interface AddLiquiditySingleCashToAmmReq {
   netCashIn: bigint;
   minLpOut: bigint;
   enterMarket: boolean;
+  desiredSwapSide: Side;
+  desiredSwapRate: bigint;
 }
 
 export interface RemoveLiquidityDualFromAmmReq {
@@ -118,6 +120,8 @@ export interface RemoveLiquiditySingleCashFromAmmReq {
   ammId: number;
   lpToRemove: bigint;
   minCashOut: bigint;
+  desiredSwapSide: Side;
+  desiredSwapRate: bigint;
 }
 
 export interface PlaceSingleOrderReq {
@@ -179,7 +183,7 @@ export const functionEncoder = {
       abi: iTradeModuleAbi,
       functionName: 'vaultPayTreasury',
       args: [params.tokenId, params.amount],
-    })
+    });
   },
 
   vaultDeposit(params: VaultDepositReq) {
@@ -226,8 +230,8 @@ export const functionEncoder = {
     return encodeFunctionData({
       abi: iRouterAbi,
       functionName: 'ammCashTransfer',
-      args: [req]
-    })
+      args: [req],
+    });
   },
 
   cashTransfer(req: CashTransferReq) {
