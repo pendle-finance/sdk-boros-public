@@ -21,6 +21,12 @@ export enum Side {
   SHORT = 1,
 }
 
+export enum GetRequest {
+  IM = 0,
+  MM = 1,
+  ZERO = 2,
+}
+
 export type SimulateData = {
   account: Account;
   target: Address;
