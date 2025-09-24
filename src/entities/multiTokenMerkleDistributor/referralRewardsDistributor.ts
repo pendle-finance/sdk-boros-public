@@ -1,12 +1,12 @@
 import { Address } from 'viem';
 import { BorosBackend } from '../../backend';
 import { RewardDistributor } from './RewardDistributor';
-import { getMultiTokenMerkleDistributorAddress } from '../../addresses';
+import { getReferralMerkleDistributorAddress } from '../../addresses';
 
 export class ReferralRewardsDistributor extends RewardDistributor {
   private borosCoreSdk: BorosBackend.BorosCoreSdk;
   constructor() {
-    super(getMultiTokenMerkleDistributorAddress());
+    super(getReferralMerkleDistributorAddress());
     this.borosCoreSdk = BorosBackend.getCoreSdk();
   }
 
