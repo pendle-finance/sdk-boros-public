@@ -85,8 +85,6 @@ export interface MarketExtendedConfigResponse {
 export interface MarketMetadataResponse {
   /** Market name */
   name: string;
-  /** Platform icon */
-  platformIcon: string;
   /** Platform name. For example: "Binance", "Hyperliquid" */
   platformName: string;
   /** Maximum leverage of the market. For example: 20 */
@@ -108,6 +106,17 @@ export interface MarketMetadataResponse {
   ammId?: number;
   /** Is positive amm */
   isPositiveAMM?: boolean;
+  /**
+   * Disabled chart indicators
+   * @example ["quaterlyFuturePremium","underlyingApr7dma"]
+   */
+  disabledChartIndicators?: (
+    | 'realtimeUnderlyingApr'
+    | 'oracleUnderlyingApr'
+    | 'underlyingApr7dma'
+    | 'quaterlyFuturePremium'
+    | 'notionalVolume'
+  )[];
 }
 
 export interface MarketDataResponse {
@@ -223,6 +232,8 @@ export interface UserVaultInfo {
   totalLp: string;
   /** avg lp price */
   avgLpPrice: number;
+  /** bigint string of available balance to deposit */
+  availableBalanceToDeposit: string;
 }
 
 export interface GetSingleVaultResponse {
@@ -785,8 +796,8 @@ export interface LimitOrderResponse {
   isCross: boolean;
   /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
   status: 0 | 1 | 2 | 3 | 4;
-  /** OrderType { LIMIT : 0, MARKET : 1 } */
-  orderType: 0 | 1;
+  /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
+  orderType: 0 | 1 | 2;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
   /** Account position */
@@ -799,9 +810,51 @@ export interface LimitOrdersResponse {
   total: number;
 }
 
+export interface LimitOrderResponseV2 {
+  /** Side { LONG : 0, SHORT : 1 } */
+  side: 0 | 1;
+  /** Original Notional Size of the order */
+  placedSize: string;
+  /** Remaining Notional Size of the order */
+  unfilledSize: string;
+  /**
+   * the fixed APR of the order
+   * @deprecated
+   */
+  impliedApr: number;
+  /** the tick of the order */
+  tick: number;
+  /** Margin required */
+  marginRequired: string;
+  /** Order ID */
+  orderId: string;
+  /** Maker address */
+  root: string;
+  /** Market id */
+  marketId: number;
+  /** Maker sub account id */
+  accountId: number;
+  /** Is cross market */
+  isCross: boolean;
+  /** LimitOrderStatus { Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4, Filling : 0, Pending : 5, Executing : 6, Retrying : 7, Failed : 8 } */
+  status: 1 | 2 | 3 | 4 | 0 | 5 | 6 | 7 | 8;
+  /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
+  orderType: 0 | 1 | 2;
+  /** The block timestamp of the order placement, in seconds */
+  blockTimestamp: number;
+  /** Account position */
+  marketAcc: string;
+  metadata?: LimitOrderMetadataResponse;
+}
+
+export interface LimitOrdersResponseV2 {
+  results: LimitOrderResponseV2[];
+  total: number;
+}
+
 export interface FundLocationResponse {
-  /** FundType { Wallet : wallet, CrossAccount : cross_account, IsolatedAccount : isolated_account } */
-  fundType: 'wallet' | 'cross_account' | 'isolated_account';
+  /** FundType { Wallet : wallet, CrossAccount : cross_account, IsolatedAccount : isolated_account, AMM : amm } */
+  fundType: 'wallet' | 'cross_account' | 'isolated_account' | 'amm';
   /** The market id */
   marketId?: number;
 }
@@ -850,6 +903,21 @@ export interface SharePositionPnlResponse {
   entryImpliedApr: number;
   /** Current implied APR */
   currentImpliedApr: number;
+  /** Since open settled progress percentage */
+  sinceOpenSettledProgressPercentage: number;
+  /** Since open average paid APR */
+  sinceOpenAvgPaidApr: number;
+  /** Since open average received APR */
+  sinceOpenAvgReceivedApr: number;
+  /** Since open settled PnL percentage */
+  sinceOpenSettledPnlPercentage: number;
+  /** Since open PnL percentage */
+  sinceOpenPnlPercentage: number;
+}
+
+export interface MarketAccCumulativePnlResponse {
+  /** Cumulative PnL as bigint string */
+  cumulativePnl: string;
 }
 
 export interface SettlementResponse {
@@ -893,6 +961,8 @@ export interface PositionValueResponse {
 export interface PnlResponse {
   /** bigint string of rate settlement PnL */
   rateSettlementPnl: string;
+  /** bigint string of since open rate settlement PnL */
+  sinceOpenRateSettlementPnl: string;
   /** bigint string of unrealised PnL */
   unrealisedPnl: string;
 }
@@ -928,15 +998,15 @@ export interface MarketPositionResponse {
   shortInitialMargin: string;
   /** bigint string of position initial margin */
   positionInitialMargin: string;
-  /** settled progress percentage */
+  /** all time settled progress percentage */
   settledProgressPercentage: number;
+  /** since open settled progress percentage */
+  sinceOpenSettledProgressPercentage: number;
 }
 
 export interface MarketAccCollateralResponse {
   /** market acc */
   marketAcc: string;
-  /** bigint string of market entrance fee */
-  marketEntranceFee: string;
   /** List market positions info */
   marketPositions: MarketPositionResponse[];
   isCross: boolean;
@@ -1009,11 +1079,26 @@ export interface PersonalConfigResponse {
   coolDown: number;
 }
 
+export interface ExemptCLOMarketsConfigResponse {
+  /**
+   * The exempt cross market ids
+   * @example [2,3]
+   */
+  crossMarkets: number[];
+  /**
+   * The exempt isolated market ids
+   * @example [2,3]
+   */
+  isolatedMarkets: number[];
+}
+
 export interface GlobalConfigsResponse {
   /** The global cool down in seconds */
   coolDown: number;
   /** The personal cool down in seconds */
   personalCoolDown?: PersonalConfigResponse;
+  /** The exempt CLO markets config */
+  exemptCLOMarkets?: ExemptCLOMarketsConfigResponse;
 }
 
 export interface GetVePendleBalanceResponse {
@@ -1170,56 +1255,6 @@ export interface JoinReferralResponse {
   success: boolean;
 }
 
-export interface ReferralActivityResponse {
-  /** The address of the user */
-  user: string;
-  /**
-   * The date of the user join the referral
-   * @format date-time
-   */
-  referralJoinDate: string;
-  /**
-   * The asset pro symbols of the user
-   * @example ["ETH","USDC"]
-   */
-  assetProSymbols: string[];
-  /**
-   * The total trading volumes of the user
-   * @example [1000,2000]
-   */
-  totalTradingVolumes: number[];
-  /**
-   * The total settlement volumes of the user
-   * @example [800,1500]
-   */
-  totalSettledVolumes: number[];
-  /**
-   * The total paid fees of the user
-   * @example [5,10]
-   */
-  totalFeesPaids: number[];
-  /**
-   * The total share fee earnings of the user
-   * @example [10,20]
-   */
-  totalFeesEarneds: number[];
-  /**
-   * The total ongoing fees of the user of this epoch
-   * @example [1,2]
-   */
-  ongoingFees: number[];
-  /**
-   * The total distributed fees of the user
-   * @example [10,20]
-   */
-  distributedFees: number[];
-}
-
-export interface ReferralActivitiesResponse {
-  /** The activity of all users used referral code */
-  referralActivities: ReferralActivityResponse[];
-}
-
 export interface Reward {
   /**
    * The asset symbol
@@ -1283,6 +1318,96 @@ export interface UserReferralRewardsResponse {
   referralRewards: ReferralRewardV2Response[];
   combinedRewards: CombinedRewardResponse[];
   rewardsState: RewardsStateResponse;
+}
+
+export interface TokenStatsResponse {
+  /** The token ID */
+  tokenId: number;
+  /**
+   * Total trading volume in FixedX18 format
+   * @example "1000000000000000000"
+   */
+  totalTradingVolume: string;
+  /**
+   * Total settled volume in FixedX18 format
+   * @example "800000000000000000"
+   */
+  totalSettledVolume: string;
+  /**
+   * Total fees paid in FixedX18 format
+   * @example "5000000000000000"
+   */
+  totalFeesPaid: string;
+  /**
+   * Total fees earned in FixedX18 format
+   * @example "10000000000000000"
+   */
+  totalFeesEarned: string;
+  /**
+   * Total distributed fees in FixedX18 format
+   * @example "10000000000000000"
+   */
+  totalDistributedFees: string;
+  /**
+   * Ongoing fees in FixedX18 format
+   * @example "1000000000000000"
+   */
+  ongoingFees: string;
+}
+
+export interface ReferralActivityV2Response {
+  /** The address of the user */
+  userAddress: string;
+  /** The date when the user joined the referral program */
+  referralJoinDate: string;
+  /** Token statistics for the user */
+  tokenStats: TokenStatsResponse[];
+}
+
+export interface ReferralActivitiesV2Response {
+  /** The activity of all users who used referral code */
+  referralActivities: ReferralActivityV2Response[];
+}
+
+export interface LeaderboardEntryResponse {
+  /** User rank in leaderboard */
+  rank: number;
+  /** User wallet address */
+  root: string;
+  /** User account ID */
+  accountId: number;
+  /** Profit and Loss (PnL) */
+  pnl: string;
+  /** Net balance */
+  netBalance: string;
+  /** Trading volume */
+  tradingVolume: string;
+  /** Max capital during period */
+  maxCapital: string;
+  /** Return on Investment (ROI) */
+  roi: number;
+}
+
+export interface LeaderboardResponse {
+  /** Snapshot timestamp */
+  snapshotTimestamp: number;
+  /** Leaderboard entries ranked by ROI */
+  entries: LeaderboardEntryResponse[];
+  /** Total number of entries in leaderboard */
+  totalEntries: number;
+}
+
+export interface UserSearchResponse {
+  /** User rank in leaderboard (only if user is in leaderboard) */
+  rank?: number;
+  /** Profit and Loss (PnL) */
+  pnl: string;
+  /** Net balance */
+  netBalance: string;
+  /** Trading volume */
+  tradingVolume: string;
+  /** Return on Investment (ROI) (only if user is in leaderboard) */
+  roi?: number;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -1523,7 +1648,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757305196
+         * @default 1758784220
          */
         endTimestamp?: number;
       },
@@ -1643,7 +1768,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757305196
+         * @default 1758784220
          */
         endTimestamp?: number;
         marketId: number;
@@ -1677,7 +1802,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1757305196
+         * @default 1758784220
          */
         endTimestamp?: number;
         ammId: number;
@@ -2622,8 +2747,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limit?: number;
         /** Is active */
         isActive?: boolean;
-        /** OrderType { LIMIT : 0, MARKET : 1 } */
-        orderType?: 0 | 1;
+        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
+        orderType?: 0 | 1 | 2;
         /**
          * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
          * @default "blockTimestamp:-1"
@@ -2645,9 +2770,54 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags PnL
+     * @name PnlControllerGetLimitOrdersV2
+     * @summary Get limit orders
+     * @request GET:/v2/pnl/limit-orders
+     */
+    pnlControllerGetLimitOrdersV2: (
+      query: {
+        userAddress: string;
+        accountId: number;
+        marketId?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+        /** Is active */
+        isActive?: boolean;
+        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
+        orderType?: 0 | 1 | 2;
+        /**
+         * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
+         * @default "blockTimestamp:-1"
+         * @example "blockTimestamp:-1"
+         */
+        orderBy?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LimitOrdersResponseV2, any>({
+        path: `/v2/pnl/limit-orders`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
      * @name PnlControllerGetFilledLimitOrders
      * @summary Get limit orders
      * @request GET:/v1/pnl/limit-orders/filled
+     * @deprecated
      */
     pnlControllerGetFilledLimitOrders: (
       query?: {
@@ -2664,8 +2834,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @default 10
          */
         limit?: number;
-        /** OrderType { LIMIT : 0, MARKET : 1 } */
-        orderType?: 0 | 1;
+        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
+        orderType?: 0 | 1 | 2;
         /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
         status?: 0 | 1 | 2 | 3 | 4;
         /**
@@ -2736,6 +2906,29 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<SharePositionPnlResponse, any>({
         path: `/v1/pnl/share-position-pnl`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetMarketAccCumulativePnl
+     * @summary Get market account cumulative PnL
+     * @request GET:/v1/pnl/market-acc-cumulative-pnl
+     */
+    pnlControllerGetMarketAccCumulativePnl: (
+      query: {
+        marketAcc: string;
+        marketId: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MarketAccCumulativePnlResponse, any>({
+        path: `/v1/pnl/market-acc-cumulative-pnl`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3091,22 +3284,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Referral
-     * @name ReferralControllerGetReferralActivities
-     * @summary get all referree activities by user address
-     * @request GET:/v1/referrals/{userAddress}/referral-activities
-     */
-    referralControllerGetReferralActivities: (userAddress: string, params: RequestParams = {}) =>
-      this.request<ReferralActivitiesResponse, any>({
-        path: `/v1/referrals/${userAddress}/referral-activities`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Referral
      * @name ReferralControllerGetReferralRewards
      * @summary get referral rewards by user address
      * @request GET:/v1/referrals/{userAddress}/referral-rewards
@@ -3130,6 +3307,22 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     referralControllerGetReferralRewardsInfo: (userAddress: string, params: RequestParams = {}) =>
       this.request<UserReferralRewardsResponse, any>({
         path: `/v1/referrals/${userAddress}/referral-rewards-info`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Referral
+     * @name ReferralControllerGetReferralActivitiesV2
+     * @summary get all referral activities by user address (v2 with FixedX18)
+     * @request GET:/v2/referrals/{userAddress}/referral-activities
+     */
+    referralControllerGetReferralActivitiesV2: (userAddress: string, params: RequestParams = {}) =>
+      this.request<ReferralActivitiesV2Response, any>({
+        path: `/v2/referrals/${userAddress}/referral-activities`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3162,6 +3355,111 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/v1/gas-price`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags gas-price
+     * @name GasPriceControllerEstimateOrderGasCost
+     * @summary Estimate gas cost for placing an order
+     * @request GET:/v1/gas-price/order-estimate
+     */
+    gasPriceControllerEstimateOrderGasCost: (params: RequestParams = {}) =>
+      this.request<
+        {
+          /** Estimated gas cost in USD */
+          usdValue?: number;
+        },
+        any
+      >({
+        path: `/v1/gas-price/order-estimate`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
+  leaderboard = {
+    /**
+     * No description
+     *
+     * @tags Leaderboard
+     * @name LeaderboardControllerGetLeaderboard
+     * @summary Get leaderboard data
+     * @request GET:/v1/leaderboard
+     */
+    leaderboardControllerGetLeaderboard: (
+      query: {
+        /**
+         * Leaderboard period
+         * @example "7d"
+         */
+        period: 'all_time' | '30d' | '7d';
+        /**
+         * Token ID for the leaderboard
+         * @example 1
+         */
+        tokenId: number;
+        /**
+         * Number of entries to return (max 1000)
+         * @example 100
+         */
+        limit?: number;
+        /**
+         * Offset for pagination
+         * @example 0
+         */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<LeaderboardResponse, any>({
+        path: `/v1/leaderboard`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Leaderboard
+     * @name LeaderboardControllerSearchUser
+     * @summary Search for specific user in leaderboard
+     * @request GET:/v1/leaderboard/search
+     */
+    leaderboardControllerSearchUser: (
+      query: {
+        /**
+         * User wallet address
+         * @example "0x1234567890123456789012345678901234567890"
+         */
+        userAddress: string;
+        /**
+         * User account ID
+         * @example 0
+         */
+        accountId: number;
+        /**
+         * Leaderboard period
+         * @example "7d"
+         */
+        period: 'all_time' | '30d' | '7d';
+        /**
+         * Token ID for the leaderboard
+         * @example 1
+         */
+        tokenId: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<UserSearchResponse, any>({
+        path: `/v1/leaderboard/search`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

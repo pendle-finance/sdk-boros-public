@@ -1,18 +1,24 @@
 import { FixedX18, getRateAtTick } from '@pendle/boros-offchain-math';
 import {
+  http,
   Address,
+  BlockNumber,
+  Hex,
+  PublicClient,
+  WalletClient,
   createPublicClient,
   erc20Abi,
   getContract,
-  Hex,
-  http,
-  PublicClient,
-  WalletClient,
-  BlockNumber,
 } from 'viem';
+import { getExplorerContractAddress } from '../../addresses';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
+import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
+import { getCurrentTimestamp } from '../../common/time';
+import { MarketStatus } from '../../common/types';
 import { CROSS_MARKET_ID } from '../../constants';
+import { ContractsFactory } from '../../contracts/contracts.factory';
+import { MarketAcc, Side } from '../../types';
 import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
@@ -37,12 +43,6 @@ import {
   WithdrawParams,
 } from './types';
 import { decodeLog } from './utils';
-import { Side } from '../../types';
-import { ContractsFactory } from '../../contracts/contracts.factory';
-import { getCurrentTimestamp } from '../../common/time';
-import { MarketStatus } from '../../common/types';
-import { getExplorerContractAddress } from '../../addresses';
-import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
 
 export const MIN_DESIRED_MATCH_RATE = FixedX18.fromRawValue(-(2n ** 127n)); // int128
 export const MAX_DESIRED_MATCH_RATE = FixedX18.fromRawValue(2n ** 127n - 1n); // int128
@@ -984,5 +984,11 @@ export class Exchange {
   async getAmmInfoByAmmId(ammId: number) {
     const { data: getAmmInfoCalldataResponse } = await this.borosCoreSdk.amm.ammControllerGetAmmInfoByAmmId(ammId);
     return getAmmInfoCalldataResponse;
+  }
+
+  async getCumulativePnl(params: { marketAcc: MarketAcc; marketId: number }) {
+    const { data: getCumulativeFeesCalldataResponse } =
+      await this.borosCoreSdk.pnL.pnlControllerGetMarketAccCumulativePnl(params);
+    return getCumulativeFeesCalldataResponse;
   }
 }
