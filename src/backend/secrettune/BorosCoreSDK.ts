@@ -796,8 +796,8 @@ export interface LimitOrderResponse {
   isCross: boolean;
   /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
   status: 0 | 1 | 2 | 3 | 4;
-  /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
-  orderType: 0 | 1 | 2;
+  /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
+  orderType: 0 | 1 | 2 | 3;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
   /** Account position */
@@ -808,6 +808,13 @@ export interface LimitOrderResponse {
 export interface LimitOrdersResponse {
   results: LimitOrderResponse[];
   total: number;
+}
+
+export interface LimitOrderMetadataResponseV2 {
+  /** Is rate improved */
+  isRateImproved: boolean;
+  /** Is close position */
+  isClosePosition: boolean;
 }
 
 export interface LimitOrderResponseV2 {
@@ -838,13 +845,13 @@ export interface LimitOrderResponseV2 {
   isCross: boolean;
   /** LimitOrderStatus { Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4, Filling : 0, Pending : 5, Executing : 6, Retrying : 7, Failed : 8 } */
   status: 1 | 2 | 3 | 4 | 0 | 5 | 6 | 7 | 8;
-  /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
-  orderType: 0 | 1 | 2;
+  /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
+  orderType: 0 | 1 | 2 | 3;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
   /** Account position */
   marketAcc: string;
-  metadata?: LimitOrderMetadataResponse;
+  metadata?: LimitOrderMetadataResponseV2;
 }
 
 export interface LimitOrdersResponseV2 {
@@ -916,8 +923,8 @@ export interface SharePositionPnlResponse {
 }
 
 export interface MarketAccCumulativePnlResponse {
-  /** Cumulative PnL as bigint string */
-  cumulativePnl: string;
+  /** Cumulative Realized Trade PnL as bigint string */
+  cumulativeTradePnl: string;
 }
 
 export interface SettlementResponse {
@@ -1648,7 +1655,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758784220
+         * @default 1758855105
          */
         endTimestamp?: number;
       },
@@ -1768,7 +1775,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758784220
+         * @default 1758855105
          */
         endTimestamp?: number;
         marketId: number;
@@ -1802,7 +1809,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758784220
+         * @default 1758855105
          */
         endTimestamp?: number;
         ammId: number;
@@ -2747,8 +2754,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limit?: number;
         /** Is active */
         isActive?: boolean;
-        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
-        orderType?: 0 | 1 | 2;
+        /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
+        orderType?: 0 | 1 | 2 | 3;
         /**
          * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
          * @default "blockTimestamp:-1"
@@ -2791,8 +2798,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         limit?: number;
         /** Is active */
         isActive?: boolean;
-        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
-        orderType?: 0 | 1 | 2;
+        /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
+        orderType?: 0 | 1 | 2 | 3;
         /**
          * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
          * @default "blockTimestamp:-1"
@@ -2834,8 +2841,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @default 10
          */
         limit?: number;
-        /** OrderType { LIMIT : 0, MARKET : 1, STOP_MARKET : 2 } */
-        orderType?: 0 | 1 | 2;
+        /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
+        orderType?: 0 | 1 | 2 | 3;
         /** LimitOrderStatus { Filling : 0, Cancelled : 1, FullyFilled : 2, Expired : 3, Purged : 4 } */
         status?: 0 | 1 | 2 | 3 | 4;
         /**

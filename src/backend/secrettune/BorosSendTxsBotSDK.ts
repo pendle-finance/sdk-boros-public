@@ -65,6 +65,20 @@ export interface ApproveAgentResponse {
   approveAgentResult: TxResponse;
 }
 
+export interface AgentWithdrawRequestDto {
+  withdrawRequestCalldata: string;
+  skipReceipt?: boolean;
+}
+
+export interface WithdrawRequestCancelResponse {
+  withdrawRequestCancelResult: TxResponse;
+}
+
+export interface AgentWithdrawCancelDto {
+  withdrawCancelCalldata: string;
+  skipReceipt?: boolean;
+}
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
 import axios from 'axios';
 
@@ -278,6 +292,42 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     agentControllerApproveAgent: (data: ApproveAgentQueryDto, params: RequestParams = {}) =>
       this.request<ApproveAgentResponse, any>({
         path: `/v1/agent/approve`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
+     * @name AgentControllerRequestWithdraw
+     * @summary Request vault withdrawal
+     * @request POST:/v1/agent/withdraw/request
+     */
+    agentControllerRequestWithdraw: (data: AgentWithdrawRequestDto, params: RequestParams = {}) =>
+      this.request<WithdrawRequestCancelResponse, any>({
+        path: `/v1/agent/withdraw/request`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Agent
+     * @name AgentControllerCancelWithdraw
+     * @summary Cancel vault withdrawal
+     * @request POST:/v1/agent/withdraw/cancel
+     */
+    agentControllerCancelWithdraw: (data: AgentWithdrawCancelDto, params: RequestParams = {}) =>
+      this.request<WithdrawRequestCancelResponse, any>({
+        path: `/v1/agent/withdraw/cancel`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
