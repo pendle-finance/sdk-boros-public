@@ -10,7 +10,7 @@ import {
   erc20Abi,
   getContract,
 } from 'viem';
-import { getExplorerContractAddress } from '../../addresses';
+import { getExplorerContractAddress, getRouterAddress } from '../../addresses';
 import { BorosBackend } from '../../backend';
 import { BulkAgentExecuteParamsResponseV2, MarketsResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { TxResponse } from '../../backend/secrettune/BorosSendTxsBotSDK';
@@ -18,7 +18,7 @@ import { getCurrentTimestamp } from '../../common/time';
 import { MarketStatus } from '../../common/types';
 import { CROSS_MARKET_ID } from '../../constants';
 import { ContractsFactory } from '../../contracts/contracts.factory';
-import { MarketAcc, Side } from '../../types';
+import { ApproveAgentReq, functionEncoder, MarketAcc, RevokeAgentReq, Side } from '../../types';
 import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
@@ -990,5 +990,25 @@ export class Exchange {
     const { data: getCumulativeFeesCalldataResponse } =
       await this.borosCoreSdk.pnL.pnlControllerGetMarketAccCumulativePnl(params);
     return getCumulativeFeesCalldataResponse;
+  }
+
+  async approveAgentData(params: ApproveAgentReq) {
+    const calldata = functionEncoder.approveAgent(params);
+    return {
+      from: params.root,
+      to: getRouterAddress(),
+      data: calldata,
+      gas: 1_000_000n,
+    };
+  }
+
+  async revokeAgentData(params: RevokeAgentReq) {
+    const calldata = functionEncoder.revokeAgent(params);
+    return {
+      from: params.root,
+      to: getRouterAddress(),
+      data: calldata,
+      gas: 1_000_000n,
+    };
   }
 }

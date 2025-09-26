@@ -6,6 +6,19 @@ export interface GetUserInfoReq {
   marketAcc: MarketAcc;
 }
 
+export interface ApproveAgentReq {
+  root: Address;
+  accountId: number;
+  agent: Address;
+  expiry: bigint;
+}
+
+export interface RevokeAgentReq {
+  root: Address;
+  accountId: number;
+  agents: Address[];
+}
+
 export interface AccCashReq {
   marketAcc: MarketAcc;
 }
@@ -327,6 +340,22 @@ export const functionEncoder = {
       abi: iMarketHubAbi,
       functionName: 'accCash',
       args: [params.marketAcc],
+    });
+  },
+
+  approveAgent(params: ApproveAgentReq) {
+    return encodeFunctionData({
+      abi: iRouterAbi,
+      functionName: 'approveAgent',
+      args: [params],
+    });
+  },
+
+  revokeAgent(params: RevokeAgentReq) {
+    return encodeFunctionData({
+      abi: iRouterAbi,
+      functionName: 'revokeAgent',
+      args: [params],
     });
   },
 };

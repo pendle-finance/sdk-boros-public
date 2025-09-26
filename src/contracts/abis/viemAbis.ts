@@ -2344,7 +2344,7 @@ export const iRouterAbi = [
       { internalType: 'uint256', name: 'netLpOut', type: 'uint256' },
       { internalType: 'int256', name: 'netCashUsed', type: 'int256' },
       { internalType: 'uint256', name: 'totalTakerOtcFee', type: 'uint256' },
-      { internalType: 'int256', name: 'swapSizeOut', type: 'int256' },
+      { internalType: 'Trade', name: 'swapTradeInterm', type: 'uint256' },
     ],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2403,6 +2403,25 @@ export const iRouterAbi = [
     name: 'ammIdToAcc',
     outputs: [{ internalType: 'MarketAcc', name: '', type: 'bytes26' }],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
+          { internalType: 'address', name: 'agent', type: 'address' },
+          { internalType: 'uint64', name: 'expiry', type: 'uint64' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.ApproveAgentReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'approveAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -2745,7 +2764,7 @@ export const iRouterAbi = [
     outputs: [
       { internalType: 'int256', name: 'netCashOut', type: 'int256' },
       { internalType: 'uint256', name: 'netTakerOtcFee', type: 'uint256' },
-      { internalType: 'int256', name: 'swapSizeInterm', type: 'int256' },
+      { internalType: 'Trade', name: 'swapTradeInterm', type: 'uint256' },
     ],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2776,6 +2795,24 @@ export const iRouterAbi = [
       { internalType: 'uint256', name: 'amount', type: 'uint256' },
     ],
     name: 'requestVaultWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
+          { internalType: 'address[]', name: 'agents', type: 'address[]' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.RevokeAgentsReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'revokeAgent',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -7837,6 +7874,25 @@ export const iAuthModuleAbi = [
           { internalType: 'uint8', name: 'accountId', type: 'uint8' },
           { internalType: 'address', name: 'agent', type: 'address' },
           { internalType: 'uint64', name: 'expiry', type: 'uint64' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.ApproveAgentReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'approveAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
+          { internalType: 'address', name: 'agent', type: 'address' },
+          { internalType: 'uint64', name: 'expiry', type: 'uint64' },
           { internalType: 'uint64', name: 'nonce', type: 'uint64' },
         ],
         internalType: 'struct IRouterEventsAndTypes.ApproveAgentMessage',
@@ -7885,6 +7941,24 @@ export const iAuthModuleAbi = [
       { internalType: 'bytes', name: 'signature', type: 'bytes' },
     ],
     name: 'requestVaultWithdrawal',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'address', name: 'root', type: 'address' },
+          { internalType: 'uint8', name: 'accountId', type: 'uint8' },
+          { internalType: 'address[]', name: 'agents', type: 'address[]' },
+        ],
+        internalType: 'struct IRouterEventsAndTypes.RevokeAgentsReq',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'revokeAgent',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
