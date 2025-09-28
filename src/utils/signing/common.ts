@@ -1,4 +1,6 @@
+import { Hex, encodeAbiParameters, keccak256, parseAbiParameters } from 'viem';
 import { CHAIN_ID, getRouterAddress } from '../../addresses';
+import { Account, MarketId, Side, TimeInForce } from '../../types';
 
 export const PENDLE_BOROS_ROUTER_DOMAIN = () =>
   ({
@@ -75,3 +77,34 @@ export const PLACE_CONDITIONAL_MESSAGE_TYPES = [
 export const STOP_ORDER_CANCEL_REQUEST_TYPES = [{ name: 'orderId', type: 'bytes32' }] as const;
 
 export const AGENT_MESSAGE_TYPES = [{ name: 'timestamp', type: 'uint256' }] as const;
+
+export function hashStopOrderRequest(request: {
+  account: Account;
+  cross: boolean;
+  marketId: MarketId;
+  side: Side;
+  tif: TimeInForce;
+  size: bigint;
+  tick: number;
+  reduceOnly: boolean;
+  salt: bigint;
+}): Hex {
+  return keccak256(
+    encodeAbiParameters(
+      parseAbiParameters(
+        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt'
+      ),
+      [
+        request.account,
+        request.cross,
+        request.marketId,
+        request.side,
+        request.tif,
+        request.size,
+        request.tick,
+        request.reduceOnly,
+        request.salt,
+      ]
+    )
+  );
+}
