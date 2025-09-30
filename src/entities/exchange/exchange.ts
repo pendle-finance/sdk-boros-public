@@ -56,8 +56,9 @@ export class Exchange {
   private borosSendTxsBotSdk: BorosBackend.BorosSendTxsBotSdk;
   private contractsFactory: ContractsFactory;
   private publicClient: PublicClient;
+  private agent?: Agent;
 
-  constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrls: string[]) {
+  constructor(walletClient: WalletClient, root: Address, accountId: number, rpcUrls: string[], agent?: Agent) {
     this.walletClient = walletClient;
     this.root = root;
     this.accountId = accountId;
@@ -65,6 +66,19 @@ export class Exchange {
     this.borosSendTxsBotSdk = BorosBackend.getSendTxsBotSdk();
     this.contractsFactory = new ContractsFactory(rpcUrls);
     this.publicClient = this.contractsFactory.getRpcClient();
+    this.agent = agent;
+  }
+
+  private getAgentForSigning(): Agent | undefined {
+    return this.agent;
+  }
+
+  setAgent(agent: Agent): void {
+    this.agent = agent;
+  }
+
+  getAgent(): Agent | undefined {
+    return this.agent;
   }
 
   async enterMarkets(cross: boolean, marketIds: number[]) {
@@ -84,6 +98,7 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldatas,
+      agent: this.getAgentForSigning(),
     });
     const { data: executeResponses } = await this.borosSendTxsBotSdk.agent.agentControllerBulkAgentDirectCallV2({
       datas: signs.map((sign) => ({
@@ -162,6 +177,7 @@ export class Exchange {
       root: this.root,
       accountId: this.accountId,
       calldata,
+      agent: this.getAgentForSigning(),
     });
 
     const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
@@ -624,8 +640,12 @@ export class Exchange {
   }
 
   async approveAgent(agent?: Agent) {
-    const agentToUse = agent ?? (await Agent.create(this.walletClient)).agent;
-    setInternalAgent(agentToUse);
+    const agentToUse = agent ?? this.agent ?? (await Agent.create(this.walletClient)).agent;
+
+    // If no instance agent is set, set the agent for this instance
+    if (!this.agent) {
+      this.agent = agentToUse;
+    }
 
     // set expired time to the next 7 days
     const expiredTime = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;

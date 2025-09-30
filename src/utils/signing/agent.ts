@@ -24,9 +24,10 @@ export type SignedAgentExecution = {
 async function messagesToSigns(params: {
   calldatas: Hex[];
   messages: PendleSignTxStruct[];
+  agent?: Agent;
 }) {
   const { calldatas, messages } = params;
-  const agent = getInternalAgent();
+  const agent = params.agent ?? getInternalAgent();
   const signer = agent.walletClient;
   const pendleSignTxType = getAbiItem({
     abi: iRouterAbi,
@@ -66,6 +67,7 @@ export async function bulkSignWithAgentV2(params: {
     accountId: number;
     calldata: Hex;
   }[];
+  agent?: Agent;
 }) {
   const { root, executeParams } = params;
   const messages: PendleSignTxStruct[] = [];
@@ -81,7 +83,7 @@ export async function bulkSignWithAgentV2(params: {
   }
   const calldatas = executeParams.map((param) => param.calldata);
 
-  const signs = await messagesToSigns({ calldatas, messages });
+  const signs = await messagesToSigns({ calldatas, messages, agent: params.agent });
   return signs;
 }
 
@@ -89,6 +91,7 @@ export async function bulkSignWithAgent(params: {
   root: Address;
   accountId: number;
   calldatas: Hex[];
+  agent?: Agent;
 }) {
   const { root, accountId, calldatas } = params;
   const messages: PendleSignTxStruct[] = [];
@@ -103,7 +106,7 @@ export async function bulkSignWithAgent(params: {
     messages.push(message);
   }
 
-  const signs = await messagesToSigns({ calldatas, messages });
+  const signs = await messagesToSigns({ calldatas, messages, agent: params.agent });
   return signs;
 }
 
