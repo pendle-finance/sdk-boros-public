@@ -116,3 +116,29 @@ export class Market {
     return orderValue;
   }
 }
+
+export function getLongYieldAprFixedX18({
+  underlyingApr,
+  fixedApr,
+  timeToMaturity,
+  marginFloor,
+  maturityFloor,
+  leverage,
+}: {
+  underlyingApr: FixedX18;
+  fixedApr: FixedX18;
+  timeToMaturity: FixedX18;
+  marginFloor: FixedX18;
+  maturityFloor: FixedX18;
+  leverage?: number;
+}): FixedX18 {
+  const profitOf1YU = underlyingApr.sub(fixedApr).mulDown(timeToMaturity);
+
+  const marginOf1YU = fixedApr
+    .abs()
+    .max(marginFloor)
+    .mulDown(timeToMaturity.max(maturityFloor))
+    .divDown(FixedX18.fromNumber(leverage ?? 1));
+
+  return profitOf1YU.divDown(marginOf1YU);
+}
