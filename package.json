@@ -2,7 +2,7 @@
   "name": "@pendle/sdk-boros",
   "description": "Pendle SDK for Boros",
   "license": "MIT",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -19,7 +19,8 @@
     "prepare": "husky install",
     "test": "yarn jest",
     "generateContractErrors": "yarn tsx scripts/generatePendleContractErrorMessageHandler.ts",
-    "gen-backend-sdk": "bash ./scripts/genBorosBackendSDK.sh"
+    "gen-backend-sdk": "bash ./scripts/genBorosBackendSDK.sh",
+    "gen-log-backend-sdk": "bash ./scripts/genLogBackendSDK.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
