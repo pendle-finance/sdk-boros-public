@@ -68,13 +68,9 @@ export const UPDATE_SETTINGS_TYPES = [
   { name: 'timestamp', type: 'uint256' },
 ] as const;
 
-export const PLACE_CONDITIONAL_MESSAGE_TYPES = [
-  { name: 'reqHash', type: 'bytes32' },
-  { name: 'timestamp', type: 'uint32' },
-  { name: 'offchainCondition', type: 'bytes' },
-] as const;
+export const PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES = [{ name: 'actionHash', type: 'bytes32' }] as const;
 
-export const STOP_ORDER_CANCEL_REQUEST_TYPES = [{ name: 'orderId', type: 'bytes32' }] as const;
+export const CANCEL_CONDITIONAL_MESSAGE_TYPES = [{ name: 'orderId', type: 'bytes32' }] as const;
 
 export const AGENT_MESSAGE_TYPES = [{ name: 'timestamp', type: 'uint256' }] as const;
 
@@ -88,11 +84,12 @@ export function hashStopOrderRequest(request: {
   tick: number;
   reduceOnly: boolean;
   salt: bigint;
+  hashedOffchainCondition: Hex;
 }): Hex {
   return keccak256(
     encodeAbiParameters(
       parseAbiParameters(
-        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt'
+        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt, bytes32 hashedOffchainCondition'
       ),
       [
         request.account,
@@ -104,6 +101,7 @@ export function hashStopOrderRequest(request: {
         request.tick,
         request.reduceOnly,
         request.salt,
+        request.hashedOffchainCondition,
       ]
     )
   );

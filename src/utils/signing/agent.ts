@@ -5,10 +5,10 @@ import { Account, MarketAcc, MarketId, PendleSignTxStruct, Side, TimeInForce, fu
 import { AccountLib } from '../accountLib';
 import {
   AGENT_MESSAGE_TYPES,
+  CANCEL_CONDITIONAL_MESSAGE_TYPES,
   EIP712_DOMAIN_TYPES,
   PENDLE_BOROS_ROUTER_DOMAIN,
-  PLACE_CONDITIONAL_MESSAGE_TYPES,
-  STOP_ORDER_CANCEL_REQUEST_TYPES,
+  PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES,
   UPDATE_SETTINGS_TYPES,
 } from './common';
 
@@ -198,21 +198,32 @@ export async function signStopOrderRequest(params: {
     reduceOnly: boolean;
     salt: bigint;
   };
-  timestamp: number;
   offchainCondition: Hex;
 }) {
-  const { req, timestamp, offchainCondition } = params;
+  const { req, offchainCondition } = params;
+  const hashedOffchainCondition = keccak256(offchainCondition);
 
   const agent = getInternalAgent();
   const agentAddress = await agent.getAddress();
   const signer = agent.walletClient;
 
-  const reqHash = keccak256(
+  const orderHash = keccak256(
     encodeAbiParameters(
       parseAbiParameters(
-        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt'
+        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt, bytes32 hashedOffchainCondition'
       ),
-      [req.account, req.cross, req.marketId, req.side, req.tif, req.size, req.tick, req.reduceOnly, req.salt]
+      [
+        req.account,
+        req.cross,
+        req.marketId,
+        req.side,
+        req.tif,
+        req.size,
+        req.tick,
+        req.reduceOnly,
+        req.salt,
+        hashedOffchainCondition,
+      ]
     )
   );
 
@@ -221,17 +232,13 @@ export async function signStopOrderRequest(params: {
     domain: PENDLE_BOROS_ROUTER_DOMAIN(),
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
-      PlaceConditionalMessage: PLACE_CONDITIONAL_MESSAGE_TYPES,
+      PlaceConditionalActionMessage: PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES,
     },
-    primaryType: 'PlaceConditionalMessage',
-    message: {
-      reqHash,
-      timestamp,
-      offchainCondition,
-    },
+    primaryType: 'PlaceConditionalActionMessage',
+    message: { actionHash: orderHash },
   });
 
-  return { agent: agentAddress, signature, timestamp };
+  return { agent: agentAddress, signature, orderHash };
 }
 
 export async function signCancelStopOrderRequest(params: {
@@ -248,12 +255,10 @@ export async function signCancelStopOrderRequest(params: {
     domain: PENDLE_BOROS_ROUTER_DOMAIN(),
     types: {
       EIP712Domain: EIP712_DOMAIN_TYPES,
-      CancelStopOrderRequest: STOP_ORDER_CANCEL_REQUEST_TYPES,
+      CancelConditionalMessage: CANCEL_CONDITIONAL_MESSAGE_TYPES,
     },
-    primaryType: 'CancelStopOrderRequest',
-    message: {
-      orderId,
-    },
+    primaryType: 'CancelConditionalMessage',
+    message: { orderId },
   });
 
   return { agent: agentAddress, signature, orderId };
