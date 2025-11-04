@@ -89,7 +89,7 @@ export function extractEventLogs<TAbi extends Abi, TEventName extends ContractEv
 }
 
 export function decodeErrorMessageFromErrorSelector(errorSelector: Hex) {
-  const error = new RawContractError({ data: errorSelector });
+  const error = new RawContractError({ data: errorSelector.toLowerCase() as Hex });
   const decodedError = ViemErrorDecoder.decodeViemError(error);
   return decodedError.message;
 }

@@ -8199,6 +8199,200 @@ export const iFIndexOracleAbi = [
 ] as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IFundingRateVerifier
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iFundingRateVerifierAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint256', name: 'maxVerificationFee', type: 'uint256' },
+      { indexed: false, internalType: 'uint32', name: 'period', type: 'uint32' },
+    ],
+    name: 'ConfigUpdated',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'CHAIN_LINK_FEED_ID',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CHAIN_LINK_ORACLE',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CHAOS_LABS_MARKET',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CHAOS_LABS_ORACLE',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CHAOS_LABS_UPDATE_TYPE_HASH',
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'FINDEX_ORACLE',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'PENDLE_ORACLE',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'int112', name: 'fundingRate', type: 'int112' },
+      { internalType: 'uint32', name: 'fundingTimestamp', type: 'uint32' },
+    ],
+    name: 'manualUpdate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxVerificationFee',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'period',
+    outputs: [{ internalType: 'uint32', name: '', type: 'uint32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'newMaxVerificationFee', type: 'uint256' },
+      { internalType: 'uint32', name: 'newPeriod', type: 'uint32' },
+    ],
+    name: 'setConfig',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'bytes', name: 'report', type: 'bytes' }],
+    name: 'updateWithChainlink',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'updateId', type: 'uint256' }],
+    name: 'updateWithChaosLabs',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  { inputs: [], name: 'updateWithPendle', outputs: [], stateMutability: 'nonpayable', type: 'function' },
+  {
+    inputs: [
+      { internalType: 'address', name: 'receiver', type: 'address' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IFundingRateOracle
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iFundingRateOracleAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        components: [
+          { internalType: 'int112', name: 'fundingRate', type: 'int112' },
+          { internalType: 'uint32', name: 'fundingTimestamp', type: 'uint32' },
+          { internalType: 'uint32', name: 'epochDuration', type: 'uint32' },
+          { internalType: 'uint256', name: 'updatedAt', type: 'uint256' },
+        ],
+        indexed: false,
+        internalType: 'struct IFundingRateOracle.FundingRateUpdate',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    name: 'FundingRateUpdated',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'latestUpdate',
+    outputs: [
+      { internalType: 'int112', name: 'fundingRate', type: 'int112' },
+      { internalType: 'uint32', name: 'fundingTimestamp', type: 'uint32' },
+      { internalType: 'uint32', name: 'epochDuration', type: 'uint32' },
+      { internalType: 'uint256', name: 'updatedAt', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxFundingRate',
+    outputs: [{ internalType: 'int112', name: '', type: 'int112' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'minFundingRate',
+    outputs: [{ internalType: 'int112', name: '', type: 'int112' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'name',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'int112', name: 'fundingRate', type: 'int112' },
+      { internalType: 'uint32', name: 'fundingTimestamp', type: 'uint32' },
+      { internalType: 'uint32', name: 'epochDuration', type: 'uint32' },
+    ],
+    name: 'updateFundingRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IAMM
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -8671,25 +8865,28 @@ export const iDeleveragerFacetAbi = [
         components: [
           { internalType: 'MarketAcc', name: 'lose', type: 'bytes26' },
           { internalType: 'MarketId[]', name: 'marketIds', type: 'uint24[]' },
+          { internalType: 'MarketAcc[][]', name: 'wins', type: 'bytes26[][]' },
           {
             components: [
-              { internalType: 'uint256', name: 'lossFactor', type: 'uint256' },
-              { internalType: 'MarketAcc[]', name: 'wins', type: 'bytes26[]' },
-              { internalType: 'int256[]', name: 'sizesToWin', type: 'int256[]' },
+              { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+              { internalType: 'enum FundingRateSource', name: 'source', type: 'uint8' },
+              { internalType: 'bytes', name: 'data', type: 'bytes' },
             ],
-            internalType: 'struct IDeleveragerFacet.MarketDeleverageInput[]',
-            name: 'inputs',
+            internalType: 'struct UpcomingFIndexUpdate[]',
+            name: 'fIndexUpdates',
             type: 'tuple[]',
           },
+          { internalType: 'int256', name: 'desiredHealthRatio', type: 'int256' },
           { internalType: 'bool', name: 'allowAMM', type: 'bool' },
+          { internalType: 'bool', name: 'allowPartial', type: 'bool' },
         ],
-        internalType: 'struct IDeleveragerFacet.DeleverageRequest',
+        internalType: 'struct IDeleveragerFacet.DeleverageToHealthRequest',
         name: 'req',
         type: 'tuple',
       },
     ],
-    name: 'deleverage',
-    outputs: [],
+    name: 'calcDelevFactor',
+    outputs: [{ internalType: 'int256', name: '', type: 'int256' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -8707,6 +8904,16 @@ export const iDeleveragerFacetAbi = [
           { internalType: 'MarketAcc', name: 'lose', type: 'bytes26' },
           { internalType: 'MarketId[]', name: 'marketIds', type: 'uint24[]' },
           { internalType: 'MarketAcc[][]', name: 'wins', type: 'bytes26[][]' },
+          {
+            components: [
+              { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+              { internalType: 'enum FundingRateSource', name: 'source', type: 'uint8' },
+              { internalType: 'bytes', name: 'data', type: 'bytes' },
+            ],
+            internalType: 'struct UpcomingFIndexUpdate[]',
+            name: 'fIndexUpdates',
+            type: 'tuple[]',
+          },
           { internalType: 'int256', name: 'desiredHealthRatio', type: 'int256' },
           { internalType: 'bool', name: 'allowAMM', type: 'bool' },
           { internalType: 'bool', name: 'allowPartial', type: 'bool' },
@@ -8717,6 +8924,34 @@ export const iDeleveragerFacetAbi = [
       },
     ],
     name: 'deleverageToHealth',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: 'MarketAcc', name: 'lose', type: 'bytes26' },
+          { internalType: 'MarketId[]', name: 'marketIds', type: 'uint24[]' },
+          {
+            components: [
+              { internalType: 'uint256', name: 'lossFactor', type: 'uint256' },
+              { internalType: 'MarketAcc[]', name: 'wins', type: 'bytes26[]' },
+              { internalType: 'int256[]', name: 'sizesToWin', type: 'int256[]' },
+            ],
+            internalType: 'struct IDeleveragerFacet.ManualDeleverageInput[]',
+            name: 'inputs',
+            type: 'tuple[]',
+          },
+          { internalType: 'bool', name: 'allowAMM', type: 'bool' },
+        ],
+        internalType: 'struct IDeleveragerFacet.DeleverageRequest',
+        name: 'req',
+        type: 'tuple',
+      },
+    ],
+    name: 'manualDeleverage',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -8788,7 +9023,19 @@ export const iOrderCancellerFacetAbi = [
     type: 'event',
   },
   {
-    inputs: [{ internalType: 'MarketAcc', name: 'user', type: 'bytes26' }],
+    inputs: [
+      { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      {
+        components: [
+          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+          { internalType: 'enum FundingRateSource', name: 'source', type: 'uint8' },
+          { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        internalType: 'struct UpcomingFIndexUpdate[]',
+        name: 'fIndexUpdates',
+        type: 'tuple[]',
+      },
+    ],
     name: 'findHealthJumpOrders',
     outputs: [
       { internalType: 'bool', name: 'risky', type: 'bool' },
@@ -8809,6 +9056,16 @@ export const iOrderCancellerFacetAbi = [
   {
     inputs: [
       { internalType: 'MarketAcc', name: 'user', type: 'bytes26' },
+      {
+        components: [
+          { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
+          { internalType: 'enum FundingRateSource', name: 'source', type: 'uint8' },
+          { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        internalType: 'struct UpcomingFIndexUpdate[]',
+        name: 'fIndexUpdates',
+        type: 'tuple[]',
+      },
       {
         components: [
           { internalType: 'MarketId', name: 'marketId', type: 'uint24' },
