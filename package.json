@@ -40,7 +40,7 @@
     "@pendle/boros-offchain-math": "1.0.6",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
-    "viem": "^2.22.5"
+    "viem": "^2.38.5"
   },
   "lint-staged": {
     "*.{ts}": [
