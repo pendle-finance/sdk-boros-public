@@ -7,6 +7,7 @@ import {
   AGENT_MESSAGE_TYPES,
   CANCEL_CONDITIONAL_MESSAGE_TYPES,
   EIP712_DOMAIN_TYPES,
+  hashStopOrderRequest,
   PENDLE_BOROS_ROUTER_DOMAIN,
   PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES,
   UPDATE_SETTINGS_TYPES,
@@ -196,7 +197,8 @@ export async function signStopOrderRequest(params: {
     size: bigint;
     tick: number;
     reduceOnly: boolean;
-    salt: bigint;
+    salt: string;
+    expiry: string;
   };
   offchainCondition: Hex;
 }) {
@@ -207,25 +209,7 @@ export async function signStopOrderRequest(params: {
   const agentAddress = await agent.getAddress();
   const signer = agent.walletClient;
 
-  const orderHash = keccak256(
-    encodeAbiParameters(
-      parseAbiParameters(
-        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt, bytes32 hashedOffchainCondition'
-      ),
-      [
-        req.account,
-        req.cross,
-        req.marketId,
-        req.side,
-        req.tif,
-        req.size,
-        req.tick,
-        req.reduceOnly,
-        req.salt,
-        hashedOffchainCondition,
-      ]
-    )
-  );
+  const orderHash = hashStopOrderRequest({ ...req, hashedOffchainCondition });
 
   const signature = await signer.signTypedData({
     account: agent.walletClient.account!,

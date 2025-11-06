@@ -1,3 +1,12 @@
-export { signWithAgent, signUpdateSettings, bulkSignWithAgent, type SignedAgentExecution } from './agent';
-export { signSetAccManagerMessage, signApproveAgentMessage } from './sensitive';
+export {
+  bulkSignWithAgent,
+  bulkSignWithAgentV2,
+  getAgentSignature,
+  signCancelStopOrderRequest,
+  signStopOrderRequest,
+  signUpdateSettings,
+  signWithAgent,
+  type SignedAgentExecution,
+} from './agent';
 export { hashStopOrderRequest } from './common';
+export { signApproveAgentMessage, signSetAccManagerMessage } from './sensitive';

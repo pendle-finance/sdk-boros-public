@@ -83,13 +83,14 @@ export function hashStopOrderRequest(request: {
   size: bigint;
   tick: number;
   reduceOnly: boolean;
-  salt: bigint;
+  salt: string;
+  expiry: string;
   hashedOffchainCondition: Hex;
 }): Hex {
   return keccak256(
     encodeAbiParameters(
       parseAbiParameters(
-        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt, bytes32 hashedOffchainCondition'
+        'bytes21 account, bool cross, uint24 marketId, uint8 side, uint8 tif, uint256 size, int16 tick, bool reduceOnly, uint256 salt, uint64 expiry, bytes32 hashedOffchainCondition'
       ),
       [
         request.account,
@@ -100,7 +101,8 @@ export function hashStopOrderRequest(request: {
         request.size,
         request.tick,
         request.reduceOnly,
-        request.salt,
+        BigInt(request.salt),
+        BigInt(request.expiry),
         request.hashedOffchainCondition,
       ]
     )
