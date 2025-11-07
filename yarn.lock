@@ -1422,6 +1422,7 @@ __metadata:
     husky: "npm:^8.0.0"
     jest: "npm:^29.7.0"
     lint-staged: "npm:^15.2.9"
+    lru-cache: "npm:^11.2.2"
     swagger-typescript-api: "npm:13.2.3"
     ts-jest: "npm:^29.3.0"
     ts-node: "npm:^10.9.2"
@@ -4132,6 +4133,13 @@ __metadata:
   version: 10.4.3
   resolution: "lru-cache@npm:10.4.3"
   checksum: 10/e6e90267360476720fa8e83cc168aa2bf0311f3f2eea20a6ba78b90a885ae72071d9db132f40fda4129c803e7dcec3a6b6a6fbb44ca90b081630b810b5d6a41a
+  languageName: node
+  linkType: hard
+
+"lru-cache@npm:^11.2.2":
+  version: 11.2.2
+  resolution: "lru-cache@npm:11.2.2"
+  checksum: 10/fa7919fbf068a739f79a1ad461eb273514da7246cebb9dca68e3cd7ba19e3839e7e2aaecd9b72867e08038561eeb96941189e89b3d4091c75ced4f56c71c80db
   languageName: node
   linkType: hard
 
