@@ -172,44 +172,6 @@ export class Exchange {
     }));
   }
 
-  async signAndExecute(calldata: Hex) {
-    const sign = await signWithAgent({
-      root: this.root,
-      accountId: this.accountId,
-      calldata,
-      agent: this.getAgentForSigning(),
-    });
-
-    const { data: executeResponse } = await this.borosSendTxsBotSdk.agent.agentControllerDirectCallV2({
-      ...sign,
-      message: {
-        ...sign.message,
-        nonce: sign.message.nonce.toString(),
-      },
-    });
-    if (executeResponse.error) {
-      throw new Error(executeResponse.error);
-    }
-    const receipt = await publicClient.waitForTransactionReceipt({ hash: executeResponse.txHash as Hex });
-    const blockTimestamp = (await publicClient.getBlock({ blockNumber: receipt.blockNumber })).timestamp;
-    const logIndex = executeResponse.index!;
-    const decodedEvents = receipt.logs.map((log) => decodeLog(log));
-    const logGroups = [];
-    let events = [];
-
-    for (const event of decodedEvents) {
-      if (event && (event.eventName === 'TryAggregateCallSucceeded' || event.eventName === 'TryAggregateCallFailed')) {
-        events.push(event);
-        logGroups.push([...events]);
-        events = [];
-      } else {
-        events.push(event);
-      }
-    }
-
-    return { executeResponse, events: logGroups[logIndex], blockTimestamp, blockNumber: receipt.blockNumber };
-  }
-
   async placeOrder(params: PlaceOrderParams) {
     const { marketAcc, marketId, side, size, limitTick, tif, slippage } = params;
     const { data: placeOrderCalldataResponse } =
