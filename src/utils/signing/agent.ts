@@ -6,11 +6,12 @@ import { AccountLib } from '../accountLib';
 import {
   AGENT_MESSAGE_TYPES,
   CANCEL_CONDITIONAL_MESSAGE_TYPES,
+  CANCEL_CONDITIONAL_MESSAGE_V2_TYPES,
   EIP712_DOMAIN_TYPES,
-  hashStopOrderRequest,
   PENDLE_BOROS_ROUTER_DOMAIN,
   PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES,
   UPDATE_SETTINGS_TYPES,
+  hashStopOrderRequest,
 } from './common';
 
 export type AgentExecution = keyof typeof functionEncoder;
@@ -246,6 +247,29 @@ export async function signCancelStopOrderRequest(params: {
   });
 
   return { agent: agentAddress, signature, orderId };
+}
+
+export async function signCancelStopOrderV2Request(params: {
+  orderIds: Hex[];
+}) {
+  const { orderIds } = params;
+
+  const agent = getInternalAgent();
+  const agentAddress = await agent.getAddress();
+  const signer = agent.walletClient;
+
+  const signature = await signer.signTypedData({
+    account: agent.walletClient.account!,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(),
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      CancelConditionalMessage: CANCEL_CONDITIONAL_MESSAGE_V2_TYPES,
+    },
+    primaryType: 'CancelConditionalMessage',
+    message: { orderIds },
+  });
+
+  return { agent: agentAddress, signature, orderIds };
 }
 
 export async function getAgentSignature() {

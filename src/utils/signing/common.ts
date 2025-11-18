@@ -71,6 +71,7 @@ export const UPDATE_SETTINGS_TYPES = [
 export const PLACE_CONDITIONAL_ACTION_MESSAGE_TYPES = [{ name: 'actionHash', type: 'bytes32' }] as const;
 
 export const CANCEL_CONDITIONAL_MESSAGE_TYPES = [{ name: 'orderId', type: 'bytes32' }] as const;
+export const CANCEL_CONDITIONAL_MESSAGE_V2_TYPES = [{ name: 'orderIds', type: 'bytes32[]' }] as const;
 
 export const AGENT_MESSAGE_TYPES = [{ name: 'timestamp', type: 'uint256' }] as const;
 

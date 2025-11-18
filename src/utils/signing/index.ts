@@ -3,6 +3,7 @@ export {
   bulkSignWithAgentV2,
   getAgentSignature,
   signCancelStopOrderRequest,
+  signCancelStopOrderV2Request,
   signStopOrderRequest,
   signUpdateSettings,
   signWithAgent,
