@@ -85,6 +85,8 @@ export interface MarketExtendedConfigResponse {
 export interface MarketMetadataResponse {
   /** Market name */
   name: string;
+  /** Asset symbol of the market */
+  assetSymbol: string;
   /** Platform name. For example: "Binance", "Hyperliquid" */
   platformName: string;
   /** Maximum leverage of the market. For example: 20 */
@@ -116,7 +118,12 @@ export interface MarketMetadataResponse {
     | 'underlyingApr7dma'
     | 'quaterlyFuturePremium'
     | 'notionalVolume'
+    | 'underlyingApr30dma'
   )[];
+  /** Accent color of the market */
+  accentColor: string;
+  /** Internal market name (e.g., BTCUSDT-BN-T-250926) */
+  marketName?: string;
 }
 
 export interface MarketDataResponse {
@@ -127,10 +134,32 @@ export interface MarketDataResponse {
   /** last traded apr of the market */
   lastTradedApr: number;
   midApr: number;
+  /** Best bid APR from order book */
+  bestBid?: number;
+  /** Best ask APR from order book */
+  bestAsk?: number;
+  /** AMM implied APR */
+  ammImpliedApr?: number;
   floatingApr: number;
   longYieldApr?: number;
   nextSettlementTime?: number;
   timeToMaturity?: number;
+  assetMarkPrice: number;
+  /** Real-time 7-day moving average funding rate */
+  b7dmafr?: number;
+  /** Real-time 30-day moving average funding rate */
+  b30dmafr?: number;
+}
+
+export interface MarketPlatformResponse {
+  /** Platform name */
+  name: string;
+  /** Platform ID */
+  platformId: string;
+  /** Platform accent color */
+  accentColor: string;
+  /** Platform icon */
+  icon: string;
 }
 
 export interface MarketResponse {
@@ -146,6 +175,7 @@ export interface MarketResponse {
   extConfig: MarketExtendedConfigResponse;
   metadata?: MarketMetadataResponse;
   data?: MarketDataResponse;
+  platform?: MarketPlatformResponse;
   /** State of the market */
   state: 'Paused' | 'Capped' | 'Normal' | 'Halted';
 }
@@ -194,12 +224,46 @@ export interface CandleResponse {
   ofr: number;
   /** 7DMA Realtime Funding Rate */
   b7dmafr: number;
+  /** 30DMA Realtime Funding Rate */
+  b30dmafr: number;
   /** Future Premium */
   fp: number;
 }
 
 export interface ChartResponse {
   results: CandleResponse[];
+}
+
+export interface HistoricalDataResponse {
+  /** Period start timestamp */
+  ts: number;
+  /** Underlying APR */
+  u: number;
+  /** Future premium */
+  fp: number;
+  /** 7-day moving average funding rate */
+  b7dmafr?: number;
+  /** 30-day moving average funding rate */
+  b30dmafr?: number;
+}
+
+export interface HistoricalDataChartResponse {
+  results: HistoricalDataResponse[];
+}
+
+export interface HistoricalUnderlyingAPRResponse {
+  /** Period start timestamp */
+  ts: number;
+  /** Underlying APR */
+  u: number;
+  /** 7-day moving average funding rate */
+  b7dmafr?: number;
+  /** 30-day moving average funding rate */
+  b30dmafr?: number;
+}
+
+export interface HistoricalUnderlyingAPRChartResponse {
+  results: HistoricalUnderlyingAPRResponse[];
 }
 
 export interface SideTickResponse {
@@ -523,6 +587,16 @@ export interface AssetMetadataResponse {
   tokenIcon: string;
   /** Asset zone icon */
   zoneIcon: string;
+  /**
+   * Asset is denomination unit
+   * @example true
+   */
+  isDenominationUnit: boolean;
+  /**
+   * Asset is dev test
+   * @example true
+   */
+  isDevTest: boolean;
 }
 
 export interface AssetResponse {
@@ -539,10 +613,66 @@ export interface AssetResponse {
   /** Price in USD */
   usdPrice: string;
   metadata: AssetMetadataResponse;
+  /**
+   * Is collateral asset
+   * @example true
+   */
+  isCollateral: boolean;
 }
 
 export interface AssetsResponse {
   assets: AssetResponse[];
+}
+
+export interface PriceDataV1 {
+  /**
+   * Asset symbol
+   * @example "BTC"
+   */
+  symbol: string;
+  /**
+   * Asset price in USD
+   * @example "43500.50"
+   */
+  price: string;
+  /**
+   * Timestamp in seconds
+   * @example 1499040000
+   */
+  timestamp: number;
+}
+
+export interface HistoricalPriceV1Response {
+  /**
+   * Asset symbol
+   * @example "BTC"
+   */
+  symbol: string;
+  /** Array of historical price data */
+  data: PriceDataV1[];
+}
+
+export interface PriceData {
+  /**
+   * Asset price in USD
+   * @example "43500.50"
+   */
+  price: string;
+  /**
+   * Timestamp in seconds
+   * @example 1499040000
+   */
+  timestamp: number;
+}
+
+export interface HistoricalPriceResponse {
+  /**
+   * Asset symbol
+   * @example "BTC"
+   */
+  symbol: string;
+  /** Array of historical price data */
+  data: PriceData[];
 }
 
 export interface GetCalldataResponse {
@@ -800,6 +930,10 @@ export interface LimitOrderResponse {
   orderType: 0 | 1 | 2 | 3;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
+  /** The event index when the order was placed */
+  placedEventIndex: number;
+  /** The timestamp when the order was placed, in seconds */
+  placedTimestamp: number;
   /** Account position */
   marketAcc: string;
   metadata?: LimitOrderMetadataResponse;
@@ -849,6 +983,12 @@ export interface LimitOrderResponseV2 {
   orderType: 0 | 1 | 2 | 3;
   /** The block timestamp of the order placement, in seconds */
   blockTimestamp: number;
+  /** The last updated event index */
+  eventIndex: number;
+  /** The event index when the order was placed */
+  placedEventIndex: number;
+  /** The timestamp when the order was placed, in seconds */
+  placedTimestamp: number;
   /** Account position */
   marketAcc: string;
   metadata?: LimitOrderMetadataResponseV2;
@@ -925,6 +1065,33 @@ export interface SharePositionPnlResponse {
 export interface MarketAccCumulativePnlResponse {
   /** Cumulative Realized Trade PnL as bigint string */
   cumulativeTradePnl: string;
+}
+
+export interface MaturedPositionResponse {
+  /** Market ID */
+  marketId: number;
+  /** Root address */
+  root: string;
+  /** Account ID */
+  accountId: number;
+  /** Market account */
+  marketAcc: string;
+  /** PnL as string */
+  pnl: string;
+  /** Max capital as string */
+  maxCapital: string;
+  /** PnL percentage */
+  pnlPercentage: number;
+  /** Average settlement paid */
+  avgSettlementPaid?: number;
+  /** Average settlement received */
+  avgSettlementReceived?: number;
+}
+
+export interface MaturedPositionsResponse {
+  results: MaturedPositionResponse[];
+  /** Total number of matured positions */
+  total: number;
 }
 
 export interface SettlementResponse {
@@ -1059,6 +1226,151 @@ export interface CollateralSummaryResponse {
 export interface AllCollateralSummaryResponse {
   /** List all collateral summary */
   collaterals: CollateralSummaryResponse[];
+}
+
+export interface DepositBoxAssetResponse {
+  /** Asset address */
+  address: string;
+  /** Asset tokenId used for MarketAcc packing */
+  tokenId: number;
+  /** Asset name */
+  name: string;
+  /** Asset symbol */
+  symbol: string;
+  /** Asset symbol */
+  decimals: number;
+  /** Price in USD */
+  usdPrice: string;
+  metadata: AssetMetadataResponse;
+  /**
+   * Is collateral asset
+   * @example true
+   */
+  isCollateral: boolean;
+  /** Chain ID */
+  chainId: number;
+}
+
+export interface DepositBoxAssetsResponse {
+  assets: DepositBoxAssetResponse[];
+}
+
+export interface AssetBalanceResponse {
+  /** Asset address */
+  address: string;
+  /** Asset tokenId used for MarketAcc packing */
+  tokenId: number;
+  /** Asset name */
+  name: string;
+  /** Asset symbol */
+  symbol: string;
+  /** Asset symbol */
+  decimals: number;
+  /** Price in USD */
+  usdPrice: string;
+  metadata: AssetMetadataResponse;
+  /**
+   * Is collateral asset
+   * @example true
+   */
+  isCollateral: boolean;
+  /** Asset balance */
+  balance: string;
+}
+
+export interface GetDepositBoxBalancesResponse {
+  assets: AssetBalanceResponse[];
+}
+
+export interface PrepareDepositFromBoxMessage {
+  root: string;
+  boxId: number;
+  tokenSpent: string;
+  amountSpent: string;
+  accountId: number;
+  tokenId: number;
+  marketId: number;
+  minDepositAmount: string;
+  payTreasuryAmount: string;
+  nonce: string;
+}
+
+export interface PrepareDepositFromBoxMessageResponse {
+  message: PrepareDepositFromBoxMessage;
+  feeBreakdown: FeeBreakdownResponse;
+  preUserState: DepositStateResponse;
+  postUserState: DepositStateResponse;
+  minReceived: string;
+}
+
+export interface QuoteBscBridgeDto {
+  /** From token */
+  fromToken: string;
+  /** To token */
+  toToken: string;
+  /** Amount */
+  amount: string;
+  /** From address */
+  fromAddress: string;
+}
+
+export interface QuoteBscTransactionDto {
+  /** From address */
+  from: string;
+  /** Target contract address on BSC */
+  to: string;
+  /** Value to send with transaction */
+  value: string;
+  /** Calldata for BSC bridge transaction */
+  calldata: string;
+}
+
+export interface QuoteBscBridgeTokenAmountResponse {
+  /** Token */
+  token: string;
+  /** Amount */
+  amount: string;
+}
+
+export interface QuoteBscBridgeFeeResponse {
+  /** Fee name */
+  name: string;
+  /** Chain ID */
+  chainId: number;
+  /** Token address */
+  token: string;
+  /** Fee amount */
+  amount: string;
+  /** Fee amount in USD */
+  amountUsd: number;
+}
+
+export interface QuoteBscBridgeResponse {
+  tx: QuoteBscTransactionDto;
+  tokenApproval: QuoteBscBridgeTokenAmountResponse;
+  /** From token */
+  fromToken: string;
+  /** From amount */
+  fromAmount: string;
+  /** To token */
+  toToken: string;
+  /** To amount */
+  toAmount: string;
+  /** Min to amount */
+  minToAmount: string;
+  /** Fee costs */
+  feeCosts: QuoteBscBridgeFeeResponse[];
+  /** Gas fee */
+  gasCosts: QuoteBscBridgeFeeResponse[];
+}
+
+export interface BscBridgeStatusResponse {
+  /** BSC transaction hash */
+  txHash: string;
+  /** Bridge status */
+  status: 'PENDING' | 'DONE' | 'NOT_FOUND' | 'FAILED' | 'INVALID';
+  /** Bridge transaction hash */
+  bridgeTxHash?: string;
 }
 
 export interface BalanceResponse {
@@ -1219,6 +1531,8 @@ export interface GetUserReferralInfoResponse {
   referralJoinDate?: string;
   /** The total trade in USD for user */
   totalTradeInUsd: number;
+  /** The fee share of the user */
+  feeShare: number;
 }
 
 export interface CheckReferralExistBodyDto {
@@ -1417,6 +1731,218 @@ export interface UserSearchResponse {
   roi?: number;
 }
 
+export interface MarketMakingScoreResponse {
+  /**
+   * User address
+   * @example "0x1234567890123456789012345678901234567890"
+   */
+  user: string;
+  /**
+   * Account ID
+   * @example 0
+   */
+  accountId: number;
+  /**
+   * Token ID used for net balance calculation
+   * @example 0
+   */
+  tokenId: number;
+  /**
+   * Start timestamp of the period (unix seconds)
+   * @example 1733000000
+   */
+  startTimestamp: number;
+  /**
+   * End timestamp of the period (unix seconds)
+   * @example 1733086400
+   */
+  endTimestamp: number;
+  /**
+   * Duration of the period in days
+   * @example 7
+   */
+  periodDays: number;
+  /**
+   * Maker value - sum of absolute notional sizes from maker trades during the period (formatted with token decimals)
+   * @example 1000
+   */
+  makerValue: number;
+  /**
+   * Net balance at the start of the period (formatted with token decimals)
+   * @example 10000
+   */
+  netBalanceBefore: number;
+  /**
+   * Net balance at the end of the period (formatted with token decimals)
+   * @example 10500
+   */
+  netBalanceAfter: number;
+  /**
+   * Market making score: (MakerValue / NetBalanceBefore) * (NetBalanceAfter / NetBalanceBefore)
+   * @example 0.105
+   */
+  score: number;
+  /**
+   * Time-weighted daily score: score / periodDays
+   * @example 0.015
+   */
+  normalizedScore: number;
+}
+
+export interface OnChainEventItem {
+  /** Event name */
+  eventName: string;
+  /** Event ID (blockHash-logIndex) */
+  id: string;
+  /** Source contract address */
+  sourceAddress: string;
+  /** Block number */
+  blockNumber: number;
+  /** Log index */
+  logIndex: number;
+  /** Transaction hash */
+  txHash: string;
+  /** Block hash */
+  blockHash: string;
+  /** Block timestamp */
+  blockTimestamp: number;
+  /** Event index (blockNumber * 1000000 + logIndex) */
+  eventIndex: number;
+  /** Whether the event is finalized */
+  isFinalized?: boolean;
+  /** Additional event-specific data fields from extended schemas */
+  data?: object;
+}
+
+export interface OnChainEventsResponse {
+  /** List of on-chain events */
+  events: OnChainEventItem[];
+  /** Total count of events matching the query */
+  total: number;
+}
+
+export interface FearGreedIndexDataPoint {
+  /** Unix timestamp in seconds */
+  ts: number;
+  /** Index value (0-100) */
+  v: number;
+  /** Classification (e.g., "Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed") */
+  vc: string;
+}
+
+export interface FearGreedIndexResponse {
+  /** Array of fear and greed index data points */
+  results: FearGreedIndexDataPoint[];
+}
+
+export interface CheckEligibilityDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+}
+
+export interface CheckEligibilityResponseDto {
+  /** Whether the wallet address is VIP eligible */
+  eligible: boolean;
+  /** VIP qualification date (ISO string) */
+  vipSince?: string;
+  /** True if newly qualified by this check */
+  newlyQualified: boolean;
+  /** True if wallet address has prior OTC submissions */
+  hasSubmissions: boolean;
+}
+
+export interface OtcTermDto {
+  /**
+   * Exchange name
+   * @example "Binance"
+   */
+  exchangeName: string;
+  /**
+   * Market name
+   * @example "ETHUSDT"
+   */
+  marketName: string;
+  /**
+   * Maturity date (ISO string)
+   * @example "2025-12-26T00:00:00.000Z"
+   */
+  maturity: string;
+  /**
+   * Collateral token
+   * @example "USDT"
+   */
+  collateral: string;
+  /**
+   * Position side (0 = LONG, 1 = SHORT)
+   * @example 0
+   */
+  side: 0 | 1;
+  /**
+   * Implied rate (decimal)
+   * @example 0.05
+   */
+  impliedRate: number;
+  /**
+   * Good until date (ISO string)
+   * @example "2025-12-31T23:59:59.999Z"
+   */
+  goodUntilDate: string;
+}
+
+export interface SubmitOtcRequestDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /**
+   * Entity name
+   * @example "Acme Corp"
+   */
+  entityName: string;
+  /**
+   * Telegram ID
+   * @example "@johndoe"
+   */
+  telegramId: string;
+  /** Array of OTC terms */
+  otcTerms: OtcTermDto[];
+}
+
+export interface SubmitOtcRequestResponseDto {
+  /** Success status */
+  success: boolean;
+  /** Message */
+  message: string;
+}
+
+export interface OtcTermResponseDto {
+  exchangeName: string;
+  marketName: string;
+  maturity: string;
+  collateral: string;
+  /** 0 = LONG, 1 = SHORT */
+  side: 0 | 1;
+  impliedRate: number;
+  goodUntilDate: string;
+  submittedAt: string;
+}
+
+export interface GetOtcRequestsResponseDto {
+  userAddress: string;
+  entityName?: string;
+  telegramId?: string;
+  vipSince: string;
+  otcTerms: OtcTermResponseDto[];
+}
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
 import axios from 'axios';
 
@@ -1582,7 +2108,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         skip?: number;
         /**
          * Maximum number of results to return. The parameter is capped at 100.
-         * @default 10
+         * @default 100
          */
         limit?: number;
         /**
@@ -1655,7 +2181,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758855105
+         * @default 1765252156
          */
         endTimestamp?: number;
       },
@@ -1663,6 +2189,144 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<ChartResponse, any>({
         path: `/v1/markets/chart`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Markets
+     * @name MarketsControllerGetHistoricalData
+     * @summary Get historical data
+     * @request GET:/v1/markets/historical-data
+     */
+    marketsControllerGetHistoricalData: (
+      query: {
+        /** Market id */
+        marketId: number;
+        /** TimeFrameType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalDataChartResponse, any>({
+        path: `/v1/markets/historical-data`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Markets
+     * @name MarketsControllerGetHistoricalUnderlyingApr
+     * @summary Get historical underlying APR data
+     * @request GET:/v1/markets/historical-underlying-apr
+     */
+    marketsControllerGetHistoricalUnderlyingApr: (
+      query: {
+        /** Market id */
+        marketId: number;
+        /** TimeFrameType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalUnderlyingAPRChartResponse, any>({
+        path: `/v1/markets/historical-underlying-apr`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Markets
+     * @name MarketsControllerGetHistoricalUnderlyingAprv2
+     * @summary Get historical underlying APR data by asset symbol and exchange
+     * @request GET:/v2/markets/historical-underlying-apr
+     */
+    marketsControllerGetHistoricalUnderlyingAprv2: (
+      query: {
+        /** Asset symbol */
+        assetSymbol: string;
+        /** Exchange */
+        exchange: string;
+        /** TimeFrame in seconds, default to be 3600 */
+        timeFrame: number;
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalUnderlyingAPRChartResponse, any>({
+        path: `/v2/markets/historical-underlying-apr`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Markets
+     * @name MarketsControllerGetHistoricalUnderlyingAprv3
+     * @summary Get historical underlying APR data by asset symbol and exchange
+     * @request GET:/v3/markets/historical-underlying-apr
+     */
+    marketsControllerGetHistoricalUnderlyingAprv3: (
+      query: {
+        /** Asset symbol */
+        assetSymbol: string;
+        /** Exchange */
+        exchange: string;
+        /** TimeFrame in seconds. Must be one of: 3600, 14400, 28800, 86400 */
+        timeFrame: 3600 | 14400 | 28800 | 86400;
+        /** Start timestamp */
+        startTimestamp: number;
+        /** End timestamp, default to current timestamp */
+        endTimestamp: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalUnderlyingAPRChartResponse, any>({
+        path: `/v3/markets/historical-underlying-apr`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1775,7 +2439,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758855105
+         * @default 1765252156
          */
         endTimestamp?: number;
         marketId: number;
@@ -1809,7 +2473,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1758855105
+         * @default 1765252156
          */
         endTimestamp?: number;
         ammId: number;
@@ -2111,14 +2775,106 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Assets
-     * @name AssetsControllerGetAllAssets
-     * @summary Get all assets
+     * @name AssetsControllerGetAllCollateralAssets
+     * @summary Get all collateral assets
      * @request GET:/v1/assets/all
      */
-    assetsControllerGetAllAssets: (params: RequestParams = {}) =>
+    assetsControllerGetAllCollateralAssets: (params: RequestParams = {}) =>
       this.request<AssetsResponse, any>({
         path: `/v1/assets/all`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Assets
+     * @name AssetsControllerGetAllAssets
+     * @summary Get all assets
+     * @request GET:/v2/assets/all
+     */
+    assetsControllerGetAllAssets: (params: RequestParams = {}) =>
+      this.request<AssetsResponse, any>({
+        path: `/v2/assets/all`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Assets
+     * @name AssetsControllerGetHistoricalPriceV1
+     * @summary Get historical price data from Binance (V1)
+     * @request GET:/v1/assets/historical-price
+     */
+    assetsControllerGetHistoricalPriceV1: (
+      query: {
+        /** Asset symbol (e.g., BTC, ETH) */
+        symbol: string;
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+        /**
+         * Time frame in seconds
+         * @default 3600
+         */
+        timeFrame?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalPriceV1Response, any>({
+        path: `/v1/assets/historical-price`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Assets
+     * @name AssetsControllerGetHistoricalPriceV2
+     * @summary Get historical price data with interpolation (V2)
+     * @request GET:/v2/assets/historical-price
+     */
+    assetsControllerGetHistoricalPriceV2: (
+      query: {
+        /** Asset symbol (e.g., BTC, ETH) */
+        symbol: string;
+        /**
+         * Start timestamp (will be rounded up to nearest timeFrame)
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp (will be rounded down to nearest timeFrame)
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+        /**
+         * Time frame in seconds (300=5m, 3600=1h, 28800=8h, 86400=1d, 604800=1w)
+         * @default 3600
+         */
+        timeFrame?: 300 | 3600 | 14400 | 28800 | 86400 | 604800;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HistoricalPriceResponse, any>({
+        path: `/v2/assets/historical-price`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -2275,6 +3031,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketAcc: string;
         /** bigint string of amount to pay treasury */
         payTreasuryAmount?: string;
+        /**
+         * auto exit market
+         * @default true
+         */
+        autoExitMarket?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -2395,6 +3156,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         marketAcc: string;
         /** bigint string of amount to pay treasury */
         payTreasuryAmount?: string;
+        /**
+         * auto exit market
+         * @default true
+         */
+        autoExitMarket?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -2709,7 +3475,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         accountId: number;
         marketId?: number;
         /**
-         * Maximum number of results to return. The parameter is capped at 100.
+         * Maximum number of results to return. The parameter is capped at 2000.
          * @default 10
          */
         limit?: number;
@@ -2748,7 +3514,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         skip?: number;
         /**
-         * Maximum number of results to return. The parameter is capped at 100.
+         * Maximum number of results to return. The parameter is capped at 2000.
          * @default 10
          */
         limit?: number;
@@ -2792,14 +3558,14 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          */
         skip?: number;
         /**
-         * Maximum number of results to return. The parameter is capped at 100.
+         * Maximum number of results to return. The parameter is capped at 200.
          * @default 10
          */
         limit?: number;
         /** Is active */
         isActive?: boolean;
-        /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 } */
-        orderType?: 0 | 1 | 2 | 3;
+        /** OrderType { LIMIT : 0, MARKET : 1, TAKE_PROFIT_MARKET : 2, STOP_LOSS_MARKET : 3 }. Comma-separated for multiple values (e.g., "0,1,2") */
+        orderType?: string;
         /**
          * Sort by field: 1 for ascending, -1 for descending. Allowed fields: blockTimestamp, side, placedSize, unfilledSize, impliedApr, status, orderType. Default to blockTimestamp:-1
          * @default "blockTimestamp:-1"
@@ -2941,6 +3707,39 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetMaturedPositions
+     * @summary Get matured positions by root address
+     * @request GET:/v1/pnl/matured-positions
+     */
+    pnlControllerGetMaturedPositions: (
+      query: {
+        root: string;
+        tokenId?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MaturedPositionsResponse, any>({
+        path: `/v1/pnl/matured-positions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
   };
   settlement = {
     /**
@@ -3019,6 +3818,124 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<CollateralSummaryResponse, any>({
         path: `/v1/collaterals/summary/single`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  depositBox = {
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetAssets
+     * @summary Get all assets
+     * @request GET:/v1/deposit-box/assets
+     */
+    depositBoxControllerGetAssets: (params: RequestParams = {}) =>
+      this.request<DepositBoxAssetsResponse, any>({
+        path: `/v1/deposit-box/assets`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetDepositBoxBalances
+     * @summary Get deposit box balances
+     * @request GET:/v1/deposit-box/balances
+     */
+    depositBoxControllerGetDepositBoxBalances: (
+      query: {
+        /** User address */
+        root: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetDepositBoxBalancesResponse, any>({
+        path: `/v1/deposit-box/balances`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPrepareDepositFromBox
+     * @summary Build deposit from box message
+     * @request GET:/v1/deposit-box/prepare/deposit
+     */
+    depositBoxControllerPrepareDepositFromBox: (
+      query: {
+        /** User address */
+        root: string;
+        /** Account ID */
+        accountId: number;
+        /** Token ID */
+        tokenId: number;
+        /** Market ID */
+        marketId: number;
+        /** Token spent */
+        tokenSpent: string;
+        /** Amount spent */
+        amountSpent: string;
+        /** Deposit amount */
+        depositAmount: string;
+        /** Min deposit amount */
+        minDepositAmount: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<PrepareDepositFromBoxMessageResponse, any>({
+        path: `/v1/deposit-box/prepare/deposit`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerQuoteBscBridge
+     * @summary Prepare BSC to Arbitrum bridge transaction
+     * @request POST:/v1/deposit-box/bridge/bsc/quote
+     */
+    depositBoxControllerQuoteBscBridge: (data: QuoteBscBridgeDto, params: RequestParams = {}) =>
+      this.request<QuoteBscBridgeResponse, any>({
+        path: `/v1/deposit-box/bridge/bsc/quote`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetBscBridgeStatus
+     * @summary Get BSC bridge status
+     * @request GET:/v1/deposit-box/bridge/bsc/status
+     */
+    depositBoxControllerGetBscBridgeStatus: (
+      query: {
+        /** BSC transaction hash */
+        txHash: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BscBridgeStatusResponse, any>({
+        path: `/v1/deposit-box/bridge/bsc/status`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3197,11 +4114,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @example "0x1234567890123456789012345678901234567890"
          */
         user: string;
-        /**
-         * The end timestamp
-         * @example 1715769600
-         */
-        toTimestamp?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -3465,6 +4377,283 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<UserSearchResponse, any>({
         path: `/v1/leaderboard/search`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  marketMaker = {
+    /**
+     * @description Calculate market making score for a given user and time period. Score = (MakerValue / NetBalanceBefore) * (NetBalanceAfter / NetBalanceBefore)
+     *
+     * @tags Market Maker
+     * @name MarketMakingScoreControllerGetScore
+     * @summary Get market making score for a time period
+     * @request GET:/v1/market-maker/market-making-score
+     */
+    marketMakingScoreControllerGetScore: (
+      query: {
+        /**
+         * User address
+         * @example "0x1234567890123456789012345678901234567890"
+         */
+        user: string;
+        /**
+         * Account ID (default: 0)
+         * @example 0
+         */
+        accountId?: number;
+        /**
+         * Token ID for net balance calculation (default: 1 for BTC)
+         * @example 1
+         */
+        tokenId?: number;
+        /**
+         * Start timestamp (unix seconds)
+         * @example 1733000000
+         */
+        startTimestamp: number;
+        /**
+         * End timestamp (unix seconds)
+         * @example 1733086400
+         */
+        endTimestamp: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MarketMakingScoreResponse, any>({
+        path: `/v1/market-maker/market-making-score`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  onChainEvents = {
+    /**
+     * No description
+     *
+     * @tags On-Chain Events
+     * @name OnChainEventsControllerGetEvents
+     * @summary Get on-chain events with filters
+     * @request GET:/v1/on-chain-events
+     */
+    onChainEventsControllerGetEvents: (
+      query?: {
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 5000.
+         * @default 10
+         */
+        limit?: number;
+        /**
+         * Filter by event name
+         * @example "BulkOrdersExecuted"
+         */
+        eventName?: string;
+        /**
+         * Filter by source contract address
+         * @example "0x8080808080dab95efed788a9214e400ba552def6"
+         */
+        sourceAddress?: string;
+        /**
+         * Filter events from this block number (inclusive)
+         * @example 375206027
+         */
+        fromBlockNumber?: number;
+        /**
+         * Filter events up to this block number (inclusive)
+         * @example 375206028
+         */
+        toBlockNumber?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<OnChainEventsResponse, any>({
+        path: `/v1/on-chain-events`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  charts = {
+    /**
+     * No description
+     *
+     * @tags Charts
+     * @name ChartsControllerGetChartData
+     * @summary Get fear and greed index chart data with timeframe support
+     * @request GET:/v1/charts/fear-greed-index
+     */
+    chartsControllerGetChartData: (
+      query: {
+        /** TimeFrameType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1765252156
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FearGreedIndexResponse, any>({
+        path: `/v1/charts/fear-greed-index`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  moonPhases = {
+    /**
+     * No description
+     *
+     * @tags Moon Phases
+     * @name MoonPhaseControllerGetMoonPhasesByYear
+     * @summary Get moon phases for a specific year
+     * @request GET:/v1/moon-phases/year
+     */
+    moonPhaseControllerGetMoonPhasesByYear: (
+      query: {
+        /** Year (2010-2050) */
+        year: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** API version from USNO */
+          apiversion?: string;
+          /** Total number of moon phases in the year */
+          numphases?: number;
+          phasedata?: {
+            /** Day of the month (1-31) */
+            day?: number;
+            /** Month (1-12) */
+            month?: number;
+            /** Year */
+            year?: number;
+            /** Moon phase name (e.g., "New Moon", "Full Moon", "First Quarter") */
+            phase?: string;
+            /** Time in 24-hour format "HH:MM" */
+            time?: string;
+          }[];
+        },
+        void
+      >({
+        path: `/v1/moon-phases/year`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  proxyExternal = {
+    /**
+     * No description
+     *
+     * @tags Proxy External
+     * @name ProxyExternalControllerProxyChatBot
+     * @summary Proxy LLM service Chat Bot request
+     * @request POST:/v1/proxy-external/chat-bot/{product_id}
+     */
+    proxyExternalControllerProxyChatBot: (productId: string, data: Function, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/v1/proxy-external/chat-bot/${productId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Proxy External
+     * @name ProxyExternalControllerProxyUpvoteBot
+     * @summary Proxy Upvote Bot request
+     * @request POST:/v1/proxy-external/upvote-bot
+     */
+    proxyExternalControllerProxyUpvoteBot: (data: Function, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/v1/proxy-external/upvote-bot`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  otc = {
+    /**
+     * No description
+     *
+     * @tags OTC
+     * @name OtcControllerCheckEligibility
+     * @summary Check VIP eligibility for OTC trading
+     * @request POST:/v1/otc/eligibility
+     */
+    otcControllerCheckEligibility: (data: CheckEligibilityDto, params: RequestParams = {}) =>
+      this.request<CheckEligibilityResponseDto, any>({
+        path: `/v1/otc/eligibility`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags OTC
+     * @name OtcControllerSubmitOtcRequest
+     * @summary Submit OTC trade request
+     * @request POST:/v1/otc/requests
+     */
+    otcControllerSubmitOtcRequest: (data: SubmitOtcRequestDto, params: RequestParams = {}) =>
+      this.request<SubmitOtcRequestResponseDto, any>({
+        path: `/v1/otc/requests`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags OTC
+     * @name OtcControllerGetOtcRequests
+     * @summary Get OTC requests for authenticated user
+     * @request GET:/v1/otc/requests
+     */
+    otcControllerGetOtcRequests: (
+      query: {
+        account: string;
+        /** EIP-712 signature */
+        signature: string;
+        /** Agent address */
+        agent: string;
+        /** Timestamp */
+        timestamp: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetOtcRequestsResponseDto, any>({
+        path: `/v1/otc/requests`,
         method: 'GET',
         query: query,
         format: 'json',

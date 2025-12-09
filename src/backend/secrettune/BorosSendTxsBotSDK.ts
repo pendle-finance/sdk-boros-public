@@ -65,18 +65,25 @@ export interface ApproveAgentResponse {
   approveAgentResult: TxResponse;
 }
 
-export interface AgentWithdrawRequestDto {
-  withdrawRequestCalldata: string;
-  skipReceipt?: boolean;
+export interface DepositFromBoxMessageDto {
+  root: string;
+  boxId: number;
+  tokenSpent: string;
+  amountSpent: string;
+  accountId: number;
+  tokenId: number;
+  marketId: number;
+  minDepositAmount: string;
+  payTreasuryAmount: string;
+  swapExecutor: string;
+  swapExtRouter: string;
+  swapCalldata: string;
+  nonce: string;
 }
 
-export interface WithdrawRequestCancelResponse {
-  withdrawRequestCancelResult: TxResponse;
-}
-
-export interface AgentWithdrawCancelDto {
-  withdrawCancelCalldata: string;
-  skipReceipt?: boolean;
+export interface DepositFromBoxDto {
+  message: DepositFromBoxMessageDto;
+  signature: string;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
@@ -127,7 +134,7 @@ export class HttpClient<SecurityDataType = unknown> {
   constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'https://api.boros.finance/send-txs-bot',
+      baseURL: axiosConfig.baseURL || 'https://staging-api.boros.finance/send-txs-bot',
     });
     this.secure = secure;
     this.format = format;
@@ -220,7 +227,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Pendle V3 API Docs
  * @version 1.0
- * @baseUrl https://api.boros.finance/send-txs-bot
+ * @baseUrl https://staging-api.boros.finance/send-txs-bot
  * @contact Pendle Finance <hello@pendle.finance> (https://pendle.finance)
  *
  * Pendle V3 API documentation
@@ -303,31 +310,13 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Agent
-     * @name AgentControllerRequestWithdraw
-     * @summary Request vault withdrawal
-     * @request POST:/v1/agent/withdraw/request
+     * @name AgentControllerDepositFromBox
+     * @summary Deposit from box
+     * @request POST:/v1/agent/deposit-from-box
      */
-    agentControllerRequestWithdraw: (data: AgentWithdrawRequestDto, params: RequestParams = {}) =>
-      this.request<WithdrawRequestCancelResponse, any>({
-        path: `/v1/agent/withdraw/request`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Agent
-     * @name AgentControllerCancelWithdraw
-     * @summary Cancel vault withdrawal
-     * @request POST:/v1/agent/withdraw/cancel
-     */
-    agentControllerCancelWithdraw: (data: AgentWithdrawCancelDto, params: RequestParams = {}) =>
-      this.request<WithdrawRequestCancelResponse, any>({
-        path: `/v1/agent/withdraw/cancel`,
+    agentControllerDepositFromBox: (data: DepositFromBoxDto, params: RequestParams = {}) =>
+      this.request<TxResponse, any>({
+        path: `/v1/agent/deposit-from-box`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
