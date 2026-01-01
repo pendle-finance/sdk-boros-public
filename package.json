@@ -2,7 +2,7 @@
   "name": "@pendle/sdk-boros",
   "description": "Pendle SDK for Boros",
   "license": "MIT",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -36,7 +36,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@pendle/boros-core": "^1.0.2",
+    "@pendle/boros-core": "^1.0.4",
     "@pendle/boros-offchain-math": "1.0.6",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
