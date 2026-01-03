@@ -10,6 +10,61 @@
  * ---------------------------------------------------------------
  */
 
+export interface IndicatorsMetadata {
+  /** Requested indicators */
+  requested: string[];
+  /** Available indicators (may be less than requested if no data) */
+  available: string[];
+  /**
+   * First timestamp with data for each indicator (helps frontend show "No data before X")
+   * @example {"u":1700000000,"fp":1700003600,"udma":1700604800}
+   */
+  firstDataTimestamp?: object;
+}
+
+export interface FGIData {
+  /** Fear & Greed Index value (0-100) */
+  v: number;
+  /** Value classification */
+  vc: string;
+}
+
+export interface IndicatorDataPoint {
+  /** Timestamp (Unix seconds) */
+  ts: number;
+  /** Underlying APR */
+  u?: number;
+  /** Future premium */
+  fp?: number;
+  /** Fear & Greed Index */
+  fgi?: FGIData;
+  /**
+   * Underlying Day Moving Averages (periods as keys)
+   * @example {"7":0.14,"30":0.13}
+   */
+  udma?: object;
+}
+
+export interface IndicatorsResponse {
+  /** Response metadata */
+  metadata: IndicatorsMetadata;
+  /** Indicator data points */
+  results: IndicatorDataPoint[];
+}
+
+export interface FundingRateHistoryResponse {
+  /**
+   * Start timestamp (Unix seconds). 168 hourly points, ts[i] = startTimestamp + i * 3600
+   * @example 1702800000
+   */
+  startTimestamp: number;
+  /**
+   * Funding rate values by symbol (annualized %, 168 hourly points)
+   * @example {"hyperliquid-btc":[0.12,0.13,0.14],"BTCUSDT":[0.08,0.09,0.1]}
+   */
+  data: Record<string, (number | null)[]>;
+}
+
 export interface MarketIMDataResponse {
   /** Name of the market */
   name: string;
@@ -232,6 +287,31 @@ export interface CandleResponse {
 
 export interface ChartResponse {
   results: CandleResponse[];
+}
+
+export interface CandleResponseV2 {
+  /** Period start timestamp */
+  ts: number;
+  /** Open price */
+  o: number;
+  /** High price */
+  h: number;
+  /** Low price */
+  l: number;
+  /** Close price */
+  c: number;
+  /** Volume */
+  v: number;
+  /** Underlying APR */
+  u: number;
+  /** Mark Rate */
+  mr: number;
+  /** Oracle Funding Rate */
+  ofr: number;
+}
+
+export interface ChartResponseV2 {
+  results: CandleResponseV2[];
 }
 
 export interface HistoricalDataResponse {
@@ -1094,6 +1174,45 @@ export interface MaturedPositionsResponse {
   total: number;
 }
 
+export interface PositionInSyncResponse {
+  /** Position ID */
+  id: string;
+  /** Event index */
+  eventIndex: number;
+  /** Market ID */
+  marketId: number;
+  /** Block timestamp */
+  blockTimestamp: number;
+  /** Root address */
+  root: string;
+  /** Account ID */
+  accountId: number;
+  /** Market account */
+  marketAcc: string;
+  /** Fixed rate (f) */
+  f: string;
+  /** Position size (s) */
+  s: string;
+  /** Position size as number */
+  sNumber: number;
+  /** Notional size */
+  notionalSize: string;
+  /** PnL from last time the position was opened */
+  pnl: string;
+  /** All time cumulative PnL */
+  cumulativePnl: string;
+  /** Event index when position was opened */
+  openFromEventIndex: number;
+  /** Sync status */
+  syncStatus: number;
+}
+
+export interface PositionsInSyncResponse {
+  results: PositionInSyncResponse[];
+  /** Total number of positions */
+  total: number;
+}
+
 export interface SettlementResponse {
   /** The id of the settlement */
   id: string;
@@ -1249,6 +1368,8 @@ export interface DepositBoxAssetResponse {
   isCollateral: boolean;
   /** Chain ID */
   chainId: number;
+  /** Destination token ID for filtering by account collateral type. Null means can deposit to any collateral. */
+  dstTokenId?: number;
 }
 
 export interface DepositBoxAssetsResponse {
@@ -1282,17 +1403,42 @@ export interface GetDepositBoxBalancesResponse {
   assets: AssetBalanceResponse[];
 }
 
+export interface PrepareDepositFromBoxDto {
+  /** User address */
+  root: string;
+  /** Account ID */
+  accountId: number;
+  /** Token ID */
+  tokenId: number;
+  /** Market ID */
+  marketId: number;
+  /** Token spent */
+  tokenSpent: string;
+  /** Amount spent */
+  amountSpent: string;
+  /** Deposit amount */
+  depositAmount: string;
+  /** Min deposit amount */
+  minDepositAmount: string;
+  extRouter?: string;
+  extCalldata?: string;
+}
+
 export interface PrepareDepositFromBoxMessage {
   root: string;
   boxId: number;
   tokenSpent: string;
-  amountSpent: string;
+  maxAmountSpent: string;
   accountId: number;
   tokenId: number;
   marketId: number;
   minDepositAmount: string;
   payTreasuryAmount: string;
-  nonce: string;
+  swapExtRouter: string;
+  swapApprove: string;
+  swapCalldata: string;
+  expiry: string;
+  salt: string;
 }
 
 export interface PrepareDepositFromBoxMessageResponse {
@@ -1364,13 +1510,309 @@ export interface QuoteBscBridgeResponse {
   gasCosts: QuoteBscBridgeFeeResponse[];
 }
 
-export interface BscBridgeStatusResponse {
-  /** BSC transaction hash */
-  txHash: string;
-  /** Bridge status */
-  status: 'PENDING' | 'DONE' | 'NOT_FOUND' | 'FAILED' | 'INVALID';
-  /** Bridge transaction hash */
+export interface GetDepositBoxIdResponse {
+  /** Deposit box id */
+  boxId: number;
+}
+
+export interface DepositFromBoxMessageDto {
+  root: string;
+  boxId: number;
+  tokenSpent: string;
+  maxAmountSpent: string;
+  accountId: number;
+  tokenId: number;
+  marketId: number;
+  minDepositAmount: string;
+  payTreasuryAmount: string;
+  swapApprove: string;
+  swapExtRouter: string;
+  swapCalldata: string;
+  expiry: string;
+  salt: string;
+}
+
+export interface DepositBoxIntentRouteDataDto {
+  tool: string;
+  aggregatorName: 'LIFI' | 'BOROS' | 'PENDLE';
+  tags: ('cheapest' | 'fastest')[];
+  estimatedDuration: number;
+  gasFeeUsd: number;
+  logoUrl: string;
+}
+
+export interface CreateDepositBoxIntentDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  /** From chain ID */
+  fromChainId: number;
+  fromToken: string;
+  fromAmount: string;
+  depositAmount: string;
+  minAmountSpent: string;
+  message: DepositFromBoxMessageDto;
+  depositFromBoxSignature: string;
+  extraData?: DepositBoxIntentRouteDataDto;
+  agentSession: AgentSessionQueryDto;
+}
+
+export interface CreateDepositBoxIntentResponse {
+  /** Deposit box intent id */
+  id: string;
+}
+
+export interface PatchDepositBoxIntentBridgingDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  bridgeTxHash: string;
+}
+
+export interface PatchWithdrawIntentResponse {
+  /** Message */
+  message: string;
+}
+
+export interface PatchDepositBoxIntentCanceledDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+}
+
+export interface DepositBoxIntentExtraDataResponse {
+  /** Tool */
+  tool: string;
+  /** Aggregator name */
+  aggregatorName: 'LIFI' | 'BOROS' | 'PENDLE';
+  /** Tags */
+  tags: ('cheapest' | 'fastest')[];
+  /** Estimated duration */
+  estimatedDuration: number;
+  /** Gas fee in USD */
+  gasFeeUsd: number;
+  /** Logo URL */
+  logoUrl: string;
+}
+
+export interface GetDepositBoxIntentResponse {
+  /** Deposit box intent id */
+  id: string;
+  /** Root */
+  root: string;
+  /** Account id */
+  accountId: number;
+  /** Market id */
+  marketId: number;
+  /** Deposit box id */
+  boxId: number;
+  /** From chain id */
+  fromChainId: number;
+  /** From token */
+  fromToken: string;
+  /** From amount */
+  fromAmount: string;
+  /** Token id */
+  tokenId: number;
+  /** To amount */
+  depositAmount: string;
+  /** Min to amount */
+  minDepositAmount: string;
+  /** Min amount spent */
+  minAmountSpent: string;
+  /** Pay treasury amount */
+  payTreasuryAmount: string;
+  /** Expiry */
+  expiry: string;
+  /** Deposit box intent status */
+  status: 'pending' | 'bridging' | 'arrived' | 'done' | 'failed' | 'expired' | 'canceled';
+  extraData?: DepositBoxIntentExtraDataResponse;
+  /** Whether the failed intent is recoverable */
+  isRecoverable?: boolean;
+}
+
+export interface GetDepositBoxIntentsResponse {
+  intents: GetDepositBoxIntentResponse[];
+}
+
+export interface CreateWithdrawIntentDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  root: string;
+  tokenId: number;
+  unscaledAmount: string;
+  dstToken: string;
+  dstChainId: number;
+}
+
+export interface PatchWithdrawIntentBridgedDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  bridgeTxHash: string;
+  aggregatorName: ('LIFI' | 'BOROS' | 'PENDLE')[];
+  root: string;
+}
+
+export interface PatchWithdrawIntentDoneDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  root: string;
+}
+
+export interface PatchWithdrawIntentCanceledDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  root: string;
+}
+
+export interface GetWithdrawIntentResponse {
+  /** Withdraw intent id */
+  id: string;
+  /** Root */
+  root: string;
+  /** Token id */
+  tokenId: number;
+  /** Unscaled amount */
+  unscaledAmount: string;
+  /** Destination token */
+  dstToken: string;
+  /** Destination chain id */
+  dstChainId: number;
+  /** Status */
+  status: 'pending' | 'requested' | 'finalized' | 'bridging' | 'done' | 'canceled';
+  /** Timestamp */
+  timestamp: number;
+  /** Bridged transaction hash */
   bridgeTxHash?: string;
+  /** Aggregator name */
+  aggregatorName?: string;
+}
+
+export interface GetWithdrawIntentsResponse {
+  intents: GetWithdrawIntentResponse[];
+}
+
+export interface PrepareTransferToBoxDto {
+  /** Chain ID */
+  chainId: number;
+  /** Token to transfer */
+  token: string;
+  /** Amount to transfer */
+  amount: string;
+  /** User address */
+  root: string;
+  /** Box ID */
+  boxId: number;
+}
+
+export interface PrepareTransferToBoxResponse {
+  /** From address */
+  from: string;
+  /** To address */
+  to: string;
+  /** Value */
+  value: string;
+  /** Calldata */
+  calldata: string;
+}
+
+export interface PrepareDepositFromBoxV2Dto {
+  /** User address */
+  root: string;
+  /** Box ID */
+  boxId: number;
+  /** Account ID */
+  accountId: number;
+  /** Token ID */
+  tokenId: number;
+  /** Market ID */
+  marketId: number;
+  /** Token spent */
+  tokenSpent: string;
+  /** Amount spent */
+  amountSpent: string;
+  /** Deposit amount */
+  depositAmount: string;
+  /** Min deposit amount */
+  minDepositAmount: string;
+  /** Estimated duration in seconds */
+  estimatedDuration: number;
+  extRouter?: string;
+  extCalldata?: string;
+}
+
+export interface QuoteBscBridgeV2Dto {
+  /** From token */
+  fromToken: string;
+  /** To token */
+  toToken: string;
+  /** Amount */
+  amount: string;
+  /** From address */
+  fromAddress: string;
+  /** Box ID */
+  boxId: number;
+}
+
+export interface QuoteWithdrawBscDto {
+  /** User address */
+  fromAddress: string;
+  /** Token ID to withdraw */
+  tokenId: number;
+  /** Amount to withdraw (unscaled) */
+  amount: string;
+  /** Destination address on BSC */
+  toAddress: string;
+}
+
+export interface QuoteWithdrawBscResponse {
+  tx: QuoteBscTransactionDto;
+  /** From token (BNB OFT on Arbitrum) */
+  fromToken: string;
+  /** From amount */
+  fromAmount: string;
+  /** To token (native BNB on BSC) */
+  toToken: string;
+  /** To amount */
+  toAmount: string;
+  /** Min to amount */
+  minToAmount: string;
+  /** Fee costs */
+  feeCosts: QuoteBscBridgeFeeResponse[];
+  /** Gas costs */
+  gasCosts: QuoteBscBridgeFeeResponse[];
 }
 
 export interface BalanceResponse {
@@ -1778,15 +2220,15 @@ export interface MarketMakingScoreResponse {
    */
   netBalanceAfter: number;
   /**
-   * Market making score: (MakerValue / NetBalanceBefore) * (NetBalanceAfter / NetBalanceBefore)
+   * Adjusted net balance after removing external capital flows: netBalanceAfter - vaultDeposit + vaultWithdraw + ammDeposit - ammWithdraw
+   * @example 10000
+   */
+  adjustedNetBalanceAfter: number;
+  /**
+   * Market making score: (MonthlyMakerValue / NetBalanceBefore) * f(MonthlyReturnFactor), where MonthlyMakerValue = MakerValue * 30 / d, MonthlyReturnFactor = (AdjustedNetBalanceAfter / NetBalanceBefore) ^ (30 / d), f(x) = e^(10*(x-1)), d = period in days
    * @example 0.105
    */
   score: number;
-  /**
-   * Time-weighted daily score: score / periodDays
-   * @example 0.015
-   */
-  normalizedScore: number;
 }
 
 export interface OnChainEventItem {
@@ -1883,6 +2325,11 @@ export interface OtcTermDto {
    */
   side: 0 | 1;
   /**
+   * Notional size (YU)
+   * @example 1000.5
+   */
+  notionalSize: number;
+  /**
    * Implied rate (decimal)
    * @example 0.05
    */
@@ -1930,6 +2377,7 @@ export interface OtcTermResponseDto {
   collateral: string;
   /** 0 = LONG, 1 = SHORT */
   side: 0 | 1;
+  notionalSize: number;
   impliedRate: number;
   goodUntilDate: string;
   submittedAt: string;
@@ -2092,6 +2540,62 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   markets = {
     /**
+     * @description Unified endpoint for fetching market indicators (OHLCV, underlying APR, future premium, mark rate, oracle funding rate, fear & greed index) with optional X-day moving averages.
+     *
+     * @tags Markets
+     * @name IndicatorsControllerGetIndicators
+     * @summary Get market indicators with dynamic selection
+     * @request GET:/v1/markets/indicators
+     */
+    indicatorsControllerGetIndicators: (
+      query: {
+        /**
+         * Market ID
+         * @example 1
+         */
+        marketId: number;
+        /** Time frame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp (Unix seconds), rounded to timeFrame
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
+         * @default 1767438527
+         */
+        endTimestamp?: number;
+        /** List of indicators to select. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30) */
+        select: string[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<IndicatorsResponse, any>({
+        path: `/v1/markets/indicators`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Returns 168 hourly data points (7 days) of annualized funding rates for all available symbols. For symbols with 4/8-hour payment periods, values are linearly interpolated to hourly.
+     *
+     * @tags Markets
+     * @name IndicatorsControllerGetFundingRateHistory
+     * @summary Get 7-day hourly funding rate history for all symbols
+     * @request GET:/v1/markets/funding-rate-history
+     */
+    indicatorsControllerGetFundingRateHistory: (params: RequestParams = {}) =>
+      this.request<FundingRateHistoryResponse, any>({
+        path: `/v1/markets/funding-rate-history`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Markets
@@ -2181,7 +2685,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
       },
@@ -2189,6 +2693,41 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<ChartResponse, any>({
         path: `/v1/markets/chart`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Simplified chart API returning only essential fields: ts, o, h, l, c, v, u, mr, ofr. Legacy fields (b7dmafr, b30dmafr, fp) are now served by /markets/indicators API.
+     *
+     * @tags Markets
+     * @name MarketsControllerGetChartDataV2
+     * @summary Get chart data V2 (simplified)
+     * @request GET:/v2/markets/chart
+     */
+    marketsControllerGetChartDataV2: (
+      query: {
+        /** Market id */
+        marketId: number;
+        /** TimeFrameType { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w } */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp
+         * @default 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp, default to current timestamp
+         * @default 1767438527
+         */
+        endTimestamp?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<ChartResponseV2, any>({
+        path: `/v2/markets/chart`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2216,7 +2755,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
       },
@@ -2251,7 +2790,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
       },
@@ -2288,7 +2827,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
       },
@@ -2439,7 +2978,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
         marketId: number;
@@ -2473,7 +3012,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
         ammId: number;
@@ -2822,7 +3361,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
         /**
@@ -2860,7 +3399,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp (will be rounded down to nearest timeFrame)
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
         /**
@@ -3740,6 +4279,43 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetPositionsInSync
+     * @summary Get positions in sync with pagination
+     * @request GET:/v1/pnl/positions
+     */
+    pnlControllerGetPositionsInSync: (
+      query?: {
+        /** Filter by market ID */
+        marketId?: number;
+        /** Filter by root address */
+        root?: string;
+        /** Filter by account ID */
+        accountId?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 100.
+         * @default 10
+         */
+        limit?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<PositionsInSyncResponse, any>({
+        path: `/v1/pnl/positions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
   };
   settlement = {
     /**
@@ -3853,6 +4429,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: {
         /** User address */
         root: string;
+        /**
+         * Box ID
+         * @default 0
+         */
+        boxId?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -3870,33 +4451,14 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Deposit Box
      * @name DepositBoxControllerPrepareDepositFromBox
      * @summary Build deposit from box message
-     * @request GET:/v1/deposit-box/prepare/deposit
+     * @request POST:/v1/deposit-box/prepare/deposit
      */
-    depositBoxControllerPrepareDepositFromBox: (
-      query: {
-        /** User address */
-        root: string;
-        /** Account ID */
-        accountId: number;
-        /** Token ID */
-        tokenId: number;
-        /** Market ID */
-        marketId: number;
-        /** Token spent */
-        tokenSpent: string;
-        /** Amount spent */
-        amountSpent: string;
-        /** Deposit amount */
-        depositAmount: string;
-        /** Min deposit amount */
-        minDepositAmount: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    depositBoxControllerPrepareDepositFromBox: (data: PrepareDepositFromBoxDto, params: RequestParams = {}) =>
       this.request<PrepareDepositFromBoxMessageResponse, any>({
         path: `/v1/deposit-box/prepare/deposit`,
-        method: 'GET',
-        query: query,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -3923,21 +4485,315 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Deposit Box
-     * @name DepositBoxControllerGetBscBridgeStatus
-     * @summary Get BSC bridge status
-     * @request GET:/v1/deposit-box/bridge/bsc/status
+     * @name DepositBoxControllerGetAvailableDepositBoxId
+     * @summary Get available deposit box id
+     * @request GET:/v1/deposit-box/box-id
      */
-    depositBoxControllerGetBscBridgeStatus: (
+    depositBoxControllerGetAvailableDepositBoxId: (
       query: {
-        /** BSC transaction hash */
-        txHash: string;
+        /** User address */
+        root: string;
       },
       params: RequestParams = {}
     ) =>
-      this.request<BscBridgeStatusResponse, any>({
-        path: `/v1/deposit-box/bridge/bsc/status`,
+      this.request<GetDepositBoxIdResponse, any>({
+        path: `/v1/deposit-box/box-id`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerCreateDepositBoxIntent
+     * @summary Create deposit box intent
+     * @request POST:/v1/deposit-box/intent
+     */
+    depositBoxControllerCreateDepositBoxIntent: (data: CreateDepositBoxIntentDto, params: RequestParams = {}) =>
+      this.request<CreateDepositBoxIntentResponse, any>({
+        path: `/v1/deposit-box/intent`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchDepositBoxIntentBridging
+     * @summary Patch deposit box intent as bridging
+     * @request PATCH:/v1/deposit-box/intent/{id}/bridging
+     */
+    depositBoxControllerPatchDepositBoxIntentBridging: (
+      id: string,
+      data: PatchDepositBoxIntentBridgingDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/intent/${id}/bridging`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchDepositBoxIntentCanceled
+     * @summary Patch deposit box intent as canceled
+     * @request PATCH:/v1/deposit-box/intent/{id}/canceled
+     */
+    depositBoxControllerPatchDepositBoxIntentCanceled: (
+      id: string,
+      data: PatchDepositBoxIntentCanceledDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/intent/${id}/canceled`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetDepositBoxIntents
+     * @summary Get deposit box intents
+     * @request GET:/v1/deposit-box/intents
+     */
+    depositBoxControllerGetDepositBoxIntents: (
+      query: {
+        /** User address */
+        root: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetDepositBoxIntentsResponse, any>({
+        path: `/v1/deposit-box/intents`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerCreateWithdrawIntent
+     * @summary Create withdraw intent
+     * @request POST:/v1/deposit-box/withdraw/intent
+     */
+    depositBoxControllerCreateWithdrawIntent: (data: CreateWithdrawIntentDto, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/v1/deposit-box/withdraw/intent`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchWithdrawIntentBridged
+     * @summary Patch withdraw intent as bridged
+     * @request PATCH:/v1/deposit-box/withdraw/intent/{id}/bridged
+     */
+    depositBoxControllerPatchWithdrawIntentBridged: (
+      id: string,
+      data: PatchWithdrawIntentBridgedDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/withdraw/intent/${id}/bridged`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchWithdrawIntentDone
+     * @summary Patch withdraw intent as done
+     * @request PATCH:/v1/deposit-box/withdraw/intent/{id}/done
+     */
+    depositBoxControllerPatchWithdrawIntentDone: (
+      id: string,
+      data: PatchWithdrawIntentDoneDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/withdraw/intent/${id}/done`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchWithdrawIntentCanceled
+     * @summary Patch withdraw intent as canceled
+     * @request PATCH:/v1/deposit-box/withdraw/intent/{id}/canceled
+     */
+    depositBoxControllerPatchWithdrawIntentCanceled: (
+      id: string,
+      data: PatchWithdrawIntentCanceledDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/withdraw/intent/${id}/canceled`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetWithdrawIntents
+     * @summary Get withdraw intents
+     * @request GET:/v1/deposit-box/withdraw/intents
+     */
+    depositBoxControllerGetWithdrawIntents: (
+      query: {
+        root: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<GetWithdrawIntentsResponse, any>({
+        path: `/v1/deposit-box/withdraw/intents`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetWithdrawIntent
+     * @summary Get withdraw intent
+     * @request GET:/v1/deposit-box/withdraw/intent/{id}
+     */
+    depositBoxControllerGetWithdrawIntent: (id: string, params: RequestParams = {}) =>
+      this.request<GetWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/withdraw/intent/${id}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerGetDepositBoxIntent
+     * @summary Get deposit box intent
+     * @request GET:/v1/deposit-box/intent/{id}
+     */
+    depositBoxControllerGetDepositBoxIntent: (id: string, params: RequestParams = {}) =>
+      this.request<GetDepositBoxIntentResponse, any>({
+        path: `/v1/deposit-box/intent/${id}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPrepareTransferToBox
+     * @summary Prepare transfer to box
+     * @request POST:/v1/deposit-box/prepare/transfer-to-box
+     */
+    depositBoxControllerPrepareTransferToBox: (data: PrepareTransferToBoxDto, params: RequestParams = {}) =>
+      this.request<PrepareTransferToBoxResponse, any>({
+        path: `/v1/deposit-box/prepare/transfer-to-box`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPrepareDepositFromBoxV2
+     * @summary Build deposit from box message
+     * @request POST:/v2/deposit-box/prepare/deposit
+     */
+    depositBoxControllerPrepareDepositFromBoxV2: (data: PrepareDepositFromBoxV2Dto, params: RequestParams = {}) =>
+      this.request<PrepareDepositFromBoxMessageResponse, any>({
+        path: `/v2/deposit-box/prepare/deposit`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerQuoteBscBridgeV2
+     * @summary Prepare BSC to Arbitrum bridge transaction
+     * @request POST:/v2/deposit-box/bridge/bsc/quote
+     */
+    depositBoxControllerQuoteBscBridgeV2: (data: QuoteBscBridgeV2Dto, params: RequestParams = {}) =>
+      this.request<QuoteBscBridgeResponse, any>({
+        path: `/v2/deposit-box/bridge/bsc/quote`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerQuoteWithdrawBsc
+     * @summary Quote Arbitrum to BSC withdrawal bridge transaction
+     * @request POST:/v1/deposit-box/withdraw/bsc/quote
+     */
+    depositBoxControllerQuoteWithdrawBsc: (data: QuoteWithdrawBscDto, params: RequestParams = {}) =>
+      this.request<QuoteWithdrawBscResponse, any>({
+        path: `/v1/deposit-box/withdraw/bsc/quote`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -4385,14 +5241,14 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   };
   marketMaker = {
     /**
-     * @description Calculate market making score for a given user and time period. Score = (MakerValue / NetBalanceBefore) * (NetBalanceAfter / NetBalanceBefore)
+     * @description Calculate market making score for a given user and time period. MMScore = (MonthlyMakerValue / NetBalanceBefore) * f(MonthlyReturnFactor), where MonthlyMakerValue = MakerValue * 30 / d, MonthlyReturnFactor = (NetBalanceAfter / NetBalanceBefore) ^ (30 / d), f(x) = e^(10*(x-1)), d = period in days
      *
      * @tags Market Maker
-     * @name MarketMakingScoreControllerGetScore
+     * @name MarketMakerControllerGetScore
      * @summary Get market making score for a time period
      * @request GET:/v1/market-maker/market-making-score
      */
-    marketMakingScoreControllerGetScore: (
+    marketMakerControllerGetScore: (
       query: {
         /**
          * User address
@@ -4502,7 +5358,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1765252156
+         * @default 1767438527
          */
         endTimestamp?: number;
       },

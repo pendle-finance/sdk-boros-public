@@ -69,21 +69,32 @@ export interface DepositFromBoxMessageDto {
   root: string;
   boxId: number;
   tokenSpent: string;
-  amountSpent: string;
+  maxAmountSpent: string;
   accountId: number;
   tokenId: number;
   marketId: number;
   minDepositAmount: string;
   payTreasuryAmount: string;
-  swapExecutor: string;
+  swapApprove: string;
   swapExtRouter: string;
   swapCalldata: string;
-  nonce: string;
+  expiry: string;
+  salt: string;
 }
 
 export interface DepositFromBoxDto {
-  message: DepositFromBoxMessageDto;
+  account: string;
+  /** EIP-712 signature */
   signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+  message: DepositFromBoxMessageDto;
+  depositFromBoxSignature: string;
+  agentSession: AgentSessionQueryDto;
+  /** Intent ID for retry flow */
+  intentId?: string;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from 'axios';
