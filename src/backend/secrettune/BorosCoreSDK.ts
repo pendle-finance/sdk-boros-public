@@ -1211,6 +1211,23 @@ export interface PositionsInSyncResponse {
   results: PositionInSyncResponse[];
   /** Total number of positions */
   total: number;
+  /** Max eventIndex in current query scope. Use this value for subsequent page requests to ensure consistent pagination. */
+  maxEventIndex: number;
+}
+
+export interface MarketAccCashResponse {
+  /** Market account address */
+  marketAcc: string;
+  /** Cash balance (BigInt string, FixedX18 raw value) */
+  cash: string;
+}
+
+export interface MarketAccCashesResponse {
+  results: MarketAccCashResponse[];
+  /** Total number of market acc cashes */
+  total: number;
+  /** Max eventIndex in current query scope. Use this value for subsequent page requests to ensure consistent pagination. */
+  maxEventIndex: number;
 }
 
 export interface SettlementResponse {
@@ -2565,7 +2582,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
-         * @default 1767580537
+         * @default 1767610399
          */
         endTimestamp?: number;
         /** List of indicators to select. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30) */
@@ -2687,7 +2704,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
@@ -2722,7 +2739,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
@@ -2757,7 +2774,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
@@ -2792,7 +2809,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
@@ -2829,7 +2846,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
@@ -2980,7 +2997,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
         marketId: number;
@@ -3014,7 +3031,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
         ammId: number;
@@ -3363,7 +3380,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
         /**
@@ -3401,7 +3418,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp (will be rounded down to nearest timeFrame)
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
         /**
@@ -4298,6 +4315,8 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         root?: string;
         /** Filter by account ID */
         accountId?: number;
+        /** Maximum eventIndex to include (for consistent pagination). Use the maxEventIndex from first page response for subsequent pages. */
+        maxEventIndex?: number;
         /**
          * Maximum number of results to skip.
          * @default 0
@@ -4313,6 +4332,41 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<PositionsInSyncResponse, any>({
         path: `/v1/pnl/positions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags PnL
+     * @name PnlControllerGetMarketAccCashes
+     * @summary Get market account cash balances for liquidation calculation
+     * @request GET:/v1/pnl/market-acc-cashes
+     */
+    pnlControllerGetMarketAccCashes: (
+      query?: {
+        /** Comma-separated list of marketAcc addresses to filter (e.g., "0x123,0x456") */
+        marketAccs?: string;
+        /** Maximum eventIndex to include (for consistent pagination). Use the maxEventIndex from first page response for subsequent pages. */
+        maxEventIndex?: number;
+        /**
+         * Maximum number of results to skip.
+         * @default 0
+         */
+        skip?: number;
+        /**
+         * Maximum number of results to return. The parameter is capped at 1000.
+         * @default 100
+         */
+        limit?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<MarketAccCashesResponse, any>({
+        path: `/v1/pnl/market-acc-cashes`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -5360,7 +5414,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767438527
+         * @default 1767610399
          */
         endTimestamp?: number;
       },
