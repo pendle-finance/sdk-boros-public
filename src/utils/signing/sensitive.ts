@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { getUserAddressFromWalletClient } from '..';
-import { ApproveAgentMessage, SetAccManagerStruct } from '../../types';
+import { ApproveAgentMessage, DepositFromBoxMessage, SetAccManagerStruct } from '../../types';
 import { EIP712_DOMAIN_TYPES, PENDLE_BOROS_ROUTER_DOMAIN } from './common';
 
 export async function signSetAccManagerMessage(wallet: WalletClient, message: SetAccManagerStruct) {
@@ -38,6 +38,35 @@ export async function signApproveAgentMessage(wallet: WalletClient, message: App
       ],
     },
     primaryType: 'ApproveAgentMessage',
+    message,
+  });
+}
+
+export async function signDepositFromBoxMessage(wallet: WalletClient, message: DepositFromBoxMessage) {
+  const account = await getUserAddressFromWalletClient(wallet);
+  return wallet.signTypedData({
+    account: wallet.account ?? account,
+    domain: PENDLE_BOROS_ROUTER_DOMAIN(),
+    types: {
+      EIP712Domain: EIP712_DOMAIN_TYPES,
+      DepositFromBoxMessage: [
+        { name: 'root', type: 'address' },
+        { name: 'boxId', type: 'uint32' },
+        { name: 'tokenSpent', type: 'address' },
+        { name: 'maxAmountSpent', type: 'uint256' },
+        { name: 'accountId', type: 'uint8' },
+        { name: 'tokenId', type: 'uint16' },
+        { name: 'marketId', type: 'uint24' },
+        { name: 'minDepositAmount', type: 'uint256' },
+        { name: 'payTreasuryAmount', type: 'uint256' },
+        { name: 'swapExtRouter', type: 'address' },
+        { name: 'swapApprove', type: 'address' },
+        { name: 'swapCalldata', type: 'bytes' },
+        { name: 'expiry', type: 'uint64' },
+        { name: 'salt', type: 'uint256' },
+      ],
+    },
+    primaryType: 'DepositFromBoxMessage',
     message,
   });
 }

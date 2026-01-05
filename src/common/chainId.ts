@@ -1,0 +1,12 @@
+export enum ChainId {
+  ETHEREUM = 1,
+  ARBITRUM = 42161,
+  BSC = 56,
+  OPTIMISM = 10,
+  MANTLE = 5000,
+  BASE = 8453,
+  SONIC = 146,
+  BERACHAIN = 80094,
+  HYPEREVM = 999,
+  PLASMA = 9745,
+}

@@ -10,4 +10,8 @@ export {
   type SignedAgentExecution,
 } from './agent';
 export { hashStopOrderRequest } from './common';
-export { signApproveAgentMessage, signSetAccManagerMessage } from './sensitive';
+export {
+  signApproveAgentMessage,
+  signDepositFromBoxMessage,
+  signSetAccManagerMessage,
+} from './sensitive';

@@ -81,6 +81,23 @@ export type ApproveAgentMessage = {
   nonce: bigint;
 };
 
+export type DepositFromBoxMessage = {
+  root: Address;
+  boxId: number;
+  tokenSpent: Address;
+  maxAmountSpent: bigint;
+  accountId: number;
+  tokenId: number;
+  marketId: number;
+  minDepositAmount: bigint;
+  payTreasuryAmount: bigint;
+  swapExtRouter: Address;
+  swapApprove: Address;
+  swapCalldata: Hex;
+  expiry: bigint;
+  salt: bigint;
+};
+
 export type SetAccManagerStruct = {
   root: Address;
   accountId: number;
@@ -98,4 +115,13 @@ export type AMMState = {
   minAbsRate: bigint;
   maxAbsRate: bigint;
   cutOffTimestamp: bigint;
+};
+
+export type CreateWithdrawIntentMessage = {
+  root: Address;
+  tokenId: number;
+  amount: bigint;
+  dstToken: Address;
+  dstChainId: bigint;
+  timestamp: bigint;
 };

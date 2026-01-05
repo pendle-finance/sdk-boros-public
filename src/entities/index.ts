@@ -8,3 +8,5 @@ export * from './multiTokenMerkleDistributor';
 export * from './wrappedEth';
 export * from './subaccount';
 export * from './vePendle';
+export * from './crossChainDeposit';
+export * from './token';

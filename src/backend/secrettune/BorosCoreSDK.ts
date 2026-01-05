@@ -1622,6 +1622,8 @@ export interface GetDepositBoxIntentResponse {
   fromChainId: number;
   /** From token */
   fromToken: string;
+  /** Token spent */
+  tokenSpent: string;
   /** From amount */
   fromAmount: string;
   /** Token id */
@@ -2563,7 +2565,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
-         * @default 1767438527
+         * @default 1767580537
          */
         endTimestamp?: number;
         /** List of indicators to select. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30) */

@@ -3,20 +3,23 @@ import {
   Address,
   GetContractReturnType,
   PublicClient,
+  Transport,
   WalletClient,
   createPublicClient,
   getContract,
-  Transport,
 } from 'viem';
 import { arbitrum } from 'viem/chains';
-import { Explorer } from './explorer';
+import { httpConfig } from '../config/http';
+import { MULTICALL_ADDRESS } from '../multicall/constants';
 import { Multicall } from '../multicall/multicall';
 import { iMulticall3Abi } from './abis/viemAbis';
-import { MULTICALL_ADDRESS } from '../multicall/constants';
-import { MarketContract } from './market';
 import { AMM } from './amm';
+import { DepositBoxFactoryContract } from './deposit-box-factory';
+import { ERC20 } from './erc20';
+import { Explorer } from './explorer';
+import { MarketContract } from './market';
+import { RouterContract } from './router';
 import { fallbackRpcTransport } from './viem-transport';
-import { httpConfig } from '../config/http';
 
 export class ContractsFactory {
   private rpcClient: PublicClient; //map should be faster to read
@@ -87,6 +90,14 @@ export class ContractsFactory {
     };
   }
 
+  getRouterContract(address: Address): RouterContract {
+    return new RouterContract(address, this.getRpcClientAndMulticall());
+  }
+
+  getDepositBoxFactoryContract(address: Address): DepositBoxFactoryContract {
+    return new DepositBoxFactoryContract(address, this.getRpcClientAndMulticall());
+  }
+
   getExplorerContract(address: Address, walletClient?: WalletClient) {
     return new Explorer(address, this.getRpcClientAndMulticall(), walletClient);
   }
@@ -97,6 +108,10 @@ export class ContractsFactory {
 
   getAmmContract(address: Address, walletClient?: WalletClient) {
     return new AMM(address, this.getRpcClientAndMulticall(), walletClient);
+  }
+
+  getERC20Contract(address: Address, walletClient?: WalletClient) {
+    return ERC20.create(address, this.getRpcClientAndMulticall());
   }
 
   getMulticall3Contract(address: Address): GetContractReturnType<typeof iMulticall3Abi, PublicClient, Address> {
