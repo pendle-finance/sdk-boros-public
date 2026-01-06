@@ -28,7 +28,7 @@ export class MultiTokenMerkleDistributorContract {
 
     const gas = (await this.distributorContract.estimateGas.claim(args, {
       account: receiver,
-    })) * BigInt(2);
+    })) * BigInt(5);
 
     return {
       from: receiver,
