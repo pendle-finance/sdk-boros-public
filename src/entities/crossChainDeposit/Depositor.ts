@@ -1,6 +1,6 @@
-import { Address, Hex } from 'viem';
+import { Address, Hex, isAddressEqual, zeroAddress } from 'viem';
 import { arbitrum, bsc } from 'viem/chains';
-import { getDepositBoxFactoryAddress } from '../../addresses';
+import { getBnbOftAddress, getDepositBoxFactoryAddress } from '../../addresses';
 import { BorosCoreSdk, getCoreSdk, getPendleV2Sdk } from '../../backend/secrettune/module';
 import { ChainId } from '../../common/chainId';
 import { ContractsFactory } from '../../contracts/contracts.factory';
@@ -47,19 +47,26 @@ export class Depositor {
     this.borosLzBridgeHelper = new BorosLzBridgeHelper(this.coreSdk, this.tokenHelper);
   }
 
-  private getAggregatorHelper(fromChainId: number): AggregatorHelper {
+  private getAggregatorHelper(params: QuoteDepositParams): AggregatorHelper {
+    const { fromChainId, fromToken, toToken } = params;
+
     switch (fromChainId) {
       case arbitrum.id:
         return this.pendleSwapHelper;
-      case bsc.id:
-        return this.borosLzBridgeHelper;
+      case bsc.id: {
+        const bnbOftAddress = getBnbOftAddress();
+        if (isAddressEqual(toToken, bnbOftAddress) && isAddressEqual(fromToken, zeroAddress)) {
+          return this.borosLzBridgeHelper;
+        }
+        return this.lifiAggregatorHelper;
+      }
       default:
         return this.lifiAggregatorHelper;
     }
   }
 
   async getRoutes(params: QuoteDepositParams): Promise<AggregatorResult> {
-    const aggregatorHelper = this.getAggregatorHelper(params.fromChainId);
+    const aggregatorHelper = this.getAggregatorHelper(params);
     return aggregatorHelper.quoteDeposit(params);
   }
 

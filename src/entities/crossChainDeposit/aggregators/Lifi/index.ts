@@ -197,11 +197,10 @@ export class LifiAggregatorHelper implements AggregatorHelper {
       fromAddress: params.fromAddress,
       toAddress: box,
       options: {
-        integrator: 'pendle',
+        integrator: 'Pendle',
         allowDestinationCall: false,
-        order: GetRoutesOrder.FASTEST,
+        order: GetRoutesOrder.CHEAPEST,
         slippage: params.slippage,
-        maxPriceImpact: 0.005, // 0.5%
       },
     };
 

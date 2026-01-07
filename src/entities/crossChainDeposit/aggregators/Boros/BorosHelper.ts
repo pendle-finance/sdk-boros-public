@@ -27,7 +27,7 @@ import {
 } from '../../AggregatorHelper';
 import { classifyAggregatorError } from '../../AggregatorHelperErrors';
 import { TokenHelper, TokenLookupTable } from '../../helpers/TokenHelper';
-import { ensureDepositBoxAddress } from '../../helpers/utils';
+import { computeDepositBoxAddress, ensureCalldataHasBoxAddress } from '../../helpers/utils';
 import { LayerZeroMessageResponse } from './types';
 
 export const LAYER_ZERO_SCAN_API = 'https://scan.layerzero-api.com/v1';
@@ -96,7 +96,8 @@ export class BorosLzBridgeResult implements AggregatorResult {
   }
 
   async getRouteData(): Promise<{ transferData: AggregatorTransferData; swapData: AggregatorSwapData }> {
-    ensureDepositBoxAddress(this.req.fromAddress as Address, this.req.boxId, this.rawResult.tx.to);
+    const boxAddress = computeDepositBoxAddress(this.req.fromAddress as Address, this.req.boxId);
+    ensureCalldataHasBoxAddress(this.rawResult.tx.calldata as Hex, boxAddress);
 
     return {
       transferData: {

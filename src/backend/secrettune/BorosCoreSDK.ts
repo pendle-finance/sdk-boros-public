@@ -965,6 +965,8 @@ export interface PnlTransactionResponse {
   marketAcc: string;
   /** The account id */
   accountId: number;
+  /** Is maker of limit order trade */
+  isLimitOrderTrade: boolean;
 }
 
 export interface PnlTransactionsResponse {
@@ -1364,6 +1366,50 @@ export interface AllCollateralSummaryResponse {
   collaterals: CollateralSummaryResponse[];
 }
 
+export interface DepositBoxAssetMetadataResponse {
+  /** Asset name */
+  proSymbol: string;
+  /** Asset icon */
+  icon: string;
+  /** Asset mono icon */
+  monoIcon: string;
+  /** Asset avatar */
+  avatar: string;
+  /**
+   * Asset accent color
+   * @example "#B9BABE"
+   */
+  accentColor: string;
+  /**
+   * indicate whether the asset is whitelisted
+   * @example false
+   */
+  isWhitelisted: boolean;
+  /** Asset origin pro symbol */
+  originProSymbol: string;
+  /** Asset token icon */
+  tokenIcon: string;
+  /** Asset zone icon */
+  zoneIcon: string;
+  /**
+   * Asset is denomination unit
+   * @example true
+   */
+  isDenominationUnit: boolean;
+  /**
+   * Asset is dev test
+   * @example true
+   */
+  isDevTest: boolean;
+  /**
+   * Is general asset
+   * @example true
+   */
+  isGeneral: boolean;
+  /** If truthy, this asset can only be deposited to the specified collateral account */
+  dstTokenId?: number;
+}
+
 export interface DepositBoxAssetResponse {
   /** Asset address */
   address: string;
@@ -1377,7 +1423,7 @@ export interface DepositBoxAssetResponse {
   decimals: number;
   /** Price in USD */
   usdPrice: string;
-  metadata: AssetMetadataResponse;
+  metadata: DepositBoxAssetMetadataResponse;
   /**
    * Is collateral asset
    * @example true
@@ -1385,12 +1431,12 @@ export interface DepositBoxAssetResponse {
   isCollateral: boolean;
   /** Chain ID */
   chainId: number;
-  /** Destination token ID for filtering by account collateral type. Null means can deposit to any collateral. */
-  dstTokenId?: number;
 }
 
 export interface DepositBoxAssetsResponse {
   assets: DepositBoxAssetResponse[];
+  /** Collaterals that only accept specific tokens (derived from dstTokenId) */
+  restrictedTokenIds: number[];
 }
 
 export interface AssetBalanceResponse {
@@ -1466,67 +1512,6 @@ export interface PrepareDepositFromBoxMessageResponse {
   minReceived: string;
 }
 
-export interface QuoteBscBridgeDto {
-  /** From token */
-  fromToken: string;
-  /** To token */
-  toToken: string;
-  /** Amount */
-  amount: string;
-  /** From address */
-  fromAddress: string;
-}
-
-export interface QuoteBscTransactionDto {
-  /** From address */
-  from: string;
-  /** Target contract address on BSC */
-  to: string;
-  /** Value to send with transaction */
-  value: string;
-  /** Calldata for BSC bridge transaction */
-  calldata: string;
-}
-
-export interface QuoteBscBridgeTokenAmountResponse {
-  /** Token */
-  token: string;
-  /** Amount */
-  amount: string;
-}
-
-export interface QuoteBscBridgeFeeResponse {
-  /** Fee name */
-  name: string;
-  /** Chain ID */
-  chainId: number;
-  /** Token address */
-  token: string;
-  /** Fee amount */
-  amount: string;
-  /** Fee amount in USD */
-  amountUsd: number;
-}
-
-export interface QuoteBscBridgeResponse {
-  tx: QuoteBscTransactionDto;
-  tokenApproval: QuoteBscBridgeTokenAmountResponse;
-  /** From token */
-  fromToken: string;
-  /** From amount */
-  fromAmount: string;
-  /** To token */
-  toToken: string;
-  /** To amount */
-  toAmount: string;
-  /** Min to amount */
-  minToAmount: string;
-  /** Fee costs */
-  feeCosts: QuoteBscBridgeFeeResponse[];
-  /** Gas fee */
-  gasCosts: QuoteBscBridgeFeeResponse[];
-}
-
 export interface GetDepositBoxIdResponse {
   /** Deposit box id */
   boxId: number;
@@ -1600,6 +1585,16 @@ export interface PatchWithdrawIntentResponse {
 }
 
 export interface PatchDepositBoxIntentCanceledDto {
+  account: string;
+  /** EIP-712 signature */
+  signature: string;
+  /** Agent address */
+  agent: string;
+  /** Timestamp */
+  timestamp: number;
+}
+
+export interface PatchDepositBoxIntentFailedDto {
   account: string;
   /** EIP-712 signature */
   signature: string;
@@ -1803,6 +1798,56 @@ export interface QuoteBscBridgeV2Dto {
   fromAddress: string;
   /** Box ID */
   boxId: number;
+}
+
+export interface QuoteBscTransactionDto {
+  /** From address */
+  from: string;
+  /** Target contract address on BSC */
+  to: string;
+  /** Value to send with transaction */
+  value: string;
+  /** Calldata for BSC bridge transaction */
+  calldata: string;
+}
+
+export interface QuoteBscBridgeTokenAmountResponse {
+  /** Token */
+  token: string;
+  /** Amount */
+  amount: string;
+}
+
+export interface QuoteBscBridgeFeeResponse {
+  /** Fee name */
+  name: string;
+  /** Chain ID */
+  chainId: number;
+  /** Token address */
+  token: string;
+  /** Fee amount */
+  amount: string;
+  /** Fee amount in USD */
+  amountUsd: number;
+}
+
+export interface QuoteBscBridgeResponse {
+  tx: QuoteBscTransactionDto;
+  tokenApproval: QuoteBscBridgeTokenAmountResponse;
+  /** From token */
+  fromToken: string;
+  /** From amount */
+  fromAmount: string;
+  /** To token */
+  toToken: string;
+  /** To amount */
+  toAmount: string;
+  /** Min to amount */
+  minToAmount: string;
+  /** Fee costs */
+  feeCosts: QuoteBscBridgeFeeResponse[];
+  /** Gas fee */
+  gasCosts: QuoteBscBridgeFeeResponse[];
 }
 
 export interface QuoteWithdrawBscDto {
@@ -2582,7 +2627,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
         /** List of indicators to select. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30) */
@@ -2704,7 +2749,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },
@@ -2739,7 +2784,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },
@@ -2774,7 +2819,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },
@@ -2809,7 +2854,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },
@@ -2846,7 +2891,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },
@@ -2997,7 +3042,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
         marketId: number;
@@ -3031,7 +3076,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
         ammId: number;
@@ -3380,7 +3425,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
         /**
@@ -3418,7 +3463,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp (will be rounded down to nearest timeFrame)
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
         /**
@@ -4523,24 +4568,6 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Deposit Box
-     * @name DepositBoxControllerQuoteBscBridge
-     * @summary Prepare BSC to Arbitrum bridge transaction
-     * @request POST:/v1/deposit-box/bridge/bsc/quote
-     */
-    depositBoxControllerQuoteBscBridge: (data: QuoteBscBridgeDto, params: RequestParams = {}) =>
-      this.request<QuoteBscBridgeResponse, any>({
-        path: `/v1/deposit-box/bridge/bsc/quote`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Deposit Box
      * @name DepositBoxControllerGetAvailableDepositBoxId
      * @summary Get available deposit box id
      * @request GET:/v1/deposit-box/box-id
@@ -4615,6 +4642,28 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<PatchWithdrawIntentResponse, any>({
         path: `/v1/deposit-box/intent/${id}/canceled`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Deposit Box
+     * @name DepositBoxControllerPatchDepositBoxIntentFailed
+     * @summary Patch deposit box intent as failed
+     * @request PATCH:/v1/deposit-box/intent/{id}/failed
+     */
+    depositBoxControllerPatchDepositBoxIntentFailed: (
+      id: string,
+      data: PatchDepositBoxIntentFailedDto,
+      params: RequestParams = {}
+    ) =>
+      this.request<PatchWithdrawIntentResponse, any>({
+        path: `/v1/deposit-box/intent/${id}/failed`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -5414,7 +5463,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767610399
+         * @default 1767733945
          */
         endTimestamp?: number;
       },

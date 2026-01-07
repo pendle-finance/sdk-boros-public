@@ -15,9 +15,10 @@ export function ensureDepositBoxAddress(root: Address, boxId: number, box?: stri
 }
 
 export function ensureCalldataHasBoxAddress(calldata: Hex, box: Address) {
+  const normalizedCalldata = calldata.toLowerCase();
   const normalizedBox = toAddress(box).slice(2);
 
-  if (!calldata.includes(normalizedBox)) {
+  if (!normalizedCalldata.includes(normalizedBox)) {
     throw new Error(`Calldata does not contain box address: box=${box}, calldata=${calldata}`);
   }
 }

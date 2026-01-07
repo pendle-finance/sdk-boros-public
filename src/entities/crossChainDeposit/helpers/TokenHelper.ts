@@ -1,5 +1,6 @@
 import { Address } from 'viem';
 import { Token } from '../..';
+import { DepositBoxAssetResponse } from '../../../backend/secrettune/BorosCoreSDK';
 import { BorosCoreSdk } from '../../../backend/secrettune/module';
 import { GlobalCache } from '../../../common/cacheDecorators';
 import { ChainId } from '../../../common/chainId';
@@ -17,19 +18,21 @@ export class TokenHelper {
     const { dstTokenId, srcChainId } = params ?? {};
     const { data } = await this.borosCoreSdk.depositBox.depositBoxControllerGetAssets();
 
+    const { assets, restrictedTokenIds } = data;
+
     const filterSrcChainId =
       srcChainId == null ? () => true : (asset: { chainId: number }) => asset.chainId === srcChainId;
     const filterDstTokenId =
       dstTokenId == null
         ? () => true
         : (() => {
-            const isExclusiveTokenId = data.assets.some((asset) => asset.dstTokenId === dstTokenId);
-            return isExclusiveTokenId
-              ? (asset: { dstTokenId?: number }) => asset.dstTokenId === dstTokenId
-              : (asset: { dstTokenId?: number }) => asset.dstTokenId == null;
+            const isRestrictedTokenId = restrictedTokenIds.includes(dstTokenId);
+            return isRestrictedTokenId
+              ? (asset: DepositBoxAssetResponse) => asset.metadata.dstTokenId === dstTokenId
+              : (asset: DepositBoxAssetResponse) => asset.metadata.isGeneral === true;
           })();
 
-    return data.assets
+    return assets
       .filter(filterSrcChainId)
       .filter(filterDstTokenId)
       .map((asset) => Token.createFromBorosCore(asset));
@@ -42,20 +45,21 @@ export class TokenHelper {
   async getWithdrawerTokens(params?: { srcTokenId?: TokenId; dstChainId?: ChainId }): Promise<Token[]> {
     const { srcTokenId, dstChainId } = params ?? {};
     const { data } = await this.borosCoreSdk.depositBox.depositBoxControllerGetAssets();
+    const { assets, restrictedTokenIds } = data;
 
     const srcTokenIdFilter =
       srcTokenId == null
         ? () => true
         : (() => {
-            const isExclusiveTokenId = data.assets.some((asset) => asset.dstTokenId === srcTokenId);
-            return isExclusiveTokenId
-              ? (asset: { dstTokenId?: number }) => asset.dstTokenId === srcTokenId
-              : (asset: { dstTokenId?: number }) => asset.dstTokenId == null;
+            const isRestrictedTokenId = restrictedTokenIds.includes(srcTokenId);
+            return isRestrictedTokenId
+              ? (asset: DepositBoxAssetResponse) => asset.metadata.dstTokenId === srcTokenId
+              : (asset: DepositBoxAssetResponse) => asset.metadata.isGeneral === true;
           })();
     const dstChainIdFilter =
       dstChainId == null ? () => true : (asset: { chainId: number }) => asset.chainId === dstChainId;
 
-    return data.assets
+    return assets
       .filter(srcTokenIdFilter)
       .filter(dstChainIdFilter)
       .map((asset) => Token.createFromBorosCore(asset));
@@ -78,22 +82,21 @@ export class TokenHelper {
   })
   async getDepositableTokenIds(chainId: ChainId, tokenAddress: Address): Promise<TokenId[]> {
     const { data } = await this.borosCoreSdk.depositBox.depositBoxControllerGetAssets();
+    const { assets, restrictedTokenIds } = data;
 
-    const token = data.assets.find(
-      (t) => t.chainId === chainId && t.address.toLowerCase() === tokenAddress.toLowerCase()
-    );
+    const token = assets.find((t) => t.chainId === chainId && t.address.toLowerCase() === tokenAddress.toLowerCase());
     if (!token) {
       throw new Error(`Token ${tokenAddress} on chain ${chainId} is not supported for deposit`);
     }
 
-    if (token.dstTokenId != null) {
-      return [token.dstTokenId];
+    if (token.metadata.dstTokenId != null) {
+      return [token.metadata.dstTokenId];
     }
 
-    const exclusiveTokenIds = new Set(data.assets.filter((a) => a.dstTokenId != null).map((a) => a.dstTokenId!));
     const allCollateralTokenIds = data.assets.filter((a) => a.isCollateral).map((a) => a.tokenId);
+    const restrictedTokenIdSet = new Set(restrictedTokenIds);
 
-    return allCollateralTokenIds.filter((id) => !exclusiveTokenIds.has(id));
+    return allCollateralTokenIds.filter((id) => !restrictedTokenIdSet.has(id));
   }
 }
 

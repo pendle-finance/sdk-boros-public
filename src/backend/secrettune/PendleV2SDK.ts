@@ -5703,6 +5703,11 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         needScale?: boolean;
         /** Available fields: `impliedApy`, `effectiveApy`. Comma separated list of fields to return. For example: `field1,field2`. More fields will consume more computing units. */
         additionalData?: string;
+        /**
+         * To use limit orders when converting, default to true
+         * @default true
+         */
+        useLimitOrder?: boolean;
       },
       params: RequestParams = {}
     ) =>

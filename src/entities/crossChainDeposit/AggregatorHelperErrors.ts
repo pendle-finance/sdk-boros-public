@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { Hex } from 'viem';
-import { QuoteBscBridgeDto, QuoteWithdrawBscDto } from '../../backend/secrettune/BorosCoreSDK';
+import { QuoteBscBridgeV2Dto, QuoteWithdrawBscDto } from '../../backend/secrettune/BorosCoreSDK';
 import { PendleSwapDtoV2 } from '../../backend/secrettune/PendleV2SDK';
 import { PendleSdkError, PendleSdkErrorParams } from '../../errors/PendleSdkError';
 import { AggregatorName, QuoteDepositParams, QuoteWithdrawParams } from './AggregatorHelper';
@@ -47,7 +47,7 @@ export type AggregatorRequestData = {
   };
   [AggregatorName.BOROS]: {
     getTokens: undefined;
-    quote: QuoteBscBridgeDto;
+    quote: QuoteBscBridgeV2Dto;
     quoteWithdraw: QuoteWithdrawBscDto;
     assemble: undefined;
     getRouteStatus: Hex;
