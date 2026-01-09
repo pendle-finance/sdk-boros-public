@@ -1,7 +1,7 @@
 import { FixedX18 } from '@pendle/boros-offchain-math';
 import { AMMStateResponse, OrderBooksResponse, SideTickResponse } from '../../backend/secrettune/BorosCoreSDK';
 import { NegativeAMMMath } from './NegativeAMMMath';
-import { AMM_CUT_OFF_REACHED_ERROR, AMMContractState, PositiveAMMMath } from './PositiveAMMMath';
+import { AMMContractState, AMM_CUT_OFF_REACHED_ERROR, PositiveAMMMath } from './PositiveAMMMath';
 import { ORDER_BOOK_SIZE_PER_SIDE } from './constants';
 
 export function calcAMMImpliedRate(ammStateResponse: AMMStateResponse, isPositiveAMM: boolean): number {

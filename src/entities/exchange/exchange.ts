@@ -18,7 +18,7 @@ import { getCurrentTimestamp } from '../../common/time';
 import { MarketStatus } from '../../common/types';
 import { CROSS_MARKET_ID } from '../../constants';
 import { ContractsFactory } from '../../contracts/contracts.factory';
-import { ApproveAgentReq, functionEncoder, MarketAcc, RevokeAgentReq, Side } from '../../types';
+import { ApproveAgentReq, MarketAcc, RevokeAgentReq, Side, functionEncoder } from '../../types';
 import { MarketAccLib, OrderIdLib, bulkSignWithAgent, signWithAgent } from '../../utils';
 import { Agent, setInternalAgent } from '../agent';
 import { publicClient } from './../publicClient';
@@ -774,7 +774,7 @@ export class Exchange {
       marketContract.getImpliedRateData(),
       marketContract.getMarketConfig(),
     ]);
-    const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > getCurrentTimestamp() : false;
+    const beforeCutOff = ammState ? Number(ammState.cutOffTimestamp) > Number(ammState.latestFTime) : false;
     const { impliedApr, markApr } = marketInfo;
 
     let midApr = FixedX18.fromRawValue(impliedApr).toNumber();

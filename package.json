@@ -2,7 +2,7 @@
   "name": "@pendle/sdk-boros",
   "description": "Pendle SDK for Boros",
   "license": "MIT",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

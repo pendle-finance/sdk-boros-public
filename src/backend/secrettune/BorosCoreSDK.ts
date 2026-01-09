@@ -142,8 +142,6 @@ export interface MarketMetadataResponse {
   name: string;
   /** Asset symbol of the market */
   assetSymbol: string;
-  /** Platform name. For example: "Binance", "Hyperliquid" */
-  platformName: string;
   /** Maximum leverage of the market. For example: 20 */
   maxLeverage: number;
   /** Default leverage of the market. For example: 10 */
@@ -444,6 +442,7 @@ export interface AMMStateResponse {
   minAbsRate: string;
   maxAbsRate: string;
   cutOffTimestamp: string;
+  isCutOffReached: boolean;
 }
 
 export type Function = object;
@@ -2627,11 +2626,14 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
-        /** List of indicators to select. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30) */
-        select: string[];
+        /**
+         * Comma-separated list of indicators. Supported: u, fp, fgi, udma:<periods> (e.g., udma:7;30)
+         * @example "u,fp,udma:7;30"
+         */
+        select: string;
       },
       params: RequestParams = {}
     ) =>
@@ -2640,6 +2642,52 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         query: query,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Export endpoint returning CSV file. OHLCV always included. Optional indicators: u, fp, fgi, ap, udma. Rate limited to 3 requests per minute per IP.
+     *
+     * @tags Markets
+     * @name IndicatorsControllerGetIndicatorsExport
+     * @summary Export market indicators as CSV (up to 10,000 data points)
+     * @request GET:/v1/markets/indicators-export
+     */
+    indicatorsControllerGetIndicatorsExport: (
+      query: {
+        /**
+         * Market ID
+         * @example 24
+         */
+        marketId: number;
+        /**
+         * Time frame { FIVE_MINUTES : 5m, ONE_HOUR : 1h, ONE_DAY : 1d, ONE_WEEK : 1w }
+         * @example "5m"
+         */
+        timeFrame: '5m' | '1h' | '1d' | '1w';
+        /**
+         * Start timestamp (Unix seconds), rounded to timeFrame
+         * @default 0
+         * @example 0
+         */
+        startTimestamp?: number;
+        /**
+         * End timestamp (Unix seconds), rounded to timeFrame, default to current timestamp
+         * @default 1767951668
+         */
+        endTimestamp?: number;
+        /**
+         * Comma-separated list of additional indicators. Supported: u, fp, fgi, ap, udma:<periods> (e.g., udma:7). OHLCV (o,h,l,c,v) is always included.
+         * @example "u,fgi,fp,ap,udma:3;7;30"
+         */
+        select?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<File, void>({
+        path: `/v1/markets/indicators-export`,
+        method: 'GET',
+        query: query,
         ...params,
       }),
 
@@ -2749,7 +2797,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
@@ -2784,7 +2832,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
@@ -2819,7 +2867,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
@@ -2854,7 +2902,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
@@ -2891,7 +2939,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
@@ -3042,7 +3090,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
         marketId: number;
@@ -3076,7 +3124,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
         ammId: number;
@@ -3425,7 +3473,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
         /**
@@ -3463,7 +3511,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp (will be rounded down to nearest timeFrame)
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
         /**
@@ -5463,7 +5511,7 @@ export class Sdk<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         startTimestamp?: number;
         /**
          * End timestamp, default to current timestamp
-         * @default 1767733945
+         * @default 1767951668
          */
         endTimestamp?: number;
       },
