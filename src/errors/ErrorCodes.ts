@@ -1,7 +1,21 @@
+import { PendleContractErrorsAbi } from '../contracts';
+import { PendleContractErrorMessageHandler } from './PendleContractError/type';
+
 /**
- * Standardized backend API error codes for Pendle Boros.
+ * Convert camelCase/PascalCase to SCREAMING_SNAKE_CASE
+ * Examples: MHMarketNotExists -> MH_MARKET_NOT_EXISTS
  */
-export const ErrorCodes = {
+function toScreamingSnakeCase(str: string): string {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .toUpperCase();
+}
+
+/**
+ * API-level error codes for Pendle Boros backend.
+ */
+const ApiErrorCodes = {
   // Validation Errors (400)
   REQUEST_VALIDATION_ERROR: 'REQUEST_VALIDATION_ERROR',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
@@ -83,166 +97,27 @@ export const ErrorCodes = {
 
   // Generic Error
   HTTP_EXCEPTION: 'HTTP_EXCEPTION',
+} as const;
 
-  // Contract Errors (from smart contracts)
-  // AMM Errors
-  AMMCutOffReached: 'AMMCutOffReached',
-  AMMInsufficientCashIn: 'AMMInsufficientCashIn',
-  AMMInsufficientCashOut: 'AMMInsufficientCashOut',
-  AMMInsufficientLiquidity: 'AMMInsufficientLiquidity',
-  AMMInsufficientLpOut: 'AMMInsufficientLpOut',
-  AMMInsufficientSizeOut: 'AMMInsufficientSizeOut',
-  AMMInvalidParams: 'AMMInvalidParams',
-  AMMInvalidRateRange: 'AMMInvalidRateRange',
-  AMMNegativeCash: 'AMMNegativeCash',
-  AMMNotFound: 'AMMNotFound',
-  AMMSignMismatch: 'AMMSignMismatch',
-  AMMTotalSupplyCapExceeded: 'AMMTotalSupplyCapExceeded',
-  AMMWithdrawOnly: 'AMMWithdrawOnly',
+/**
+ * Contract error codes derived from the ABI.
+ * Keys are original camelCase names, values are SCREAMING_SNAKE_CASE.
+ */
+const ContractErrorCodes = PendleContractErrorsAbi.filter((item) => item.type === 'error').reduce(
+  (acc, item) => {
+    const name = item.name as keyof PendleContractErrorMessageHandler;
+    acc[name] = toScreamingSnakeCase(name);
+    return acc;
+  },
+  {} as Record<keyof PendleContractErrorMessageHandler, string>
+);
 
-  // Auth Errors
-  AuthAgentExpired: 'AuthAgentExpired',
-  AuthExpiryInPast: 'AuthExpiryInPast',
-  AuthInvalidConnectionId: 'AuthInvalidConnectionId',
-  AuthInvalidMessage: 'AuthInvalidMessage',
-  AuthInvalidNonce: 'AuthInvalidNonce',
-  AuthSelectorNotAllowed: 'AuthSelectorNotAllowed',
-
-  // Token Errors
-  BOROS20NotEnoughBalance: 'BOROS20NotEnoughBalance',
-
-  // CLO Errors
-  CLOInvalidThreshold: 'CLOInvalidThreshold',
-  CLOMarketInvalidStatus: 'CLOMarketInvalidStatus',
-  CLOThresholdNotMet: 'CLOThresholdNotMet',
-
-  // Deleverager Errors
-  DeleveragerAMMNotAllowed: 'DeleveragerAMMNotAllowed',
-  DeleveragerDuplicateMarketId: 'DeleveragerDuplicateMarketId',
-  DeleveragerHealthNonRisky: 'DeleveragerHealthNonRisky',
-  DeleveragerIncomplete: 'DeleveragerIncomplete',
-  DeleveragerLoserHealthier: 'DeleveragerLoserHealthier',
-  DeleveragerLoserInBadDebt: 'DeleveragerLoserInBadDebt',
-  DeleveragerWinnerInBadDebt: 'DeleveragerWinnerInBadDebt',
-
-  // Math Errors
-  DivFailed: 'DivFailed',
-  DivWadFailed: 'DivWadFailed',
-  MulWadFailed: 'MulWadFailed',
-  SDivWadFailed: 'SDivWadFailed',
-  SMulWadFailed: 'SMulWadFailed',
-  MathInvalidExponent: 'MathInvalidExponent',
-  MathOutOfBounds: 'MathOutOfBounds',
-  Overflow: 'Overflow',
-
-  // ERC20 Errors
-  ERC20InsufficientAllowance: 'ERC20InsufficientAllowance',
-  ERC20InsufficientBalance: 'ERC20InsufficientBalance',
-  ERC20InvalidApprover: 'ERC20InvalidApprover',
-  ERC20InvalidReceiver: 'ERC20InvalidReceiver',
-  ERC20InvalidSender: 'ERC20InvalidSender',
-  ERC20InvalidSpender: 'ERC20InvalidSpender',
-
-  // FIndex Errors
-  FIndexInvalidTime: 'FIndexInvalidTime',
-  FIndexNotDueForUpdate: 'FIndexNotDueForUpdate',
-  FIndexUpdatedAtMaturity: 'FIndexUpdatedAtMaturity',
-
-  // General Errors
-  FailedCall: 'FailedCall',
-  InsufficientProfit: 'InsufficientProfit',
-  InvalidAMMAcc: 'InvalidAMMAcc',
-  InvalidAMMId: 'InvalidAMMId',
-  InvalidFeeRates: 'InvalidFeeRates',
-  InvalidLength: 'InvalidLength',
-  InvalidMaturity: 'InvalidMaturity',
-  InvalidNumTicks: 'InvalidNumTicks',
-  InvalidObservationWindow: 'InvalidObservationWindow',
-  InvalidTokenId: 'InvalidTokenId',
-  LiquidationAMMNotAllowed: 'LiquidationAMMNotAllowed',
-  ProfitMismatch: 'ProfitMismatch',
-  SimulationOnly: 'SimulationOnly',
-  Unauthorized: 'Unauthorized',
-
-  // MarketHub (MH) Errors
-  MHInvalidLiquidator: 'MHInvalidLiquidator',
-  MHMarketExists: 'MHMarketExists',
-  MHMarketNotByFactory: 'MHMarketNotByFactory',
-  MHMarketNotExists: 'MHMarketNotExists',
-  MHTokenExists: 'MHTokenExists',
-  MHTokenLimitExceeded: 'MHTokenLimitExceeded',
-  MHTokenNotExists: 'MHTokenNotExists',
-  MHWithdrawNotReady: 'MHWithdrawNotReady',
-
-  // MarginManager (MM) Errors
-  MMHealthCritical: 'MMHealthCritical',
-  MMHealthNonRisky: 'MMHealthNonRisky',
-  MMInsufficientIM: 'MMInsufficientIM',
-  MMInsufficientMinCash: 'MMInsufficientMinCash',
-  MMInvalidCritHR: 'MMInvalidCritHR',
-  MMIsolatedMarketDenied: 'MMIsolatedMarketDenied',
-  MMMarketAlreadyEntered: 'MMMarketAlreadyEntered',
-  MMMarketExitDenied: 'MMMarketExitDenied',
-  MMMarketLimitExceeded: 'MMMarketLimitExceeded',
-  MMMarketMismatch: 'MMMarketMismatch',
-  MMMarketNotEntered: 'MMMarketNotEntered',
-  MMSimulationOnly: 'MMSimulationOnly',
-  MMTokenMismatch: 'MMTokenMismatch',
-  MMTransferDenied: 'MMTransferDenied',
-
-  // Market Errors
-  MarketCLO: 'MarketCLO',
-  MarketDuplicateOTC: 'MarketDuplicateOTC',
-  MarketInvalidDeleverage: 'MarketInvalidDeleverage',
-  MarketInvalidFIndexOracle: 'MarketInvalidFIndexOracle',
-  MarketInvalidLiquidation: 'MarketInvalidLiquidation',
-  MarketLastTradedRateTooFar: 'MarketLastTradedRateTooFar',
-  MarketLiqNotReduceSize: 'MarketLiqNotReduceSize',
-  MarketMatured: 'MarketMatured',
-  MarketMaxOrdersExceeded: 'MarketMaxOrdersExceeded',
-  MarketOICapExceeded: 'MarketOICapExceeded',
-  MarketOrderALOFilled: 'MarketOrderALOFilled',
-  MarketOrderCancelled: 'MarketOrderCancelled',
-  MarketOrderFOKNotFilled: 'MarketOrderFOKNotFilled',
-  MarketOrderFilled: 'MarketOrderFilled',
-  MarketOrderNotFound: 'MarketOrderNotFound',
-  MarketOrderRateOutOfBound: 'MarketOrderRateOutOfBound',
-  MarketPaused: 'MarketPaused',
-  MarketSelfSwap: 'MarketSelfSwap',
-  MarketZeroSize: 'MarketZeroSize',
-
-  // OrderCanceller Errors
-  OrderCancellerDuplicateMarketId: 'OrderCancellerDuplicateMarketId',
-  OrderCancellerDuplicateOrderId: 'OrderCancellerDuplicateOrderId',
-  OrderCancellerInvalidOrder: 'OrderCancellerInvalidOrder',
-  OrderCancellerNotRisky: 'OrderCancellerNotRisky',
-
-  // Pauser Errors
-  PauserNotRisky: 'PauserNotRisky',
-  PauserTokenMismatch: 'PauserTokenMismatch',
-
-  // Trade Errors
-  TradeALOAMMNotAllowed: 'TradeALOAMMNotAllowed',
-  TradeAMMAlreadySet: 'TradeAMMAlreadySet',
-  TradeMarketIdMismatch: 'TradeMarketIdMismatch',
-  TradeOnlyAMMAccount: 'TradeOnlyAMMAccount',
-  TradeOnlyForIsolated: 'TradeOnlyForIsolated',
-  TradeOnlyMainAccount: 'TradeOnlyMainAccount',
-  TradeUndesiredRate: 'TradeUndesiredRate',
-  TradeUndesiredSide: 'TradeUndesiredSide',
-
-  // WithdrawalPolice Errors
-  WithdrawalPoliceAlreadyRestricted: 'WithdrawalPoliceAlreadyRestricted',
-  WithdrawalPoliceInvalidCooldown: 'WithdrawalPoliceInvalidCooldown',
-  WithdrawalPoliceInvalidThreshold: 'WithdrawalPoliceInvalidThreshold',
-  WithdrawalPoliceUnsatCondition: 'WithdrawalPoliceUnsatCondition',
-
-  // Zone Errors
-  ZoneGlobalCooldownAlreadyIncreased: 'ZoneGlobalCooldownAlreadyIncreased',
-  ZoneInvalidGlobalCooldown: 'ZoneInvalidGlobalCooldown',
-  ZoneInvalidLiqSettings: 'ZoneInvalidLiqSettings',
-  ZoneInvalidRateDeviationConfig: 'ZoneInvalidRateDeviationConfig',
-  ZoneMarketInvalidStatus: 'ZoneMarketInvalidStatus',
+/**
+ * Combined error codes: API errors + Contract errors
+ */
+export const ErrorCodes = {
+  ...ApiErrorCodes,
+  ...ContractErrorCodes,
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
