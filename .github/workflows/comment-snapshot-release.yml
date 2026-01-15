@@ -1,0 +1,80 @@
+name: Release snapshot package via comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  recognize_comment:
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/snapshot-release') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Thumb up
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: process.env.comment_id,
+              content: '+1'
+            })
+        env:
+          comment_id: ${{ github.event.comment.id }}
+
+  pr-comment-action:
+    needs: recognize_comment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      head_ref: ${{ steps.action.outputs.head_ref }}
+
+    steps:
+      - id: action
+        uses: xt0rted/pull-request-comment-branch@v2
+
+  release:
+    needs: pr-comment-action
+    uses: ./.github/workflows/snapshot-release.yml
+    with:
+      ref: ${{ needs.pr-comment-action.outputs.head_ref }}
+    secrets:
+      NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+  notify-done:
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log(process.env.package_version);
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Snapshot released! Version:\n```\n' + process.env.package_version + '\n```'
+            });
+        env:
+          package_version: ${{ needs.release.outputs.package_version }}
+
+  notify-done-fail:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: release
+    steps:
+      - name: Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log(process.env.package_version);
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Snapshot release failed! Please take a look at the action for troubleshooting.'
+            });
