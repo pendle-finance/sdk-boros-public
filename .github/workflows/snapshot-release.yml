@@ -1,0 +1,53 @@
+name: Release snapshot package
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ${{ github.ref }}
+    outputs:
+      package_version:
+        description: "Package version"
+        value: ${{ jobs.release.outputs.package_version }}
+    secrets:
+      NPM_PUBLISH_TOKEN:
+        required: true
+
+
+jobs:
+  release:
+    environment: npm-registry
+    runs-on: ubuntu-latest
+    env:
+      PENDLE_SDK_V2_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      REF: ${{ inputs.ref || github.ref }}
+      BRANCH_NAME: ${{ inputs.ref || github.head_ref || github.ref_name }}
+    # if: ${{ env.REF != 'refs/heads/develop' }} # This check make CI failed.
+                                                 # But we don't need it tho. `develop` snapshot is fine.
+    outputs:
+      package_version: ${{ steps.changeset_prepare.outputs.package_version }}
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          ref: ${{ env.REF }}
+
+      - name: Install
+        run: yarn install --immutable
+
+      - name: Prepare changeset snapshot version (part after the last slash)
+        id: changeset_prepare
+        run: |
+          yarn changeset version --snapshot "${BRANCH_NAME##*/}"
+          PACKAGE_VERSION=`jq -r '.version' package.json`
+          echo $PACKAGE_VERSION
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create snapshot release
+        uses: changesets/action@v1
+        with:
+          publish: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}  # changeset requires this for .npmrc file
