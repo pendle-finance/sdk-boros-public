@@ -21,7 +21,7 @@ jobs:
     environment: npm-registry
     runs-on: ubuntu-latest
     env:
-      PENDLE_SDK_V2_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      PENDLE_SDK_BOROS_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
       REF: ${{ inputs.ref || github.ref }}
       BRANCH_NAME: ${{ inputs.ref || github.head_ref || github.ref_name }}
     # if: ${{ env.REF != 'refs/heads/develop' }} # This check make CI failed.
